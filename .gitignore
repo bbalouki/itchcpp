@@ -1,5 +1,6 @@
 .venv/
 .env
+.vscode/
 *.gz
 *.pdf
 build/

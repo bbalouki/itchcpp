@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_SHARED_LIBS "Build libraries as shared" OFF)
 
-add_executable(itch src/parser.cpp main.cpp )
+add_executable(itch src/parser/parser.cpp main.cpp )
 target_include_directories(itch PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 

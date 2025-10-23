@@ -20,5 +20,5 @@ target_link_libraries(parser_tests PRIVATE
 include(GoogleTest)
 gtest_discover_tests(
   parser_tests
-  PROPERTIES LABELS "application"
+  PROPERTIES LABELS "library"
 )
