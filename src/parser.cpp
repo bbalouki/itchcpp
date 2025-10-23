@@ -98,6 +98,193 @@ uint64_t unpack_timestamp(const char* buffer, size_t& offset) {
 
 }  // namespace
 
+void unpack_message(SystemEventMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.event_code = unpack<char>(buffer, offset);
+}
+
+void unpack_message(StockDirectoryMessage& msg, const char* buffer,
+                    size_t& offset) {
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.market_category = unpack<char>(buffer, offset);
+    msg.financial_status_indicator = unpack<char>(buffer, offset);
+    msg.round_lot_size = unpack_be<uint32_t>(buffer, offset);
+    msg.round_lots_only = unpack<char>(buffer, offset);
+    msg.issue_classification = unpack<char>(buffer, offset);
+    unpack_string(buffer, offset, msg.issue_sub_type, 2);
+    msg.authenticity = unpack<char>(buffer, offset);
+    msg.short_sale_threshold_indicator = unpack<char>(buffer, offset);
+    msg.ipo_flag = unpack<char>(buffer, offset);
+    msg.luld_ref = unpack<char>(buffer, offset);
+    msg.etp_flag = unpack<char>(buffer, offset);
+    msg.etp_leverage_factor = unpack_be<uint32_t>(buffer, offset);
+    msg.inverse_indicator = unpack<char>(buffer, offset);
+}
+
+void unpack_message(StockTradingActionMessage& msg, const char* buffer,
+                    size_t& offset) {
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.trading_state = unpack<char>(buffer, offset);
+    msg.reserved = unpack<char>(buffer, offset);
+    unpack_string(buffer, offset, msg.reason, 4);
+}
+
+void unpack_message(RegSHOMessage& msg, const char* buffer, size_t& offset) {
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.reg_sho_action = unpack<char>(buffer, offset);
+}
+
+void unpack_message(MarketParticipantPositionMessage& msg, const char* buffer,
+                    size_t& offset) {
+    unpack_string(buffer, offset, msg.mpid, 4);
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.primary_market_maker = unpack<char>(buffer, offset);
+    msg.market_maker_mode = unpack<char>(buffer, offset);
+    msg.market_participant_state = unpack<char>(buffer, offset);
+}
+
+void unpack_message(MWCBDeclineLevelMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.level1 = unpack_be<uint64_t>(buffer, offset);
+    msg.level2 = unpack_be<uint64_t>(buffer, offset);
+    msg.level3 = unpack_be<uint64_t>(buffer, offset);
+}
+
+void unpack_message(MWCBStatusMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.breached_level = unpack<char>(buffer, offset);
+}
+
+void unpack_message(IPOQuotingPeriodUpdateMessage& msg, const char* buffer,
+                    size_t& offset) {
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.ipo_quotation_release_time = unpack_be<uint32_t>(buffer, offset);
+    msg.ipo_quotation_release_qualifier = unpack<char>(buffer, offset);
+    msg.ipo_price = unpack_be<uint32_t>(buffer, offset);
+}
+
+void unpack_message(LULDAuctionCollarMessage& msg, const char* buffer,
+                    size_t& offset) {
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.auction_collar_reference_price = unpack_be<uint32_t>(buffer, offset);
+    msg.upper_auction_collar_price = unpack_be<uint32_t>(buffer, offset);
+    msg.lower_auction_collar_price = unpack_be<uint32_t>(buffer, offset);
+    msg.auction_collar_extension = unpack_be<uint32_t>(buffer, offset);
+}
+
+void unpack_message(OperationalHaltMessage& msg, const char* buffer,
+                    size_t& offset) {
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.market_code = unpack<char>(buffer, offset);
+    msg.operational_halt_action = unpack<char>(buffer, offset);
+}
+
+void unpack_message(AddOrderMessage& msg, const char* buffer, size_t& offset) {
+    msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+    msg.buy_sell_indicator = unpack<char>(buffer, offset);
+    msg.shares = unpack_be<uint32_t>(buffer, offset);
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.price = unpack_be<uint32_t>(buffer, offset);
+}
+
+void unpack_message(AddOrderMPIDAttributionMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+    msg.buy_sell_indicator = unpack<char>(buffer, offset);
+    msg.shares = unpack_be<uint32_t>(buffer, offset);
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.price = unpack_be<uint32_t>(buffer, offset);
+    unpack_string(buffer, offset, msg.attribution, 4);
+}
+
+void unpack_message(OrderExecutedMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+    msg.executed_shares = unpack_be<uint32_t>(buffer, offset);
+    msg.match_number = unpack_be<uint64_t>(buffer, offset);
+}
+
+void unpack_message(OrderExecutedWithPriceMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+    msg.executed_shares = unpack_be<uint32_t>(buffer, offset);
+    msg.match_number = unpack_be<uint64_t>(buffer, offset);
+    msg.printable = unpack<char>(buffer, offset);
+    msg.execution_price = unpack_be<uint32_t>(buffer, offset);
+}
+
+void unpack_message(OrderCancelMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+    msg.cancelled_shares = unpack_be<uint32_t>(buffer, offset);
+}
+
+void unpack_message(OrderDeleteMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+}
+
+void unpack_message(OrderReplaceMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.original_order_reference_number = unpack_be<uint64_t>(buffer, offset);
+    msg.new_order_reference_number = unpack_be<uint64_t>(buffer, offset);
+    msg.shares = unpack_be<uint32_t>(buffer, offset);
+    msg.price = unpack_be<uint32_t>(buffer, offset);
+}
+
+void unpack_message(NonCrossTradeMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+    msg.buy_sell_indicator = unpack<char>(buffer, offset);
+    msg.shares = unpack_be<uint32_t>(buffer, offset);
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.price = unpack_be<uint32_t>(buffer, offset);
+    msg.match_number = unpack_be<uint64_t>(buffer, offset);
+}
+
+void unpack_message(CrossTradeMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.shares = unpack_be<uint64_t>(buffer, offset);
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.cross_price = unpack_be<uint32_t>(buffer, offset);
+    msg.match_number = unpack_be<uint64_t>(buffer, offset);
+    msg.cross_type = unpack<char>(buffer, offset);
+}
+
+void unpack_message(BrokenTradeMessage& msg, const char* buffer,
+                    size_t& offset) {
+    msg.match_number = unpack_be<uint64_t>(buffer, offset);
+}
+
+void unpack_message(NOIIMessage& msg, const char* buffer, size_t& offset) {
+    msg.paired_shares = unpack_be<uint64_t>(buffer, offset);
+    msg.imbalance_shares = unpack_be<uint64_t>(buffer, offset);
+    msg.imbalance_direction = unpack<char>(buffer, offset);
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.far_price = unpack_be<uint32_t>(buffer, offset);
+    msg.near_price = unpack_be<uint32_t>(buffer, offset);
+    msg.current_reference_price = unpack_be<uint32_t>(buffer, offset);
+    msg.cross_type = unpack<char>(buffer, offset);
+    msg.price_variation_indicator = unpack<char>(buffer, offset);
+}
+
+void unpack_message(RetailPriceImprovementIndicatorMessage& msg,
+                    const char* buffer, size_t& offset) {
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.interest_flag = unpack<char>(buffer, offset);
+}
+
+void unpack_message(DLCRMessage& msg, const char* buffer, size_t& offset) {
+    unpack_string(buffer, offset, msg.stock, 8);
+    msg.open_eligibility_status = unpack<char>(buffer, offset);
+    msg.minimum_allowable_price = unpack_be<uint32_t>(buffer, offset);
+    msg.maximum_allowable_price = unpack_be<uint32_t>(buffer, offset);
+    msg.near_execution_price = unpack_be<uint32_t>(buffer, offset);
+    msg.near_execution_time = unpack_be<uint64_t>(buffer, offset);
+    msg.lower_price_range_collar = unpack_be<uint32_t>(buffer, offset);
+    msg.upper_price_range_collar = unpack_be<uint32_t>(buffer, offset);
+}
+
 template <typename T>
 void Parser::register_handler(char type) {
     m_handlers[type] = [](const char* buffer) -> Message {
@@ -108,138 +295,8 @@ void Parser::register_handler(char type) {
         msg.tracking_number = unpack_be<uint16_t>(buffer, offset);
         msg.timestamp = unpack_timestamp(buffer, offset);
 
-        if constexpr (std::is_same_v<T, SystemEventMessage>) {
-            msg.event_code = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, StockDirectoryMessage>) {
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.market_category = unpack<char>(buffer, offset);
-            msg.financial_status_indicator = unpack<char>(buffer, offset);
-            msg.round_lot_size = unpack_be<uint32_t>(buffer, offset);
-            msg.round_lots_only = unpack<char>(buffer, offset);
-            msg.issue_classification = unpack<char>(buffer, offset);
-            unpack_string(buffer, offset, msg.issue_sub_type, 2);
-            msg.authenticity = unpack<char>(buffer, offset);
-            msg.short_sale_threshold_indicator = unpack<char>(buffer, offset);
-            msg.ipo_flag = unpack<char>(buffer, offset);
-            msg.luld_ref = unpack<char>(buffer, offset);
-            msg.etp_flag = unpack<char>(buffer, offset);
-            msg.etp_leverage_factor = unpack_be<uint32_t>(buffer, offset);
-            msg.inverse_indicator = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, StockTradingActionMessage>) {
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.trading_state = unpack<char>(buffer, offset);
-            msg.reserved = unpack<char>(buffer, offset);
-            unpack_string(buffer, offset, msg.reason, 4);
-        } else if constexpr (std::is_same_v<T, RegSHOMessage>) {
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.reg_sho_action = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<T,
-                                            MarketParticipantPositionMessage>) {
-            unpack_string(buffer, offset, msg.mpid, 4);
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.primary_market_maker = unpack<char>(buffer, offset);
-            msg.market_maker_mode = unpack<char>(buffer, offset);
-            msg.market_participant_state = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, MWCBDeclineLevelMessage>) {
-            msg.level1 = unpack_be<uint64_t>(buffer, offset);
-            msg.level2 = unpack_be<uint64_t>(buffer, offset);
-            msg.level3 = unpack_be<uint64_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, MWCBStatusMessage>) {
-            msg.breached_level = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, IPOQuotingPeriodUpdateMessage>) {
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.ipo_quotation_release_time =
-                unpack_be<uint32_t>(buffer, offset);
-            msg.ipo_quotation_release_qualifier = unpack<char>(buffer, offset);
-            msg.ipo_price = unpack_be<uint32_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, LULDAuctionCollarMessage>) {
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.auction_collar_reference_price =
-                unpack_be<uint32_t>(buffer, offset);
-            msg.upper_auction_collar_price =
-                unpack_be<uint32_t>(buffer, offset);
-            msg.lower_auction_collar_price =
-                unpack_be<uint32_t>(buffer, offset);
-            msg.auction_collar_extension = unpack_be<uint32_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, OperationalHaltMessage>) {
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.market_code = unpack<char>(buffer, offset);
-            msg.operational_halt_action = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, AddOrderMessage>) {
-            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
-            msg.buy_sell_indicator = unpack<char>(buffer, offset);
-            msg.shares = unpack_be<uint32_t>(buffer, offset);
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.price = unpack_be<uint32_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T,
-                                            AddOrderMPIDAttributionMessage>) {
-            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
-            msg.buy_sell_indicator = unpack<char>(buffer, offset);
-            msg.shares = unpack_be<uint32_t>(buffer, offset);
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.price = unpack_be<uint32_t>(buffer, offset);
-            unpack_string(buffer, offset, msg.attribution, 4);
-        } else if constexpr (std::is_same_v<T, OrderExecutedMessage>) {
-            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
-            msg.executed_shares = unpack_be<uint32_t>(buffer, offset);
-            msg.match_number = unpack_be<uint64_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, OrderExecutedWithPriceMessage>) {
-            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
-            msg.executed_shares = unpack_be<uint32_t>(buffer, offset);
-            msg.match_number = unpack_be<uint64_t>(buffer, offset);
-            msg.printable = unpack<char>(buffer, offset);
-            msg.execution_price = unpack_be<uint32_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, OrderCancelMessage>) {
-            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
-            msg.cancelled_shares = unpack_be<uint32_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, OrderDeleteMessage>) {
-            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, OrderReplaceMessage>) {
-            msg.original_order_reference_number =
-                unpack_be<uint64_t>(buffer, offset);
-            msg.new_order_reference_number =
-                unpack_be<uint64_t>(buffer, offset);
-            msg.shares = unpack_be<uint32_t>(buffer, offset);
-            msg.price = unpack_be<uint32_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, NonCrossTradeMessage>) {
-            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
-            msg.buy_sell_indicator = unpack<char>(buffer, offset);
-            msg.shares = unpack_be<uint32_t>(buffer, offset);
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.price = unpack_be<uint32_t>(buffer, offset);
-            msg.match_number = unpack_be<uint64_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, CrossTradeMessage>) {
-            msg.shares = unpack_be<uint64_t>(buffer, offset);
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.cross_price = unpack_be<uint32_t>(buffer, offset);
-            msg.match_number = unpack_be<uint64_t>(buffer, offset);
-            msg.cross_type = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, BrokenTradeMessage>) {
-            msg.match_number = unpack_be<uint64_t>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, NOIIMessage>) {
-            msg.paired_shares = unpack_be<uint64_t>(buffer, offset);
-            msg.imbalance_shares = unpack_be<uint64_t>(buffer, offset);
-            msg.imbalance_direction = unpack<char>(buffer, offset);
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.far_price = unpack_be<uint32_t>(buffer, offset);
-            msg.near_price = unpack_be<uint32_t>(buffer, offset);
-            msg.current_reference_price = unpack_be<uint32_t>(buffer, offset);
-            msg.cross_type = unpack<char>(buffer, offset);
-            msg.price_variation_indicator = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<
-                                 T, RetailPriceImprovementIndicatorMessage>) {
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.interest_flag = unpack<char>(buffer, offset);
-        } else if constexpr (std::is_same_v<T, DLCRMessage>) {
-            unpack_string(buffer, offset, msg.stock, 8);
-            msg.open_eligibility_status = unpack<char>(buffer, offset);
-            msg.minimum_allowable_price = unpack_be<uint32_t>(buffer, offset);
-            msg.maximum_allowable_price = unpack_be<uint32_t>(buffer, offset);
-            msg.near_execution_price = unpack_be<uint32_t>(buffer, offset);
-            msg.near_execution_time = unpack_be<uint64_t>(buffer, offset);
-            msg.lower_price_range_collar = unpack_be<uint32_t>(buffer, offset);
-            msg.upper_price_range_collar = unpack_be<uint32_t>(buffer, offset);
-        }
+        unpack_message(msg, buffer, offset);
+
         return msg;
     };
 }
@@ -305,10 +362,9 @@ void Parser::parse(std::istream& is,
         auto handler_it = m_handlers.find(message_type);
         if (handler_it != m_handlers.end()) {
             callback(handler_it->second(buffer.data()));
-        }
-        else {
-           std::cerr << "Warning: Unknown or unhandled message type: " <<
-           message_type << '\n';
+        } else {
+            std::cerr << "Warning: Unknown or unhandled message type: "
+                      << message_type << '\n';
         }
     }
 }
