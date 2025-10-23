@@ -1,9 +1,8 @@
 #pragma once
 
-#include <fstream>
 #include <functional>
+#include <istream>
 #include <map>
-#include <memory>
 #include <variant>
 #include <vector>
 
@@ -32,7 +31,6 @@ class Parser {
    private:
     using Handler = std::function<Message(const char*)>;
     std::map<char, Handler> m_handlers;
-    std::map<char, size_t> m_message_sizes;
 
     template <typename T>
     void register_handler(char type);

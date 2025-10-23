@@ -1,13 +1,61 @@
 #include "parser.hpp"
 
+#include <cstdint>
 #include <cstring>
 #include <stdexcept>
 #include <vector>
 
+#include "itch.hpp"
 
 namespace itch {
 
 namespace {
+
+// Check the system's endianness at compile time (or runtime as a fallback).
+// This determines if we need to swap bytes at all.
+inline bool is_little_endian() {
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    return true;
+#elif defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    return false;
+#elif defined(_WIN32)  // Windows is always little-endian
+    return true;
+#else
+    // Runtime check if compile-time check is not available
+    const union {
+        uint32_t i;
+        char c[4];
+    } bint = {0x01020304};
+    return bint.c[0] == 4;
+#endif
+}
+
+// Generic byte-swapping function for any integral type.
+template <typename T>
+T swap_bytes(T value) {
+    static_assert(std::is_integral<T>::value,
+                  "swap_bytes can only be used with integral types");
+    union {
+        T val;
+        uint8_t bytes[sizeof(T)];
+    } src, dst;
+    src.val = value;
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        dst.bytes[i] = src.bytes[sizeof(T) - 1 - i];
+    }
+    return dst.val;
+}
+
+// Converts a value from big-endian (network order) to the host's native byte
+// order. On little-endian systems (like x86/x64), it swaps the bytes. On
+// big-endian systems, it does nothing.
+template <typename T>
+T from_big_endian(T value) {
+    if (is_little_endian()) {
+        return swap_bytes(value);
+    }
+    return value;
+}
 
 // Helper to unpack a value from a buffer at a given offset
 template <typename T>
@@ -25,10 +73,27 @@ void unpack_string(const char* buffer, size_t& offset, char* dest,
     offset += size;
 }
 
+// Unpack and convert multi-byte fields from big-endian (network) to host order
+template <typename T>
+T unpack_be(const char* buffer, size_t& offset) {
+    T value;
+    std::memcpy(&value, buffer + offset, sizeof(T));
+    offset += sizeof(T);
+    return from_big_endian(value);
+}
+
+// ITCH timestamps are 48-bit big-endian integers.
+// 2 bytes for high part, 4 bytes for low part.
 uint64_t unpack_timestamp(const char* buffer, size_t& offset) {
-    uint16_t high = unpack<uint16_t>(buffer, offset);
-    uint32_t low = unpack<uint32_t>(buffer, offset);
-    return (static_cast<uint64_t>(high) << 32) | low;
+    uint16_t high;
+    uint32_t low;
+    std::memcpy(&high, buffer + offset, sizeof(high));
+    offset += sizeof(high);
+    std::memcpy(&low, buffer + offset, sizeof(low));
+    offset += sizeof(low);
+    // Convert each part from big-endian before combining
+    return (static_cast<uint64_t>(from_big_endian(high)) << 32) |
+           from_big_endian(low);
 }
 
 }  // namespace
@@ -39,8 +104,8 @@ void Parser::register_handler(char type) {
         T msg;
         size_t offset = 1;  // Skip message type
 
-        msg.stock_locate = unpack<uint16_t>(buffer, offset);
-        msg.tracking_number = unpack<uint16_t>(buffer, offset);
+        msg.stock_locate = unpack_be<uint16_t>(buffer, offset);
+        msg.tracking_number = unpack_be<uint16_t>(buffer, offset);
         msg.timestamp = unpack_timestamp(buffer, offset);
 
         if constexpr (std::is_same_v<T, SystemEventMessage>) {
@@ -49,7 +114,7 @@ void Parser::register_handler(char type) {
             unpack_string(buffer, offset, msg.stock, 8);
             msg.market_category = unpack<char>(buffer, offset);
             msg.financial_status_indicator = unpack<char>(buffer, offset);
-            msg.round_lot_size = unpack<uint32_t>(buffer, offset);
+            msg.round_lot_size = unpack_be<uint32_t>(buffer, offset);
             msg.round_lots_only = unpack<char>(buffer, offset);
             msg.issue_classification = unpack<char>(buffer, offset);
             unpack_string(buffer, offset, msg.issue_sub_type, 2);
@@ -58,7 +123,7 @@ void Parser::register_handler(char type) {
             msg.ipo_flag = unpack<char>(buffer, offset);
             msg.luld_ref = unpack<char>(buffer, offset);
             msg.etp_flag = unpack<char>(buffer, offset);
-            msg.etp_leverage_factor = unpack<uint32_t>(buffer, offset);
+            msg.etp_leverage_factor = unpack_be<uint32_t>(buffer, offset);
             msg.inverse_indicator = unpack<char>(buffer, offset);
         } else if constexpr (std::is_same_v<T, StockTradingActionMessage>) {
             unpack_string(buffer, offset, msg.stock, 8);
@@ -76,84 +141,89 @@ void Parser::register_handler(char type) {
             msg.market_maker_mode = unpack<char>(buffer, offset);
             msg.market_participant_state = unpack<char>(buffer, offset);
         } else if constexpr (std::is_same_v<T, MWCBDeclineLevelMessage>) {
-            msg.level1 = unpack<uint64_t>(buffer, offset);
-            msg.level2 = unpack<uint64_t>(buffer, offset);
-            msg.level3 = unpack<uint64_t>(buffer, offset);
+            msg.level1 = unpack_be<uint64_t>(buffer, offset);
+            msg.level2 = unpack_be<uint64_t>(buffer, offset);
+            msg.level3 = unpack_be<uint64_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, MWCBStatusMessage>) {
             msg.breached_level = unpack<char>(buffer, offset);
         } else if constexpr (std::is_same_v<T, IPOQuotingPeriodUpdateMessage>) {
             unpack_string(buffer, offset, msg.stock, 8);
-            msg.ipo_quotation_release_time = unpack<uint32_t>(buffer, offset);
+            msg.ipo_quotation_release_time =
+                unpack_be<uint32_t>(buffer, offset);
             msg.ipo_quotation_release_qualifier = unpack<char>(buffer, offset);
-            msg.ipo_price = unpack<uint32_t>(buffer, offset);
+            msg.ipo_price = unpack_be<uint32_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, LULDAuctionCollarMessage>) {
             unpack_string(buffer, offset, msg.stock, 8);
-            msg.auction_collar_reference_price = unpack<uint32_t>(buffer, offset);
-            msg.upper_auction_collar_price = unpack<uint32_t>(buffer, offset);
-            msg.lower_auction_collar_price = unpack<uint32_t>(buffer, offset);
-            msg.auction_collar_extension = unpack<uint32_t>(buffer, offset);
+            msg.auction_collar_reference_price =
+                unpack_be<uint32_t>(buffer, offset);
+            msg.upper_auction_collar_price =
+                unpack_be<uint32_t>(buffer, offset);
+            msg.lower_auction_collar_price =
+                unpack_be<uint32_t>(buffer, offset);
+            msg.auction_collar_extension = unpack_be<uint32_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, OperationalHaltMessage>) {
             unpack_string(buffer, offset, msg.stock, 8);
             msg.market_code = unpack<char>(buffer, offset);
             msg.operational_halt_action = unpack<char>(buffer, offset);
         } else if constexpr (std::is_same_v<T, AddOrderMessage>) {
-            msg.order_reference_number = unpack<uint64_t>(buffer, offset);
+            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
             msg.buy_sell_indicator = unpack<char>(buffer, offset);
-            msg.shares = unpack<uint32_t>(buffer, offset);
+            msg.shares = unpack_be<uint32_t>(buffer, offset);
             unpack_string(buffer, offset, msg.stock, 8);
-            msg.price = unpack<uint32_t>(buffer, offset);
+            msg.price = unpack_be<uint32_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T,
                                             AddOrderMPIDAttributionMessage>) {
-            msg.order_reference_number = unpack<uint64_t>(buffer, offset);
+            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
             msg.buy_sell_indicator = unpack<char>(buffer, offset);
-            msg.shares = unpack<uint32_t>(buffer, offset);
+            msg.shares = unpack_be<uint32_t>(buffer, offset);
             unpack_string(buffer, offset, msg.stock, 8);
-            msg.price = unpack<uint32_t>(buffer, offset);
+            msg.price = unpack_be<uint32_t>(buffer, offset);
             unpack_string(buffer, offset, msg.attribution, 4);
         } else if constexpr (std::is_same_v<T, OrderExecutedMessage>) {
-            msg.order_reference_number = unpack<uint64_t>(buffer, offset);
-            msg.executed_shares = unpack<uint32_t>(buffer, offset);
-            msg.match_number = unpack<uint64_t>(buffer, offset);
+            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+            msg.executed_shares = unpack_be<uint32_t>(buffer, offset);
+            msg.match_number = unpack_be<uint64_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, OrderExecutedWithPriceMessage>) {
-            msg.order_reference_number = unpack<uint64_t>(buffer, offset);
-            msg.executed_shares = unpack<uint32_t>(buffer, offset);
-            msg.match_number = unpack<uint64_t>(buffer, offset);
+            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+            msg.executed_shares = unpack_be<uint32_t>(buffer, offset);
+            msg.match_number = unpack_be<uint64_t>(buffer, offset);
             msg.printable = unpack<char>(buffer, offset);
-            msg.execution_price = unpack<uint32_t>(buffer, offset);
+            msg.execution_price = unpack_be<uint32_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, OrderCancelMessage>) {
-            msg.order_reference_number = unpack<uint64_t>(buffer, offset);
-            msg.cancelled_shares = unpack<uint32_t>(buffer, offset);
+            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
+            msg.cancelled_shares = unpack_be<uint32_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, OrderDeleteMessage>) {
-            msg.order_reference_number = unpack<uint64_t>(buffer, offset);
+            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, OrderReplaceMessage>) {
             msg.original_order_reference_number =
-                unpack<uint64_t>(buffer, offset);
-            msg.new_order_reference_number = unpack<uint64_t>(buffer, offset);
-            msg.shares = unpack<uint32_t>(buffer, offset);
-            msg.price = unpack<uint32_t>(buffer, offset);
+                unpack_be<uint64_t>(buffer, offset);
+            msg.new_order_reference_number =
+                unpack_be<uint64_t>(buffer, offset);
+            msg.shares = unpack_be<uint32_t>(buffer, offset);
+            msg.price = unpack_be<uint32_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, NonCrossTradeMessage>) {
-            msg.order_reference_number = unpack<uint64_t>(buffer, offset);
+            msg.order_reference_number = unpack_be<uint64_t>(buffer, offset);
             msg.buy_sell_indicator = unpack<char>(buffer, offset);
-            msg.shares = unpack<uint32_t>(buffer, offset);
+            msg.shares = unpack_be<uint32_t>(buffer, offset);
             unpack_string(buffer, offset, msg.stock, 8);
-            msg.price = unpack<uint32_t>(buffer, offset);
-            msg.match_number = unpack<uint64_t>(buffer, offset);
+            msg.price = unpack_be<uint32_t>(buffer, offset);
+            msg.match_number = unpack_be<uint64_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, CrossTradeMessage>) {
-            msg.shares = unpack<uint64_t>(buffer, offset);
+            msg.shares = unpack_be<uint64_t>(buffer, offset);
             unpack_string(buffer, offset, msg.stock, 8);
-            msg.cross_price = unpack<uint32_t>(buffer, offset);
-            msg.match_number = unpack<uint64_t>(buffer, offset);
+            msg.cross_price = unpack_be<uint32_t>(buffer, offset);
+            msg.match_number = unpack_be<uint64_t>(buffer, offset);
             msg.cross_type = unpack<char>(buffer, offset);
         } else if constexpr (std::is_same_v<T, BrokenTradeMessage>) {
-            msg.match_number = unpack<uint64_t>(buffer, offset);
+            msg.match_number = unpack_be<uint64_t>(buffer, offset);
         } else if constexpr (std::is_same_v<T, NOIIMessage>) {
-            msg.paired_shares = unpack<uint64_t>(buffer, offset);
-            msg.imbalance_shares = unpack<uint64_t>(buffer, offset);
+            msg.paired_shares = unpack_be<uint64_t>(buffer, offset);
+            msg.imbalance_shares = unpack_be<uint64_t>(buffer, offset);
             msg.imbalance_direction = unpack<char>(buffer, offset);
             unpack_string(buffer, offset, msg.stock, 8);
-            msg.far_price = unpack<uint32_t>(buffer, offset);
-            msg.near_price = unpack<uint32_t>(buffer, offset);
-            msg.current_reference_price = unpack<uint32_t>(buffer, offset);
+            msg.far_price = unpack_be<uint32_t>(buffer, offset);
+            msg.near_price = unpack_be<uint32_t>(buffer, offset);
+            msg.current_reference_price = unpack_be<uint32_t>(buffer, offset);
             msg.cross_type = unpack<char>(buffer, offset);
             msg.price_variation_indicator = unpack<char>(buffer, offset);
         } else if constexpr (std::is_same_v<
@@ -163,25 +233,18 @@ void Parser::register_handler(char type) {
         } else if constexpr (std::is_same_v<T, DLCRMessage>) {
             unpack_string(buffer, offset, msg.stock, 8);
             msg.open_eligibility_status = unpack<char>(buffer, offset);
-            msg.minimum_allowable_price = unpack<uint32_t>(buffer, offset);
-            msg.maximum_allowable_price = unpack<uint32_t>(buffer, offset);
-            msg.near_execution_price = unpack<uint32_t>(buffer, offset);
-            msg.near_execution_time = unpack<uint64_t>(buffer, offset);
-            msg.lower_price_range_collar = unpack<uint32_t>(buffer, offset);
-            msg.upper_price_range_collar = unpack<uint32_t>(buffer, offset);
+            msg.minimum_allowable_price = unpack_be<uint32_t>(buffer, offset);
+            msg.maximum_allowable_price = unpack_be<uint32_t>(buffer, offset);
+            msg.near_execution_price = unpack_be<uint32_t>(buffer, offset);
+            msg.near_execution_time = unpack_be<uint64_t>(buffer, offset);
+            msg.lower_price_range_collar = unpack_be<uint32_t>(buffer, offset);
+            msg.upper_price_range_collar = unpack_be<uint32_t>(buffer, offset);
         }
-
         return msg;
     };
 }
 
 Parser::Parser() {
-    m_message_sizes = {{'S', 12}, {'R', 39}, {'H', 25}, {'Y', 20}, {'L', 26},
-                       {'V', 35}, {'W', 12}, {'K', 28}, {'J', 33}, {'h', 21},
-                       {'A', 36}, {'F', 40}, {'E', 31}, {'C', 36}, {'X', 23},
-                       {'D', 19}, {'U', 33}, {'P', 44}, {'Q', 40}, {'B', 19},
-                       {'I', 50}, {'N', 20}, {'O', 48}};
-
     register_handler<SystemEventMessage>('S');
     register_handler<StockDirectoryMessage>('R');
     register_handler<StockTradingActionMessage>('H');
@@ -209,25 +272,43 @@ Parser::Parser() {
 
 void Parser::parse(std::istream& is,
                    const std::function<void(const Message&)>& callback) {
-    char message_type;
-    while (is.get(message_type)) {
-        auto size_it = m_message_sizes.find(message_type);
-        if (size_it == m_message_sizes.end()) {
-            throw std::runtime_error(std::string("Unknown message type: ") +
-                                     message_type);
-        }
-        size_t length = size_it->second;
+    while (is && is.peek() != EOF) {
+        // ITCH 5.0 messages are prefixed with a 2-byte, big-endian length
+        // field.
+        uint16_t length;
+        is.read(reinterpret_cast<char*>(&length), sizeof(length));
 
+        if (is.eof()) {
+            break;  // Clean exit at end of file
+        }
+        if (!is) {
+            throw std::runtime_error(
+                "Failed to read message length from stream.");
+        }
+
+        // The length is in network byte order (big-endian), convert it to host
+        // order.
+        length = from_big_endian(length);
+
+        if (length == 0) continue;  // Should not happen, but good to be safe
+
+        // Read the full message payload into a buffer.
         std::vector<char> buffer(length);
-        buffer[0] = message_type;
-
-        if (!is.read(buffer.data() + 1, length - 1)) {
-            break;  // End of stream or incomplete message
+        if (!is.read(buffer.data(), length)) {
+            throw std::runtime_error("Incomplete message at end of stream.");
         }
 
+        // The first byte of the payload is the message type.
+        const char message_type = buffer[0];
+
+        // Find the registered handler for this message type.
         auto handler_it = m_handlers.find(message_type);
         if (handler_it != m_handlers.end()) {
             callback(handler_it->second(buffer.data()));
+        }
+        else {
+           std::cerr << "Warning: Unknown or unhandled message type: " <<
+           message_type << '\n';
         }
     }
 }
