@@ -1,0 +1,21 @@
+# .clang-format
+# This configuration file is based on the Google C++ Style Guide.
+#
+# To use this file, place it in your project's root directory. Most C++
+# editors and IDEs will automatically detect and use it.
+#
+# For a full list of options, see the official documentation:
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+# We start with the Google style as our foundation.
+BasedOnStyle: Google
+
+# Set the language to C++.
+Language: Cpp
+
+# Automatically detect and use the C++ standard of the project. 'Latest' is
+# preferred over hardcoding a specific standard like 'Cpp17' or 'Cpp20' to
+# make this file more future-proof.
+Standard: Latest
+
+IndentWidth: 4

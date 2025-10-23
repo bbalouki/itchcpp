@@ -1,0 +1,52 @@
+# .clang-tidy
+# This is a configuration file for clang-tidy, a linter for C/C++/Objective-C.
+# This configuration aims to enforce modern C++ best practices, focusing on
+# safety, performance, and readability. It's a great starting point for new projects.
+#
+# To use this file, place it in your project's root directory and run clang-tidy.
+# Most build systems (like CMake) and editors can be configured to use it automatically.
+
+# The 'Checks' option is a comma-separated list of check patterns to enable or
+# disable. We start by enabling several large, valuable groups of checks using
+# wildcards, and then disable a few specific, often noisy or controversial ones.
+Checks: >
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  cppcoreguidelines-*,
+  cert-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  google-*,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-owning-memory,
+  -hicpp-signed-bitwise,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  -readability-identifier-naming,
+  -readability-magic-numbers,
+  -google-build-using-namespace,
+  -google-runtime-references,
+  -cert-err58-cpp
+
+# Treat all enabled warnings as errors. This is highly recommended for new
+# projects and in CI/CD pipelines to maintain code quality. For an existing
+# codebase, you might want to disable this initially.
+WarningsAsErrors: '*'
+
+# This regular expression is used to decide which files to apply the checks to.
+# It is crucial for filtering out warnings from system headers or third-party
+# libraries that you cannot or do not want to change.
+#
+# This example regex includes files in 'src/', 'include/' or tests directories and
+# common C++ header extensions. Adjust it to match your project's structure.
+# If left empty, it only checks the main source file, not its includes.
+HeaderFilterRegex: '^(src|include|tests)/.*'
+
+# Specifies the formatting style for code fixes suggested by clang-tidy.
+# Using 'file' tells clang-tidy to find and use the .clang-format file in your
+# project tree, ensuring that auto-fixes match your project's coding style.
+FormatStyle: file

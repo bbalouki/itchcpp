@@ -1,0 +1,8 @@
+.venv/
+.env
+*.gz
+*.pdf
+build/
+install/
+CMakeUserPresets.json
+*-workspace
