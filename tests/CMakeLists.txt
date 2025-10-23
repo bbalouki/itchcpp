@@ -4,7 +4,7 @@ find_package(GTest CONFIG REQUIRED)
 add_executable(
     parser_tests 
     test_parser.cpp
-    "${PROJECT_SOURCE_DIR}/src/parser.cpp"
+    "${PROJECT_SOURCE_DIR}/src/parser/parser.cpp"
 )
 target_include_directories(parser_tests PRIVATE
     "${PROJECT_SOURCE_DIR}/include"
