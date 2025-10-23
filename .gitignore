@@ -6,3 +6,4 @@ build/
 install/
 CMakeUserPresets.json
 *-workspace
+*_ITCH50
