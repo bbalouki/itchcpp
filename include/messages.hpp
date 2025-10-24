@@ -8,7 +8,7 @@
 namespace itch {
 
 // Convert char arrays to strings, trimming trailing spaces.
-inline std::string char_array_to_string(const char* arr, size_t size) {
+inline std::string to_string(const char* arr, size_t size) {
     size_t len = size;
     while (len > 0 && (arr[len - 1] == ' ' || arr[len - 1] == '\0')) {
         len--;
@@ -64,7 +64,7 @@ struct StockDirectoryMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Stock Directory:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << to_string(stock, 8);
     }
 };
 
@@ -81,7 +81,7 @@ struct StockTradingActionMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Stock Trading Action:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
+           << "  Stock: " << to_string(stock, 8) << "\n"
            << "  State: " << trading_state;
     }
 };
@@ -97,7 +97,7 @@ struct RegSHOMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Reg SHO Message:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << to_string(stock, 8);
     }
 };
 
@@ -115,8 +115,8 @@ struct MarketParticipantPositionMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Market Participant Position:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  MPID: " << char_array_to_string(mpid, 4) << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  MPID: " << to_string(mpid, 4) << "\n"
+           << "  Stock: " << to_string(stock, 8);
     }
 };
 
@@ -163,7 +163,7 @@ struct IPOQuotingPeriodUpdateMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "IPO Quoting Period Update:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << to_string(stock, 8);
     }
 };
 
@@ -181,7 +181,7 @@ struct LULDAuctionCollarMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "LULD Auction Collar:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << to_string(stock, 8);
     }
 };
 
@@ -197,7 +197,7 @@ struct OperationalHaltMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Operational Halt:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << to_string(stock, 8);
     }
 };
 
@@ -215,7 +215,7 @@ struct AddOrderMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Add Order:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
+           << "  Stock: " << to_string(stock, 8) << "\n"
            << "  Side: " << buy_sell_indicator << "\n"
            << "  Shares: " << shares << "\n"
            << "  Price: " << price / 10000.0;
@@ -237,8 +237,8 @@ struct AddOrderMPIDAttributionMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Add Order (MPID):\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
-           << "  MPID: " << char_array_to_string(attribution, 4) << "\n"
+           << "  Stock: " << to_string(stock, 8) << "\n"
+           << "  MPID: " << to_string(attribution, 4) << "\n"
            << "  Side: " << buy_sell_indicator << "\n"
            << "  Shares: " << shares << "\n"
            << "  Price: " << price / 10000.0;
@@ -346,7 +346,7 @@ struct NonCrossTradeMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Non-Cross Trade:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
+           << "  Stock: " << to_string(stock, 8) << "\n"
            << "  Side: " << buy_sell_indicator << "\n"
            << "  Shares: " << shares << "\n"
            << "  Price: " << price / 10000.0;
@@ -367,7 +367,7 @@ struct CrossTradeMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Cross Trade:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
+           << "  Stock: " << to_string(stock, 8) << "\n"
            << "  Shares: " << shares << "\n"
            << "  Cross Price: " << cross_price / 10000.0 << "\n"
            << "  Match#: " << match_number << "\n"
@@ -407,7 +407,7 @@ struct NOIIMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "NOII Message:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
+           << "  Stock: " << to_string(stock, 8) << "\n"
            << "  Paired Shares: " << paired_shares << "\n"
            << "  Imbalance Shares: " << imbalance_shares << "\n"
            << "  Imbalance Direction: " << imbalance_direction << "\n"
@@ -430,7 +430,7 @@ struct RetailPriceImprovementIndicatorMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "RPII Message:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << to_string(stock, 8);
     }
 };
 
@@ -451,7 +451,7 @@ struct DLCRMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "DLCR Message:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << to_string(stock, 8);
     }
 };
 
