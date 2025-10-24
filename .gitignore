@@ -8,3 +8,4 @@ install/
 CMakeUserPresets.json
 *-workspace
 *_ITCH50
+scripts.sh

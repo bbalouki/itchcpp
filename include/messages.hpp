@@ -16,27 +16,6 @@ inline std::string char_array_to_string(const char* arr, size_t size) {
     return std::string(arr, len);
 }
 
-/**
- The TotalView ITCH feed is composed of a series of messages that describe
- orders added to, removed from, and executed on Nasdaq as well as disseminate
- Cross and Stock Directory information. This is the base class for all message
- type.
-
- All Message have the following attributes:
-    - message_type: A single letter that identify the message
-    - timestamp: Time at which the message was generated (Nanoseconds past midnight)
-    - stock_locate: Locate code identifying the security
-    - tracking_number: Nasdaq internal tracking number
-
- @note
- Prices are integers fields supplied with an associated precision.  When
- converted to a decimal format, prices are in fixed point format, where the
- precision defines the number of decimal places. For example, a field flagged as
- Price (4) has an implied 4 decimal places.  The maximum value of price (4) in
- TotalView ITCH is 200,000.0000 (decimal, 77359400 hex). ``price_precision`` is
- 4 for all messages except MWCBDeclineLeveMessage where ``price_precision``
- is 8.
-*/
 struct MarketMessage {
     virtual ~MarketMessage() = default;
     virtual void print(std::ostream& os) const = 0;
@@ -48,13 +27,6 @@ struct MarketMessage {
     }
 };
 
-/**
- The system event message type is used to signal a market or data feed
-    handler event.
-
- Attributes:
-     - event_code: see ``itch::indicators::SYSTEM_EVENT_CODES``
- */
 struct SystemEventMessage : MarketMessage {
     char message_type = 'S';
     uint16_t stock_locate;
@@ -266,7 +238,10 @@ struct AddOrderMPIDAttributionMessage : MarketMessage {
         os << "Add Order (MPID):\n"
            << "  Timestamp: " << timestamp << "\n"
            << "  Stock: " << char_array_to_string(stock, 8) << "\n"
-           << "  MPID: " << char_array_to_string(attribution, 4);
+           << "  MPID: " << char_array_to_string(attribution, 4) << "\n"
+           << "  Side: " << buy_sell_indicator << "\n"
+           << "  Shares: " << shares << "\n"
+           << "  Price: " << price / 10000.0;
     }
 };
 
@@ -350,7 +325,9 @@ struct OrderReplaceMessage : MarketMessage {
         os << "Order Replace:\n"
            << "  Timestamp: " << timestamp << "\n"
            << "  Original Ref#: " << original_order_reference_number << "\n"
-           << "  New Ref#: " << new_order_reference_number;
+           << "  New Ref#: " << new_order_reference_number << "\n"
+           << "  Shares: " << shares << "\n"
+           << "  Price: " << price / 10000.0;
     }
 };
 
@@ -369,7 +346,10 @@ struct NonCrossTradeMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Non-Cross Trade:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
+           << "  Side: " << buy_sell_indicator << "\n"
+           << "  Shares: " << shares << "\n"
+           << "  Price: " << price / 10000.0;
     }
 };
 
@@ -387,7 +367,11 @@ struct CrossTradeMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "Cross Trade:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
+           << "  Shares: " << shares << "\n"
+           << "  Cross Price: " << cross_price / 10000.0 << "\n"
+           << "  Match#: " << match_number << "\n"
+           << "  Cross Type: " << cross_type;
     }
 };
 
@@ -423,7 +407,15 @@ struct NOIIMessage : MarketMessage {
     void print(std::ostream& os) const override {
         os << "NOII Message:\n"
            << "  Timestamp: " << timestamp << "\n"
-           << "  Stock: " << char_array_to_string(stock, 8);
+           << "  Stock: " << char_array_to_string(stock, 8) << "\n"
+           << "  Paired Shares: " << paired_shares << "\n"
+           << "  Imbalance Shares: " << imbalance_shares << "\n"
+           << "  Imbalance Direction: " << imbalance_direction << "\n"
+           << "  Far Price: " << far_price / 10000.0 << "\n"
+           << "  Near Price: " << near_price / 10000.0 << "\n"
+           << "  Reference Price: " << current_reference_price / 10000.0 << "\n"
+           << "  Cross Type: " << cross_type << "\n"
+           << "  Price Variation Indicator: " << price_variation_indicator;
     }
 };
 
