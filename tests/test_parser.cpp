@@ -5,16 +5,10 @@
 
 #include "parser.hpp"
 
-
 TEST(ParserTest, SingleValidSystemEventMessage) {
-    const char raw_msg[] = {
-        '\x00', '\x0c',                                  // length
-        'S',                                             // type
-        '\x00', '\x01',                                  // stock_locate
-        '\x00', '\x02',                                  // tracking_number
-        '\x00', '\x00', '\x00', '\x00', '\x00', '\x03',  // timestamp
-        'O'                                              // event_code
-    };
+    const char raw_msg[] = {'\x00', '\x0c', 'S',    '\x00', '\x01',
+                            '\x00', '\x02', '\x00', '\x00', '\x00',
+                            '\x00', '\x00', '\x03', 'O'};
     std::string data(raw_msg, sizeof(raw_msg));
     std::stringstream ss(data);
 
@@ -125,12 +119,90 @@ TEST(ParserTest, UnknownMessageType) {
 
 TEST(ParserTest, IncompleteMessage) {
     const char raw_msg[] = {
-        '\x00', '\x0c',  // length = 12
-        'S',             // type
-        '\x00', '\x01',  // stock_locate
-        '\x00', '\x02',  // tracking_number
-        // Message is truncated here
+        '\x00', '\x0c', 'S', '\x00', '\x01', '\x00', '\x02',
     };
+    std::string data(raw_msg, sizeof(raw_msg));
+    std::stringstream ss(data);
+
+    itch::Parser parser;
+    EXPECT_THROW(parser.parse(ss), std::runtime_error);
+}
+
+TEST(ParserTest, PartialMessage) {
+    const char raw_msg[] = {'\x00', '\x0c', 'S',    '\x00', '\x01',
+                            '\x00', '\x02', '\x00', '\x00', '\x00',
+                            '\x00', '\x00', '\x03'};
+    std::string data(raw_msg, sizeof(raw_msg));
+    std::stringstream ss(data);
+
+    itch::Parser parser;
+    EXPECT_THROW(parser.parse(ss), std::runtime_error);
+}
+
+TEST(ParserTest, EmptyStream) {
+    std::string data;
+    std::stringstream ss(data);
+
+    itch::Parser parser;
+    auto messages = parser.parse(ss);
+
+    ASSERT_EQ(messages.size(), 0);
+}
+
+TEST(ParserTest, CallbackBasedParsing) {
+    const char raw_msgs[] = {
+        // Message 1: SystemEventMessage
+        '\x00', '\x0c', 'S', '\x00', '\x01', '\x00', '\x02', '\x00', '\x00',
+        '\x00', '\x00', '\x00', '\x03', 'O',
+        // Message 2: StockDirectoryMessage
+        '\x00', '\x27', 'R', '\x00', '\x04', '\x00', '\x05', '\x00', '\x00',
+        '\x00', '\x00', '\x00', '\x06', 'S', 'T', 'O', 'C', 'K', '1', ' ', ' ',
+        'C', 'N', '\x00', '\x00', '\x00', '\x64', 'N', 'C', ' ', ' ', 'P', 'N',
+        'N', ' ', 'N', '\x00', '\x00', '\x00', '\x00', 'N'};
+
+    std::string data(raw_msgs, sizeof(raw_msgs));
+    std::stringstream ss(data);
+
+    itch::Parser parser;
+    size_t message_count = 0;
+    parser.parse(ss, [&](const itch::Message& msg) {
+        message_count++;
+        if (message_count == 1) {
+            ASSERT_TRUE(std::holds_alternative<itch::SystemEventMessage>(msg));
+        } else if (message_count == 2) {
+            ASSERT_TRUE(
+                std::holds_alternative<itch::StockDirectoryMessage>(msg));
+        }
+    });
+
+    EXPECT_EQ(message_count, 2);
+}
+
+TEST(ParserTest, FilteredParsing) {
+    const char raw_msgs[] = {
+        // Message 1: SystemEventMessage
+        '\x00', '\x0c', 'S', '\x00', '\x01', '\x00', '\x02', '\x00', '\x00',
+        '\x00', '\x00', '\x00', '\x03', 'O',
+        // Message 2: StockDirectoryMessage
+        '\x00', '\x27', 'R', '\x00', '\x04', '\x00', '\x05', '\x00', '\x00',
+        '\x00', '\x00', '\x00', '\x06', 'S', 'T', 'O', 'C', 'K', '1', ' ', ' ',
+        'C', 'N', '\x00', '\x00', '\x00', '\x64', 'N', 'C', ' ', ' ', 'P', 'N',
+        'N', ' ', 'N', '\x00', '\x00', '\x00', '\x00', 'N'};
+
+    std::string data(raw_msgs, sizeof(raw_msgs));
+    std::stringstream ss(data);
+
+    itch::Parser parser;
+    auto messages = parser.parse(ss, {'S'});
+
+    ASSERT_EQ(messages.size(), 1);
+    ASSERT_TRUE(std::holds_alternative<itch::SystemEventMessage>(messages[0]));
+}
+
+TEST(ParserTest, CorruptedMessage) {
+    const char raw_msg[] = {'\x00', '\x0a', 'S',    '\x00', '\x01',
+                            '\x00', '\x02', '\x00', '\x00', '\x00',
+                            '\x00', '\x00', '\x03', 'O'};
     std::string data(raw_msg, sizeof(raw_msg));
     std::stringstream ss(data);
 

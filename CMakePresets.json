@@ -1,0 +1,137 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "_base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build"
+    },
+
+    {
+      "name": "_vcpkg",
+      "hidden": true,
+      "inherits": ["_base"],
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+    },
+
+    {
+      "name": "_conan",
+      "hidden": true,
+      "inherits": ["_base"],
+      "toolchainFile": "${sourceDir}/build/conan_toolchain.cmake"
+    },
+
+    {
+      "name": "_debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+
+    {
+      "name": "_release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+
+    {
+      "name": "_coverage",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Coverage"
+      }
+    },
+
+    {
+      "name": "_sanitize",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Sanitize"
+      }
+    },
+
+    {
+      "name": "_VS",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022"
+    },
+
+    {
+      "name": "_ninja",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+        "VCPKG_HOST_TRIPLET": "x64-mingw-static"
+      }
+    },
+
+    {
+      "name": "default",
+      "inherits": ["_vcpkg"],
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+
+    {
+      "name": "win",
+      "inherits": ["_VS", "_vcpkg"],
+      "displayName": "MSVC + vcpkg",
+      "description": "Build using Visual Studio 2022 using vcpkg for dependency management."
+    },
+
+    {
+      "name": "win-conan",
+      "inherits": ["_VS", "_conan"],
+      "displayName": "MSVC + Conan",
+      "description": "Build using Visual Studio 2022 using Conan as the dependency manager."
+    },
+
+    {
+      "name": "nix",
+      "inherits": ["_ninja", "_vcpkg", "_debug"],
+      "displayName": "(GCC/Clang) Debug + vcpkg",
+      "description": "Build with Ninja in Debug mode using vcpkg as pkg manager."
+    },
+    
+    {
+      "name": "nix-rel",
+      "inherits": ["_ninja", "_vcpkg", "_release"],
+      "displayName": "(GCC/Clang) Release + vcpkg",
+      "description": "Optimized Release build with Ninja using vcpkg as pkg manager."
+    },
+
+    {
+      "name": "nix-conan",
+      "inherits": ["_ninja", "_vcpkg", "_debug"],
+      "displayName": "(GCC/Clang) Debug + Conan",
+      "description": "Build with Ninja in Debug mode using Conan as pkg manager."
+    },
+
+    {
+      "name": "nix-conan-rel",
+      "inherits": ["_ninja", "_conan", "_release"],
+      "displayName": "(GCC/Clang) Release + Conan",
+      "description": "Optimized Release build with Ninja using Conan as pkg manager."
+    },
+
+    {
+      "name": "nix-cov",
+      "inherits": ["_ninja", "_vcpkg", "_coverage"],
+      "displayName": "(GCC/Clang) Coverage + vcpkg",
+      "description": "Instrumented with Ninja for code coverage analysis, using vcpkg as pkg manager."
+    },
+
+    {
+      "name": "nix-san",
+      "inherits": ["_ninja", "_vcpkg", "_sanitize"],
+      "displayName": "(GCC/Clang) Sanitizers + vcpkg",
+      "description": "Debug build with Ninja enabling sanitizers using vcpkg as pkg manager."
+    }
+  ]
+}
