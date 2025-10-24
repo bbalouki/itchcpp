@@ -27,6 +27,9 @@ struct MarketMessage {
     }
 };
 
+// DISABLE PADDING
+#pragma pack(push, 1)
+
 struct SystemEventMessage : MarketMessage {
     char message_type = 'S';
     uint16_t stock_locate;
@@ -454,5 +457,8 @@ struct DLCRMessage : MarketMessage {
            << "  Stock: " << to_string(stock, 8);
     }
 };
+
+// RESTORE DEFAULT PADDING
+#pragma pack(pop)
 
 }  // namespace itch
