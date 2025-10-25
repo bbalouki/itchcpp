@@ -19,3 +19,8 @@ Language: Cpp
 Standard: Latest
 
 IndentWidth: 4
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AllowShortBlocksOnASingleLine: false
+PointerAlignment: Left
+ColumnLimit: 100
