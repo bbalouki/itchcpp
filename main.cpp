@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         // file.clear();
         // file.seekg(0);
 
-        // USAGE EXAMPLE 3: 
+        // USAGE EXAMPLE 3:
         // std::cout << "\n--- Filtering for Add ('A') and Executed ('E') "
         //              "messages ---\n";
         // std::vector<char> filter = {'S', 'N'};

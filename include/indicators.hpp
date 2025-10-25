@@ -7,9 +7,8 @@ namespace itch {
 namespace indicators {
 
 const std::map<char, std::string> SYSTEM_EVENT_CODES = {
-    {'O', "Start of Messages"},     {'S', "Start of System hours"},
-    {'Q', "Start of Market hours"}, {'M', "End of Market hours"},
-    {'E', "End of System hours"},   {'C', "End of Messages"},
+    {'O', "Start of Messages"},   {'S', "Start of System hours"}, {'Q', "Start of Market hours"},
+    {'M', "End of Market hours"}, {'E', "End of System hours"},   {'C', "End of Messages"},
 };
 
 const std::map<char, std::string> MARKET_CATEGORY = {
@@ -142,64 +141,43 @@ const std::map<std::string, std::string> TRADING_ACTION_REASON_CODES = {
     {"MWCQ", "Market Wide Circuit Breaker Resumption"},
     {"IPO1", "IPO Issue Not Yet Trading"},
     {"IPOQ", "IPO Security Released for Quotation (Nasdaq Securities Only)"},
-    {"IPOE",
-     "IPO Security — Positioning Window Extension (Nasdaq Securities Only)"},
+    {"IPOE", "IPO Security — Positioning Window Extension (Nasdaq Securities Only)"},
     {"M1", "Corporate Action"},
     {"M2", "Quotation Not Available"},
     {"R1", "New Issue Available"},
     {"R2", "Issue Available"},
-    {"R4",
-     "Qualifications Issues Reviewed/Resolved; Quotations/Trading to Resume"},
-    {"R9",
-     "Filing Requirements Satisfied/Resolved; Quotations/Trading To Resume"},
+    {"R4", "Qualifications Issues Reviewed/Resolved; Quotations/Trading to Resume"},
+    {"R9", "Filing Requirements Satisfied/Resolved; Quotations/Trading To Resume"},
     {"C3", "Issuer News Not Forthcoming; Quotations/Trading To Resume"},
     {"C4", "Qualifications Halt Ended; Maintenance Requirements Met; Resume"},
-    {"C9",
-     "Qualifications Halt Concluded; Filings Met; Quotes/Trades To Resume"},
+    {"C9", "Qualifications Halt Concluded; Filings Met; Quotes/Trades To Resume"},
     {"C11",
      "Trade Halt Concluded By Other Regulatory Authority; Quotes/Trades "
      "Resume"},
     {" ", "Reason Not Available"},
 };
 
-const std::map<char, std::string>  TRADING_STATES = {
+const std::map<char, std::string> TRADING_STATES = {
     {'H', "Halted across all U.S. equity markets / SROs"},
     {'P', "Paused across all U.S. equity markets / SROs"},
     {'Q', "Quotation only period for cross-SRO halt or pause"},
     {'T', "Trading on NASDAQ"},
 };
 
-const std::map<char, std::string>  MARKET_MAKER_MODE = {
-    {'N', "Normal"},
-    {'P', "Passive"},
-    {'S', "Syndicate"},
-    {'R', "Pre-syndicate"},
-    {'L', "Penalty"},
+const std::map<char, std::string> MARKET_MAKER_MODE = {
+    {'N', "Normal"}, {'P', "Passive"}, {'S', "Syndicate"}, {'R', "Pre-syndicate"}, {'L', "Penalty"},
 };
 
-const std::map<char, std::string>  MARKET_PARTICIPANT_STATE = {
-    {'A', "Active"},
-    {'E', "Excused"},
-    {'W', "Withdrawn"},
-    {'S', "Suspended"},
-    {'D', "Deleted"},
+const std::map<char, std::string> MARKET_PARTICIPANT_STATE = {
+    {'A', "Active"}, {'E', "Excused"}, {'W', "Withdrawn"}, {'S', "Suspended"}, {'D', "Deleted"},
 };
 
-const std::map<char, std::string>  PRICE_VARIATION_INDICATOR = {
-    {'L', "Less than 1%"},
-    {'1', "1 to 1.99%"},
-    {'2', "2 to 2.99%"},
-    {'3', "3 to 3.99%"},
-    {'4', "4 to 4.99%"},
-    {'5', "5 to 5.99%"},
-    {'6', "6 to 6.99%"},
-    {'7', "7 to 7.99%"},
-    {'8', "8 to 8.99%"},
-    {'9', "9 to 9.99%"},
-    {'A', "10 to 19.99%"},
-    {'B', "20 to 29.99%"},
-    {'C', "30% or greater"},
-    {' ', "Cannot be calculated"},
+const std::map<char, std::string> PRICE_VARIATION_INDICATOR = {
+    {'L', "Less than 1%"},   {'1', "1 to 1.99%"},           {'2', "2 to 2.99%"},
+    {'3', "3 to 3.99%"},     {'4', "4 to 4.99%"},           {'5', "5 to 5.99%"},
+    {'6', "6 to 6.99%"},     {'7', "7 to 7.99%"},           {'8', "8 to 8.99%"},
+    {'9', "9 to 9.99%"},     {'A', "10 to 19.99%"},         {'B', "20 to 29.99%"},
+    {'C', "30% or greater"}, {' ', "Cannot be calculated"},
 };
 
 }  // namespace indicators

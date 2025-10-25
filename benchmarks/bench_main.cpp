@@ -78,8 +78,11 @@ BENCHMARK_F(ParserBenchmark, BM_ParseWithCallback)(benchmark::State& state) {
     size_t       total_bytes = 0;
     for (auto _ : state) {
         size_t message_count = 0;
-        parser.parse(itch_data.data(), itch_data.size(),
-                     [&]([[maybe_unused]] const itch::Message& msg) { benchmark::DoNotOptimize(++message_count); });
+        auto   callback      = [&](const itch::Message& msg) {
+            benchmark::DoNotOptimize(msg);
+            ++message_count;
+        };
+        parser.parse(itch_data.data(), itch_data.size(), callback);
         total_bytes += itch_data.size();
     }
     // Report throughput in MB/s

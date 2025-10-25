@@ -15,17 +15,15 @@ add_executable(itch main.cpp)
 target_include_directories(itch PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(itch itch::parser StrictWarnings) 
 
-# include(cmake/Tidy.cmake)
-# include(cmake/Format.cmake)
-# include(cmake/Sanitize.cmake)
-# include(cmake/Coverage.cmake)
-# include(cmake/Docs.cmake) 
-
 add_subdirectory(src/parser)
+include(cmake/Format.cmake)
+# include(cmake/Tidy.cmake)
+# include(cmake/Coverage.cmake)
+# include(cmake/Sanitize.cmake)
+# include(cmake/Docs.cmake) 
 
 enable_testing()
 add_subdirectory(tests)
-
 add_subdirectory(benchmarks)
 
 
