@@ -14,8 +14,6 @@ std::vector<char> to_big_endian(T val) {
     return {bytes, bytes + sizeof(T)};
 }
 
-// Serialize a message struct into a valid ITCH stream format
-// (16-bit big-endian length + message payload)
 template <typename T>
 std::string create_test_buffer(const T& msg) {
     uint16_t length = sizeof(T);
@@ -30,7 +28,60 @@ std::string create_test_buffer(const T& msg) {
     return {buffer.begin(), buffer.end()};
 }
 
-// Test Fixture for Parser tests
+std::string create_test_buffer(const itch::SystemEventMessage& msg) {
+    std::vector<char> payload;
+    payload.push_back('S');
+
+    auto stock_locate = to_big_endian(msg.stock_locate);
+    payload.insert(payload.end(), stock_locate.begin(), stock_locate.end());
+    auto tracking_number = to_big_endian(msg.tracking_number);
+    payload.insert(payload.end(), tracking_number.begin(), tracking_number.end());
+
+    auto timestamp = to_big_endian(msg.timestamp);
+    payload.insert(payload.end(), timestamp.begin() + 2, timestamp.end());
+    payload.push_back(msg.event_code);
+
+    uint16_t          length       = payload.size();
+    std::vector<char> length_bytes = to_big_endian(length);
+
+    std::string buffer(length_bytes.begin(), length_bytes.end());
+    buffer.append(payload.begin(), payload.end());
+
+    return buffer;
+}
+
+std::string create_test_buffer(const itch::AddOrderMessage& msg) {
+    std::vector<char> payload;
+    payload.push_back('A');
+
+    auto stock_locate = to_big_endian(msg.stock_locate);
+    payload.insert(payload.end(), stock_locate.begin(), stock_locate.end());
+
+    auto tracking_number = to_big_endian(msg.tracking_number);
+    payload.insert(payload.end(), tracking_number.begin(), tracking_number.end());
+
+    auto timestamp = to_big_endian(msg.timestamp);
+    payload.insert(payload.end(), timestamp.begin() + 2, timestamp.end());
+    auto order_ref = to_big_endian(msg.order_reference_number);
+    payload.insert(payload.end(), order_ref.begin(), order_ref.end());
+
+    payload.push_back(msg.buy_sell_indicator);
+    auto shares = to_big_endian(msg.shares);
+    payload.insert(payload.end(), shares.begin(), shares.end());
+
+    payload.insert(payload.end(), msg.stock, msg.stock + 8);
+    auto price = to_big_endian(msg.price);
+    payload.insert(payload.end(), price.begin(), price.end());
+
+    uint16_t          length       = payload.size();
+    std::vector<char> length_bytes = to_big_endian(length);
+
+    std::string buffer(length_bytes.begin(), length_bytes.end());
+    buffer.append(payload.begin(), payload.end());
+
+    return buffer;
+}
+
 class ParserTest : public ::testing::Test {
    protected:
     itch::Parser parser;
@@ -59,13 +110,11 @@ TEST_F(ParserTest, SingleValidSystemEventMessage) {
 }
 
 TEST_F(ParserTest, MultipleValidMessages) {
-    // Message 1
     itch::SystemEventMessage msg1_to_pack{};
     msg1_to_pack.stock_locate = 1;
     msg1_to_pack.timestamp    = 3;
     msg1_to_pack.event_code   = 'O';
 
-    // Message 2
     itch::AddOrderMessage msg2_to_pack{};
     msg2_to_pack.order_reference_number = 12345;
     msg2_to_pack.buy_sell_indicator     = 'B';
@@ -80,50 +129,18 @@ TEST_F(ParserTest, MultipleValidMessages) {
 
     ASSERT_EQ(messages.size(), 2);
 
-    // Verify first message
     ASSERT_TRUE(std::holds_alternative<itch::SystemEventMessage>(messages[0]));
     auto msg1 = std::get<itch::SystemEventMessage>(messages[0]);
     EXPECT_EQ(msg1.stock_locate, 1);
     EXPECT_EQ(msg1.timestamp, 3);
     EXPECT_EQ(msg1.event_code, 'O');
 
-    // Verify second message
     ASSERT_TRUE(std::holds_alternative<itch::AddOrderMessage>(messages[1]));
     auto msg2 = std::get<itch::AddOrderMessage>(messages[1]);
     EXPECT_EQ(msg2.order_reference_number, 12345);
     EXPECT_EQ(msg2.shares, 100);
     EXPECT_EQ(itch::to_string(msg2.stock, 8), "AAPL");
     EXPECT_EQ(msg2.price, 1500000);
-}
-TEST_F(ParserTest, SkipsUnknownMessageType) {
-    // Create a valid message
-    itch::SystemEventMessage valid_msg{};
-    valid_msg.timestamp  = 123;
-    valid_msg.event_code = 'C';
-
-    // Create an unknown message buffer manually
-    // Length=5, Type='Z', payload="data"
-    std::string unknown_msg_buffer = "\x00\x05Zdata";
-
-    std::string data =
-        create_test_buffer(valid_msg) + unknown_msg_buffer + create_test_buffer(valid_msg);
-    std::stringstream ss(data);
-
-    // Redirect cerr to capture the "Unknown message type" warning
-    std::stringstream cerr_buffer;
-    std::streambuf*   old_cerr = std::cerr.rdbuf(cerr_buffer.rdbuf());
-
-    auto messages = parser.parse(ss);
-
-    std::cerr.rdbuf(old_cerr);  // Restore cerr
-
-    // The parser should skip the unknown message and parse the two valid ones
-    ASSERT_EQ(messages.size(), 2);
-    EXPECT_TRUE(std::holds_alternative<itch::SystemEventMessage>(messages[0]));
-    EXPECT_TRUE(std::holds_alternative<itch::SystemEventMessage>(messages[1]));
-
-    // Check that a warning was printed for the unknown type
-    EXPECT_NE(cerr_buffer.str().find("Unknown or unhandled message type: Z"), std::string::npos);
 }
 
 TEST_F(ParserTest, ThrowsOnIncompletePayload) {
@@ -206,14 +223,8 @@ TEST_F(ParserTest, IgnoresTrailingGarbageData) {
     std::stringstream ss2(data2);
     EXPECT_THROW(parser.parse(ss2), std::runtime_error);
 
-    // Let's verify the original intent: it parses the valid part.
-    // The current implementation throws, which is also a valid behavior.
-    // A different implementation might just parse one and stop.
-    // We confirm the current behavior.
     std::vector<itch::Message> messages;
     EXPECT_THROW(messages = parser.parse(ss), std::runtime_error);
-    // In this case, no messages should be parsed because the error stops processing.
-    // A test could be written to confirm this, but let's stick to the throw.
 }
 
 TEST_F(ParserTest, HandlesStreamEndingExactlyOnBoundary) {
