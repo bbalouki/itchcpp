@@ -5,17 +5,17 @@ add_executable(
   itch_tests
   test_parser.cpp
   test_messages.cpp
-  "${PROJECT_SOURCE_DIR}/src/parser/parser.cpp"
 )
-target_include_directories(itch_tests PRIVATE
+target_include_directories(
+  itch_tests PRIVATE
   "${PROJECT_SOURCE_DIR}/include"
 )
 
-target_link_libraries(itch_tests PRIVATE
+target_link_libraries(
+  itch_tests PRIVATE
+  itch::parser
   GTest::gtest
   GTest::gtest_main
-  GTest::gmock
-  GTest::gmock_main
 )
 
 include(GoogleTest)

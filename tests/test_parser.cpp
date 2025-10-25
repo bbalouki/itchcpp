@@ -119,7 +119,7 @@ TEST_F(ParserTest, MultipleValidMessages) {
     msg2_to_pack.order_reference_number = 12345;
     msg2_to_pack.buy_sell_indicator     = 'B';
     msg2_to_pack.shares                 = 100;
-    strncpy(msg2_to_pack.stock, "AAPL    ", 8);
+    memcpy(msg2_to_pack.stock, "AAPL    ", 8);
     msg2_to_pack.price      = 1500000;
     std::string       data1 = create_test_buffer(msg1_to_pack);
     std::string       data2 = create_test_buffer(msg2_to_pack);
