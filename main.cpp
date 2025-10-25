@@ -7,7 +7,7 @@
 
 namespace dt = std::chrono;
 
-void printe_message(const itch::Message& msg) {
+void print_message(const itch::Message& msg) {
     std::visit([](const auto& arg) { std::cout << arg << '\n'; }, msg);
 }
 
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     try {
         // USAGE EXAMPLE 1:
         std::cout << "--- Parsing with a callback ---\n";
-        parser.parse(file, printe_message);
+        parser.parse(file, print_message);
 
         // // Reset file stream to the beginning for the next example
         // file.clear();

@@ -13,7 +13,7 @@ option(BUILD_SHARED_LIBS "Build libraries as shared" OFF)
 
 add_executable(itch main.cpp)
 target_include_directories(itch PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(itch itch::parser StrictWarnings)
+target_link_libraries(itch itch::parser StrictWarnings) 
 
 # include(cmake/Tidy.cmake)
 # include(cmake/Format.cmake)
@@ -26,6 +26,6 @@ add_subdirectory(src/parser)
 enable_testing()
 add_subdirectory(tests)
 
-# add_subdirectory(benchmarks)
+add_subdirectory(benchmarks)
 
 
