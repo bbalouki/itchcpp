@@ -166,7 +166,18 @@ namespace utils {
 
 // Generic byte-swapping function for any integral type.
 template <typename T>
-T swap_bytes(T value);
+T swap_bytes(T value) {
+    static_assert(std::is_integral<T>::value, "swap_bytes can only be used with integral types");
+    union {
+        T       val;
+        uint8_t bytes[sizeof(T)];
+    } src, dst;
+    src.val = value;
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        dst.bytes[i] = src.bytes[sizeof(T) - 1 - i];
+    }
+    return dst.val;
+}
 
 // Check the system's endianness at compile time (or runtime as a fallback).
 // This determines if we need to swap bytes at all.
