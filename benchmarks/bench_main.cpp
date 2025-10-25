@@ -66,7 +66,7 @@ class ParserBenchmark : public benchmark::Fixture {
         state.counters["FileSizeMB"] =
             benchmark::Counter(size / (1024.0 * 1024.0), benchmark::Counter::kIsIterationInvariant);
     }
-    void TearDown(const ::benchmark::State& state) override {
+    void TearDown([[maybe_unused]] const ::benchmark::State& state) override {
         // Clear the memory.
         itch_data.clear();
         itch_data.shrink_to_fit();
@@ -79,7 +79,7 @@ BENCHMARK_F(ParserBenchmark, BM_ParseWithCallback)(benchmark::State& state) {
     for (auto _ : state) {
         size_t message_count = 0;
         parser.parse(itch_data.data(), itch_data.size(),
-                     [&](const itch::Message& msg) { benchmark::DoNotOptimize(++message_count); });
+                     [&]([[maybe_unused]] const itch::Message& msg) { benchmark::DoNotOptimize(++message_count); });
         total_bytes += itch_data.size();
     }
     // Report throughput in MB/s
