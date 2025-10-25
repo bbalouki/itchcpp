@@ -27,20 +27,6 @@ inline bool is_little_endian() {
 }
 
 template <typename T>
-T swap_bytes(T value) {
-    static_assert(std::is_integral<T>::value, "swap_bytes can only be used with integral types");
-    union {
-        T       val;
-        uint8_t bytes[sizeof(T)];
-    } src, dst;
-    src.val = value;
-    for (size_t i = 0; i < sizeof(T); ++i) {
-        dst.bytes[i] = src.bytes[sizeof(T) - 1 - i];
-    }
-    return dst.val;
-}
-
-template <typename T>
 T from_big_endian(T value) {
     if (is_little_endian()) {
         return swap_bytes(value);
@@ -330,7 +316,7 @@ void Parser::parse(const char* data, size_t size, const MessageCallback& callbac
 
 std::vector<Message> Parser::parse(const char* data, size_t size) {
     std::vector<Message> messages;
-    messages.reserve(size / 10);
+    messages.reserve(size / 20);
     parse(data, size, [&](const Message& msg) { messages.push_back(msg); });
     return messages;
 }
@@ -341,8 +327,8 @@ auto Parser::parse(const char* data, size_t size, const std::vector<char>& messa
     std::set<char>       filter(messages.begin(), messages.end());
 
     if (filter.empty()) return results;
-    results.reserve(size / 10);
-    
+    results.reserve(size / 20);
+
     auto callback = [&](const Message& msg) {
         char message_type = std::visit([](auto&& arg) { return arg.message_type; }, msg);
         if (filter.count(message_type) > 0) {
