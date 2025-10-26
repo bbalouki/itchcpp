@@ -44,7 +44,7 @@ WarningsAsErrors: '*'
 # This example regex includes files in 'src/', 'include/' or tests directories and
 # common C++ header extensions. Adjust it to match your project's structure.
 # If left empty, it only checks the main source file, not its includes.
-HeaderFilterRegex: '^(src|include|tests)/.*'
+HeaderFilterRegex: '^(src|include|tests|examples|example)/.*'
 
 # Specifies the formatting style for code fixes suggested by clang-tidy.
 # Using 'file' tells clang-tidy to find and use the .clang-format file in your

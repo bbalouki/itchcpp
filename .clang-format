@@ -21,6 +21,7 @@ Standard: Latest
 IndentWidth: 4
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
-AllowShortBlocksOnASingleLine: false
+AllowShortBlocksOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
 PointerAlignment: Left
 ColumnLimit: 100

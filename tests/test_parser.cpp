@@ -7,8 +7,6 @@
 
 #include "parser.hpp"
 
-constexpr int STOCK_LEN = 8;
-
 template <typename T>
 std::vector<char> to_big_endian(T val) {
     static_assert(std::is_integral_v<T>, "to_big_endian requires an integral type");
@@ -72,7 +70,7 @@ std::string create_test_buffer(const itch::AddOrderMessage& msg) {
     auto shares = to_big_endian(msg.shares);
     payload.insert(payload.end(), shares.begin(), shares.end());
 
-    payload.insert(payload.end(), msg.stock, msg.stock + STOCK_LEN);
+    payload.insert(payload.end(), msg.stock, msg.stock + itch::STOCK_LEN);
     auto price = to_big_endian(msg.price);
     payload.insert(payload.end(), price.begin(), price.end());
 
@@ -127,7 +125,7 @@ TEST_F(ParserTest, MultipleValidMessages) {
     msg2_to_pack.order_reference_number = 12345;
     msg2_to_pack.buy_sell_indicator     = 'B';
     msg2_to_pack.shares                 = 100;
-    memcpy(msg2_to_pack.stock, "AAPL    ", STOCK_LEN);
+    memcpy(msg2_to_pack.stock, "AAPL    ", itch::STOCK_LEN);
     msg2_to_pack.price = 1500000;
     // NOLINTEND
     std::string       data1 = create_test_buffer(msg1_to_pack);
@@ -151,7 +149,7 @@ TEST_F(ParserTest, MultipleValidMessages) {
     // NOLINTBEGIN
     EXPECT_EQ(msg2.order_reference_number, 12345);
     EXPECT_EQ(msg2.shares, 100);
-    EXPECT_EQ(itch::to_string(msg2.stock, STOCK_LEN), "AAPL");
+    EXPECT_EQ(itch::to_string(msg2.stock, itch::STOCK_LEN), "AAPL");
     EXPECT_EQ(msg2.price, 1500000);
     // NOLINTEND
 }

@@ -9,14 +9,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_SHARED_LIBS "Build libraries as shared" OFF)
 
-add_subdirectory(src/parser)
-
-
 include(cmake/Tidy.cmake)
 include(cmake/Format.cmake)
 # include(cmake/Sanitize.cmake)
-# include(cmake/Coverage.cmake)
+include(cmake/Coverage.cmake)
 # include(cmake/Docs.cmake) 
+
+add_subdirectory(src/parser)
 
 enable_testing()
 add_subdirectory(tests)
