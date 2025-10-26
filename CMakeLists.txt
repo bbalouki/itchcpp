@@ -15,7 +15,7 @@ include(cmake/Format.cmake)
 include(cmake/Coverage.cmake)
 # include(cmake/Docs.cmake) 
 
-add_subdirectory(src/parser)
+add_subdirectory(src)
 
 enable_testing()
 add_subdirectory(tests)

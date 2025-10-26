@@ -7,7 +7,8 @@ target_include_directories(
 )
 target_link_libraries(
     parser PRIVATE
-    itch::parser 
+    itch::parser
+    itch::messages
     warnings::strict
 ) 
 set_cxx_std(parser 23)

@@ -162,8 +162,6 @@ class Parser {
     void register_handler(char type);
 };
 
-constexpr int STOCK_LEN = 8;
-
 namespace utils {
 
 // Generic byte-swapping function for any integral type.

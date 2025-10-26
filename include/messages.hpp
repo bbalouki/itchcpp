@@ -311,190 +311,45 @@ using Message =
                  BrokenTradeMessage, NOIIMessage, RetailPriceImprovementIndicatorMessage,
                  DLCRMessage>;
 
+constexpr int STOCK_LEN = 8;
+constexpr double PRICE_DIVISOR = 10000.0;
+constexpr double MWCB_PRICE_DIVISOR = 1.0E8;
+
 // Convert char arrays to strings, trimming trailing spaces.
 inline std::string to_string(const char* arr, size_t size) {
     size_t len = size;
-    while (len > 0 && (arr[len - 1] == ' ' || arr[len - 1] == '\0')) {
-        len--;
-    }
-    return std::string(arr, len);
+    while (len > 0 && (arr[len - 1] == ' ' || arr[len - 1] == '\0')) { len--; }
+    return std::string{arr, len};
 }
 
-inline void print_impl(std::ostream& os, const SystemEventMessage& msg) {
-    os << "System Event:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Event Code: " << msg.event_code;
-}
+void print_impl(std::ostream& out, const SystemEventMessage& msg);
+void print_impl(std::ostream& out, const StockDirectoryMessage& msg);
+void print_impl(std::ostream& out, const StockTradingActionMessage& msg);
+void print_impl(std::ostream& out, const RegSHOMessage& msg);
+void print_impl(std::ostream& out, const MarketParticipantPositionMessage& msg);
+void print_impl(std::ostream& out, const MWCBDeclineLevelMessage& msg);
+void print_impl(std::ostream& out, const MWCBStatusMessage& msg);
+void print_impl(std::ostream& out, const IPOQuotingPeriodUpdateMessage& msg);
+void print_impl(std::ostream& out, const LULDAuctionCollarMessage& msg);
+void print_impl(std::ostream& out, const OperationalHaltMessage& msg);
+void print_impl(std::ostream& out, const AddOrderMessage& msg);
+void print_impl(std::ostream& out, const AddOrderMPIDAttributionMessage& msg);
+void print_impl(std::ostream& out, const OrderExecutedMessage& msg);
+void print_impl(std::ostream& out, const OrderExecutedWithPriceMessage& msg);
+void print_impl(std::ostream& out, const OrderCancelMessage& msg);
+void print_impl(std::ostream& out, const OrderDeleteMessage& msg);
+void print_impl(std::ostream& out, const OrderReplaceMessage& msg);
+void print_impl(std::ostream& out, const NonCrossTradeMessage& msg);
+void print_impl(std::ostream& out, const CrossTradeMessage& msg);
+void print_impl(std::ostream& out, const BrokenTradeMessage& msg);
+void print_impl(std::ostream& out, const NOIIMessage& msg);
+void print_impl(std::ostream& out, const RetailPriceImprovementIndicatorMessage& msg);
+void print_impl(std::ostream& out, const DLCRMessage& msg);
 
-inline void print_impl(std::ostream& os, const StockDirectoryMessage& msg) {
-    os << "Stock Directory:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8);
-}
+// General print function that dispatches to the correct implementation
+void print_message(std::ostream& out, const Message& msg);
 
-inline void print_impl(std::ostream& os, const StockTradingActionMessage& msg) {
-    os << "Stock Trading Action:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8) << "\n"
-       << "  State: " << msg.trading_state;
-}
-
-inline void print_impl(std::ostream& os, const RegSHOMessage& msg) {
-    os << "Reg SHO Message:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8);
-}
-
-inline void print_impl(std::ostream& os, const MarketParticipantPositionMessage& msg) {
-    os << "Market Participant Position:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  MPID: " << to_string(msg.mpid, 4) << "\n"
-       << "  Stock: " << to_string(msg.stock, 8);
-}
-
-inline void print_impl(std::ostream& os, const MWCBDeclineLevelMessage& msg) {
-    os << "MWCB Decline Level:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Level 1: " << msg.level1 / 1.0E8;
-}
-
-inline void print_impl(std::ostream& os, const MWCBStatusMessage& msg) {
-    os << "MWCB Status:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Level: " << msg.breached_level;
-}
-
-inline void print_impl(std::ostream& os, const IPOQuotingPeriodUpdateMessage& msg) {
-    os << "IPO Quoting Period Update:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8);
-}
-
-inline void print_impl(std::ostream& os, const LULDAuctionCollarMessage& msg) {
-    os << "LULD Auction Collar:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8);
-}
-
-inline void print_impl(std::ostream& os, const OperationalHaltMessage& msg) {
-    os << "Operational Halt:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8);
-}
-
-inline void print_impl(std::ostream& os, const AddOrderMessage& msg) {
-    os << "Add Order:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8) << "\n"
-       << "  Side: " << msg.buy_sell_indicator << "\n"
-       << "  Shares: " << msg.shares << "\n"
-       << "  Price: " << msg.price / 10000.0;
-}
-
-inline void print_impl(std::ostream& os, const AddOrderMPIDAttributionMessage& msg) {
-    os << "Add Order (MPID):\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8) << "\n"
-       << "  MPID: " << to_string(msg.attribution, 4) << "\n"
-       << "  Side: " << msg.buy_sell_indicator << "\n"
-       << "  Shares: " << msg.shares << "\n"
-       << "  Price: " << msg.price / 10000.0;
-}
-
-inline void print_impl(std::ostream& os, const OrderExecutedMessage& msg) {
-    os << "Order Executed:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Ref#: " << msg.order_reference_number << "\n"
-       << "  Shares: " << msg.executed_shares;
-}
-
-inline void print_impl(std::ostream& os, const OrderExecutedWithPriceMessage& msg) {
-    os << "Order Executed w/ Price:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Ref#: " << msg.order_reference_number << "\n"
-       << "  Price: " << msg.execution_price / 10000.0;
-}
-
-inline void print_impl(std::ostream& os, const OrderCancelMessage& msg) {
-    os << "Order Cancel:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Ref#: " << msg.order_reference_number << "\n"
-       << "  Cancelled Shares: " << msg.cancelled_shares;
-}
-
-inline void print_impl(std::ostream& os, const OrderDeleteMessage& msg) {
-    os << "Order Delete:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Ref#: " << msg.order_reference_number;
-}
-
-inline void print_impl(std::ostream& os, const OrderReplaceMessage& msg) {
-    os << "Order Replace:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Original Ref#: " << msg.original_order_reference_number << "\n"
-       << "  New Ref#: " << msg.new_order_reference_number << "\n"
-       << "  Shares: " << msg.shares << "\n"
-       << "  Price: " << msg.price / 10000.0;
-}
-
-inline void print_impl(std::ostream& os, const NonCrossTradeMessage& msg) {
-    os << "Non-Cross Trade:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8) << "\n"
-       << "  Side: " << msg.buy_sell_indicator << "\n"
-       << "  Shares: " << msg.shares << "\n"
-       << "  Price: " << msg.price / 10000.0;
-}
-
-inline void print_impl(std::ostream& os, const CrossTradeMessage& msg) {
-    os << "Cross Trade:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8) << "\n"
-       << "  Shares: " << msg.shares << "\n"
-       << "  Cross Price: " << msg.cross_price / 10000.0 << "\n"
-       << "  Match#: " << msg.match_number << "\n"
-       << "  Cross Type: " << msg.cross_type;
-}
-
-inline void print_impl(std::ostream& os, const BrokenTradeMessage& msg) {
-    os << "Broken Trade:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Match#: " << msg.match_number;
-}
-
-inline void print_impl(std::ostream& os, const NOIIMessage& msg) {
-    os << "NOII Message:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8) << "\n"
-       << "  Paired Shares: " << msg.paired_shares << "\n"
-       << "  Imbalance Shares: " << msg.imbalance_shares << "\n"
-       << "  Imbalance Direction: " << msg.imbalance_direction << "\n"
-       << "  Far Price: " << msg.far_price / 10000.0 << "\n"
-       << "  Near Price: " << msg.near_price / 10000.0 << "\n"
-       << "  Reference Price: " << msg.current_reference_price / 10000.0 << "\n"
-       << "  Cross Type: " << msg.cross_type << "\n"
-       << "  Price Variation Indicator: " << msg.price_variation_indicator;
-}
-
-inline void print_impl(std::ostream& os, const RetailPriceImprovementIndicatorMessage& msg) {
-    os << "RPII Message:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8);
-}
-
-inline void print_impl(std::ostream& os, const DLCRMessage& msg) {
-    os << "DLCR Message:\n"
-       << "  Timestamp: " << msg.timestamp << "\n"
-       << "  Stock: " << to_string(msg.stock, 8);
-}
-
-inline void print_message(std::ostream& os, const Message& msg) {
-    std::visit([&os](auto&& arg) { print_impl(os, arg); }, msg);
-}
-
-inline std::ostream& operator<<(std::ostream& os, const Message& msg) {
-    print_message(os, msg);
-    return os;
-}
+// print an itch::Message
+std::ostream& operator<<(std::ostream& out, const Message& msg);
 
 }  // namespace itch
