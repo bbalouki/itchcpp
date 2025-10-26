@@ -28,9 +28,7 @@ inline bool is_little_endian() {
 
 template <typename T>
 T from_big_endian(T value) {
-    if (is_little_endian()) {
-        return swap_bytes(value);
-    }
+    if (is_little_endian()) { return swap_bytes(value); }
     return value;
 }
 
@@ -40,7 +38,7 @@ T unpack(const char* buffer, size_t& offset) {
     std::memcpy(&value, buffer + offset, sizeof(T));
     offset += sizeof(T);
 
-    if constexpr (std::is_integral<T>::value && sizeof(T) > 1) {
+    if constexpr (std::is_integral_v<T> && sizeof(T) > 1) {
         return from_big_endian(value);
     } else {
         return value;
@@ -53,15 +51,16 @@ inline void unpack_string(const char* buffer, size_t& offset, char* dest, size_t
 }
 
 inline uint64_t unpack_timestamp(const char* buffer, size_t& offset) {
-    uint16_t high;
-    uint32_t low;
+    uint16_t      high{};
+    uint32_t      low{};
+    constexpr int lower_shift = 32;
     std::memcpy(&high, buffer + offset, sizeof(high));
     offset += sizeof(high);
     std::memcpy(&low, buffer + offset, sizeof(low));
     offset += sizeof(low);
     high = from_big_endian(high);
     low  = from_big_endian(low);
-    return (static_cast<uint64_t>(high) << 32) | low;
+    return (static_cast<uint64_t>(high) << lower_shift) | low;
 }
 }  // namespace utils
 
@@ -70,7 +69,7 @@ void unpack_message(SystemEventMessage& msg, const char* buffer, size_t& offset)
 }
 
 void unpack_message(StockDirectoryMessage& msg, const char* buffer, size_t& offset) {
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.market_category            = utils::unpack<char>(buffer, offset);
     msg.financial_status_indicator = utils::unpack<char>(buffer, offset);
     msg.round_lot_size             = utils::unpack<uint32_t>(buffer, offset);
@@ -88,20 +87,20 @@ void unpack_message(StockDirectoryMessage& msg, const char* buffer, size_t& offs
 }
 
 void unpack_message(StockTradingActionMessage& msg, const char* buffer, size_t& offset) {
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.trading_state = utils::unpack<char>(buffer, offset);
     msg.reserved      = utils::unpack<char>(buffer, offset);
     utils::unpack_string(buffer, offset, msg.reason, 4);
 }
 
 void unpack_message(RegSHOMessage& msg, const char* buffer, size_t& offset) {
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.reg_sho_action = utils::unpack<char>(buffer, offset);
 }
 
 void unpack_message(MarketParticipantPositionMessage& msg, const char* buffer, size_t& offset) {
     utils::unpack_string(buffer, offset, msg.mpid, 4);
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.primary_market_maker     = utils::unpack<char>(buffer, offset);
     msg.market_maker_mode        = utils::unpack<char>(buffer, offset);
     msg.market_participant_state = utils::unpack<char>(buffer, offset);
@@ -118,14 +117,14 @@ void unpack_message(MWCBStatusMessage& msg, const char* buffer, size_t& offset) 
 }
 
 void unpack_message(IPOQuotingPeriodUpdateMessage& msg, const char* buffer, size_t& offset) {
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.ipo_quotation_release_time      = utils::unpack<uint32_t>(buffer, offset);
     msg.ipo_quotation_release_qualifier = utils::unpack<char>(buffer, offset);
     msg.ipo_price                       = utils::unpack<uint32_t>(buffer, offset);
 }
 
 void unpack_message(LULDAuctionCollarMessage& msg, const char* buffer, size_t& offset) {
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.auction_collar_reference_price = utils::unpack<uint32_t>(buffer, offset);
     msg.upper_auction_collar_price     = utils::unpack<uint32_t>(buffer, offset);
     msg.lower_auction_collar_price     = utils::unpack<uint32_t>(buffer, offset);
@@ -133,7 +132,7 @@ void unpack_message(LULDAuctionCollarMessage& msg, const char* buffer, size_t& o
 }
 
 void unpack_message(OperationalHaltMessage& msg, const char* buffer, size_t& offset) {
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.market_code             = utils::unpack<char>(buffer, offset);
     msg.operational_halt_action = utils::unpack<char>(buffer, offset);
 }
@@ -142,7 +141,7 @@ void unpack_message(AddOrderMessage& msg, const char* buffer, size_t& offset) {
     msg.order_reference_number = utils::unpack<uint64_t>(buffer, offset);
     msg.buy_sell_indicator     = utils::unpack<char>(buffer, offset);
     msg.shares                 = utils::unpack<uint32_t>(buffer, offset);
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.price = utils::unpack<uint32_t>(buffer, offset);
 }
 
@@ -151,7 +150,7 @@ void unpack_message(AddOrderMPIDAttributionMessage& msg, const char* buffer, siz
     msg.buy_sell_indicator     = utils::unpack<char>(buffer, offset);
     msg.shares                 = utils::unpack<uint32_t>(buffer, offset);
 
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.price = utils::unpack<uint32_t>(buffer, offset);
     utils::unpack_string(buffer, offset, msg.attribution, 4);
 }
@@ -191,7 +190,7 @@ void unpack_message(NonCrossTradeMessage& msg, const char* buffer, size_t& offse
     msg.buy_sell_indicator     = utils::unpack<char>(buffer, offset);
     msg.shares                 = utils::unpack<uint32_t>(buffer, offset);
 
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
 
     msg.price        = utils::unpack<uint32_t>(buffer, offset);
     msg.match_number = utils::unpack<uint64_t>(buffer, offset);
@@ -199,7 +198,7 @@ void unpack_message(NonCrossTradeMessage& msg, const char* buffer, size_t& offse
 
 void unpack_message(CrossTradeMessage& msg, const char* buffer, size_t& offset) {
     msg.shares = utils::unpack<uint64_t>(buffer, offset);
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
 
     msg.cross_price  = utils::unpack<uint32_t>(buffer, offset);
     msg.match_number = utils::unpack<uint64_t>(buffer, offset);
@@ -215,7 +214,7 @@ void unpack_message(NOIIMessage& msg, const char* buffer, size_t& offset) {
     msg.imbalance_shares    = utils::unpack<uint64_t>(buffer, offset);
     msg.imbalance_direction = utils::unpack<char>(buffer, offset);
 
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
 
     msg.far_price                 = utils::unpack<uint32_t>(buffer, offset);
     msg.near_price                = utils::unpack<uint32_t>(buffer, offset);
@@ -226,12 +225,12 @@ void unpack_message(NOIIMessage& msg, const char* buffer, size_t& offset) {
 
 using RPIMsg = RetailPriceImprovementIndicatorMessage;
 void unpack_message(RPIMsg& msg, const char* buffer, size_t& offset) {
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.interest_flag = utils::unpack<char>(buffer, offset);
 }
 
 void unpack_message(DLCRMessage& msg, const char* buffer, size_t& offset) {
-    utils::unpack_string(buffer, offset, msg.stock, 8);
+    utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.open_eligibility_status  = utils::unpack<char>(buffer, offset);
     msg.minimum_allowable_price  = utils::unpack<uint32_t>(buffer, offset);
     msg.maximum_allowable_price  = utils::unpack<uint32_t>(buffer, offset);
@@ -287,20 +286,20 @@ void Parser::parse(const char* data, size_t size, const MessageCallback& callbac
     size_t offset = 0;
     while (offset < size) {
         // Ensure we can read the length field
-        if (offset + sizeof(uint16_t) > size)
+        if (offset + sizeof(uint16_t) > size) {
             throw std::runtime_error("Incomplete message header at end of buffer.");
-
-        uint16_t length;
+        }
+        uint16_t length{};
         std::memcpy(&length, data + offset, sizeof(length));
         length = utils::from_big_endian(length);
         offset += sizeof(uint16_t);
 
-        if (length == 0) continue;
+        if (length == 0) { continue; }
 
         // Ensure the full message payload is available
-        if (offset + length > size)
+        if (offset + length > size) {
             throw std::runtime_error("Incomplete message at end of buffer.");
-
+        }
         const char* message      = data + offset;
         const char  message_type = message[0];
 
@@ -314,9 +313,10 @@ void Parser::parse(const char* data, size_t size, const MessageCallback& callbac
     }
 }
 
+constexpr size_t     average_message_size = 20;
 std::vector<Message> Parser::parse(const char* data, size_t size) {
     std::vector<Message> messages;
-    messages.reserve(size / 20);
+    messages.reserve(size / average_message_size);
     parse(data, size, [&](const Message& msg) { messages.push_back(msg); });
     return messages;
 }
@@ -326,41 +326,39 @@ auto Parser::parse(const char* data, size_t size, const std::vector<char>& messa
     std::vector<Message> results;
     std::set<char>       filter(messages.begin(), messages.end());
 
-    if (filter.empty()) return results;
-    results.reserve(size / 20);
+    if (filter.empty()) { return results; }
+    results.reserve(size / average_message_size);
 
     auto callback = [&](const Message& msg) {
         char message_type = std::visit([](auto&& arg) { return arg.message_type; }, msg);
-        if (filter.count(message_type) > 0) {
-            results.push_back(msg);
-        }
+        if (filter.contains(message_type)) { results.push_back(msg); }
     };
     parse(data, size, callback);
     return results;
 }
 
 // Read the whole stream into a buffer
-static std::vector<char> read_stream_into_buffer(std::istream& is) {
-    is.seekg(0, std::ios::end);
-    size_t size = is.tellg();
-    is.seekg(0, std::ios::beg);
+static std::vector<char> read_stream_into_buffer(std::istream& data) {
+    data.seekg(0, std::ios::end);
+    auto size = data.tellg();
+    data.seekg(0, std::ios::beg);
     std::vector<char> buffer(size);
-    is.read(buffer.data(), size);
+    data.read(buffer.data(), size);
     return buffer;
 }
 
-void Parser::parse(std::istream& is, const MessageCallback& callback) {
-    auto buffer = read_stream_into_buffer(is);
+void Parser::parse(std::istream& data, const MessageCallback& callback) {
+    auto buffer = read_stream_into_buffer(data);
     parse(buffer.data(), buffer.size(), callback);
 }
 
-std::vector<Message> Parser::parse(std::istream& is) {
-    auto buffer = read_stream_into_buffer(is);
+std::vector<Message> Parser::parse(std::istream& data) {
+    auto buffer = read_stream_into_buffer(data);
     return parse(buffer.data(), buffer.size());
 }
 
-std::vector<Message> Parser::parse(std::istream& is, const std::vector<char>& messages) {
-    auto buffer = read_stream_into_buffer(is);
+std::vector<Message> Parser::parse(std::istream& data, const std::vector<char>& messages) {
+    auto buffer = read_stream_into_buffer(data);
     return parse(buffer.data(), buffer.size(), messages);
 }
 

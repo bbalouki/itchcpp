@@ -109,14 +109,14 @@ class Parser {
      * then calls the high-performance buffer-based parser. It is provided for
      * ease of use with stream-based APIs.
      *
-     * @param is A reference to an std::istream opened in binary mode.
+     * @param data A reference to an std::istream opened in binary mode.
      * @param callback A function to be called for each successfully parsed
      * message.
      * @throw std::runtime_error on stream reading errors.
      * @note For maximum performance, load the data into memory yourself and use
      *       the `const char*` overload directly.
      */
-    void parse(std::istream& is, const MessageCallback& callback);
+    void parse(std::istream& data, const MessageCallback& callback);
 
     /**
      * @brief [Convenience Wrapper] Parses all messages from a stream into a
@@ -124,13 +124,13 @@ class Parser {
      *
      * This method reads the *entire* stream into memory before parsing.
      *
-     * @param is A reference to an std::istream opened in binary mode.
+     * @param data A reference to an std::istream opened in binary mode.
      * @return A std::vector<Message> containing all parsed messages.
      * @throw std::runtime_error on stream reading errors.
      * @note Be cautious with large files, as this will load the entire raw file
      *       *and* all parsed messages into memory.
      */
-    std::vector<Message> parse(std::istream& is);
+    std::vector<Message> parse(std::istream& data);
 
     /**
      * @brief [Convenience Wrapper] Parses and filters messages from a stream.
@@ -138,13 +138,13 @@ class Parser {
      * This method reads the *entire* stream into memory before parsing and
      * filtering.
      *
-     * @param is A reference to an std::istream opened in binary mode.
+     * @param data A reference to an std::istream opened in binary mode.
      * @param messages A vector of message type characters to keep (e.g., {'A',
      * 'E', 'P'}).
      * @return A std::vector<Message> containing only the filtered messages.
      * @throw std::runtime_error on stream reading errors.
      */
-    std::vector<Message> parse(std::istream& is, const std::vector<char>& messages);
+    std::vector<Message> parse(std::istream& data, const std::vector<char>& messages);
 
    private:
     using Handler = std::function<Message(const char*)>;
@@ -162,12 +162,14 @@ class Parser {
     void register_handler(char type);
 };
 
+constexpr int STOCK_LEN = 8;
+
 namespace utils {
 
 // Generic byte-swapping function for any integral type.
 template <typename T>
 T swap_bytes(T value) {
-    static_assert(std::is_integral<T>::value, "swap_bytes can only be used with integral types");
+    static_assert(std::is_integral_v<T>, "swap_bytes can only be used with integral types");
     union {
         T       val;
         uint8_t bytes[sizeof(T)];
