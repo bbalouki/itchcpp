@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <sstream>
 #include <vector>
 
@@ -8,20 +9,20 @@
 class MessagesTest : public ::testing::Test {
    protected:
     template <size_t N>
-    auto parse_message(const char (&raw_msg)[N]) {
-        std::string       data(raw_msg, N);
-        std::stringstream ss(data);
-        return parser.parse(ss);
+    auto parse_message(const std::array<char, N>& raw_msg) {
+        std::string       data(raw_msg.begin(), raw_msg.end());
+        std::stringstream data_stream(data);
+        return parser.parse(data_stream);
     }
     itch::Parser parser;
 };
 
 TEST_F(MessagesTest, StockDirectoryMessage) {
-    const char raw_msg[] = {'\x00', '\x27', 'R',    '\x00', '\x04', '\x00', '\x05', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x06', 'S',    'T',    'O',    'C',    'K',
-                            '1',    ' ',    ' ',    'C',    'N',    '\x00', '\x00', '\x00', '\x64',
-                            'N',    'C',    ' ',    ' ',    'P',    'N',    'N',    ' ',    'N',
-                            '\x00', '\x00', '\x00', '\x00', 'N'};
+    const std::array raw_msg = {
+        '\x00', '\x27', 'R',    '\x00', '\x04', '\x00', '\x05', '\x00', '\x00', '\x00', '\x00',
+        '\x00', '\x06', 'S',    'T',    'O',    'C',    'K',    '1',    ' ',    ' ',    'C',
+        'N',    '\x00', '\x00', '\x00', '\x64', 'N',    'C',    ' ',    ' ',    'P',    'N',
+        'N',    ' ',    'N',    '\x00', '\x00', '\x00', '\x00', 'N'};
 
     auto messages = parse_message(raw_msg);
 
@@ -48,9 +49,10 @@ TEST_F(MessagesTest, StockDirectoryMessage) {
 }
 
 TEST_F(MessagesTest, StockTradingActionMessage) {
-    const char raw_msg[] = {'\x00', '\x19', 'H',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',    'C',    'K',
-                            '1',    ' ',    ' ',    'T',    ' ',    'R',    'S',    'N',    ' '};
+    const std::array raw_msg = {'\x00', '\x19', 'H',    '\x00', '\x01', '\x00', '\x02',
+                                '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', 'S',
+                                'T',    'O',    'C',    'K',    '1',    ' ',    ' ',
+                                'T',    ' ',    'R',    'S',    'N',    ' '};
 
     auto messages = parse_message(raw_msg);
 
@@ -67,10 +69,10 @@ TEST_F(MessagesTest, StockTradingActionMessage) {
 }
 
 TEST_F(MessagesTest, RegSHOMessage) {
-    const char raw_msg[] = {'\x00', '\x14', 'Y',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
-                            'C',    'K',    '1',    ' ',    ' ',    'A'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x14', 'Y',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
+                                 'C',    'K',    '1',    ' ',    ' ',    'A'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::RegSHOMessage>(messages[0]));
@@ -83,10 +85,10 @@ TEST_F(MessagesTest, RegSHOMessage) {
 }
 
 TEST_F(MessagesTest, MarketParticipantPositionMessage) {
-    const char raw_msg[] = {'\x00', '\x1a', 'L',    '\x00', '\x01', '\x00', '\x02',
-                            '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', 'M',
-                            'P',    'I',    'D',    'S',    'T',    'O',    'C',
-                            'K',    '1',    ' ',    ' ',    'Y',    'N',    'A'};
+    const std::array raw_msg = {'\x00', '\x1a', 'L',    '\x00', '\x01', '\x00', '\x02',
+                                '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', 'M',
+                                'P',    'I',    'D',    'S',    'T',    'O',    'C',
+                                'K',    '1',    ' ',    ' ',    'Y',    'N',    'A'};
 
     auto messages = parse_message(raw_msg);
 
@@ -104,7 +106,7 @@ TEST_F(MessagesTest, MarketParticipantPositionMessage) {
 }
 
 TEST_F(MessagesTest, MWCBDeclineLevelMessage) {
-    const char raw_msg[] = {
+    const std::array raw_msg = {
         '\x00', '\x23', 'V',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00',
         '\x00', '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
         '\x04', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x05', '\x00',
@@ -124,9 +126,9 @@ TEST_F(MessagesTest, MWCBDeclineLevelMessage) {
 }
 
 TEST_F(MessagesTest, MWCBStatusMessage) {
-    const char raw_msg[] = {'\x00', '\x0c', 'W',    '\x00', '\x01', '\x00', '\x02',
-                            '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', 'B'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x0c', 'W',    '\x00', '\x01', '\x00', '\x02',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', 'B'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::MWCBStatusMessage>(messages[0]));
@@ -138,11 +140,11 @@ TEST_F(MessagesTest, MWCBStatusMessage) {
 }
 
 TEST_F(MessagesTest, IPOQuotingPeriodUpdateMessage) {
-    const char raw_msg[] = {'\x00', '\x1c', 'K',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
-                            'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00', '\x00',
-                            '\x04', 'Q',    '\x00', '\x00', '\x00', '\x05'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x1c', 'K',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
+                                 'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00', '\x00',
+                                 '\x04', 'Q',    '\x00', '\x00', '\x00', '\x05'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::IPOQuotingPeriodUpdateMessage>(messages[0]));
@@ -157,12 +159,12 @@ TEST_F(MessagesTest, IPOQuotingPeriodUpdateMessage) {
 }
 
 TEST_F(MessagesTest, LULDAuctionCollarMessage) {
-    const char raw_msg[] = {'\x00', '\x23', 'J',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
-                            'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00', '\x00',
-                            '\x04', '\x00', '\x00', '\x00', '\x05', '\x00', '\x00', '\x00',
-                            '\x06', '\x00', '\x00', '\x00', '\x07'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x23', 'J',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
+                                 'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00', '\x00',
+                                 '\x04', '\x00', '\x00', '\x00', '\x05', '\x00', '\x00', '\x00',
+                                 '\x06', '\x00', '\x00', '\x00', '\x07'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::LULDAuctionCollarMessage>(messages[0]));
@@ -178,10 +180,10 @@ TEST_F(MessagesTest, LULDAuctionCollarMessage) {
 }
 
 TEST_F(MessagesTest, OperationalHaltMessage) {
-    const char raw_msg[] = {'\x00', '\x15', 'h',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
-                            'C',    'K',    '1',    ' ',    ' ',    'N',    'H'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x15', 'h',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
+                                 'C',    'K',    '1',    ' ',    ' ',    'N',    'H'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::OperationalHaltMessage>(messages[0]));
@@ -195,12 +197,12 @@ TEST_F(MessagesTest, OperationalHaltMessage) {
 }
 
 TEST_F(MessagesTest, AddOrderMessage) {
-    const char raw_msg[] = {'\x00', '\x24', 'A',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x04', 'B',    '\x00', '\x00',
-                            '\x00', '\x64', 'S',    'T',    'O',    'C',    'K',    '1',
-                            ' ',    ' ',    '\x00', '\x00', '\x00', '\x05'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x24', 'A',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x04', 'B',    '\x00', '\x00',
+                                 '\x00', '\x64', 'S',    'T',    'O',    'C',    'K',    '1',
+                                 ' ',    ' ',    '\x00', '\x00', '\x00', '\x05'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::AddOrderMessage>(messages[0]));
@@ -216,12 +218,12 @@ TEST_F(MessagesTest, AddOrderMessage) {
 }
 
 TEST_F(MessagesTest, AddOrderMPIDAttributionMessage) {
-    const char raw_msg[] = {'\x00', '\x28', 'F',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x04', 'B',    '\x00', '\x00', '\x00', '\x64', 'S',
-                            'T',    'O',    'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00',
-                            '\x00', '\x05', 'A',    'T',    'T',    'R'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg = {
+        '\x00', '\x28', 'F',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00', '\x00',
+        '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04', 'B',
+        '\x00', '\x00', '\x00', '\x64', 'S',    'T',    'O',    'C',    'K',    '1',    ' ',
+        ' ',    '\x00', '\x00', '\x00', '\x05', 'A',    'T',    'T',    'R'};
+    auto messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::AddOrderMPIDAttributionMessage>(messages[0]));
@@ -238,11 +240,11 @@ TEST_F(MessagesTest, AddOrderMPIDAttributionMessage) {
 }
 
 TEST_F(MessagesTest, OrderExecutedMessage) {
-    const char raw_msg[] = {'\x00', '\x1f', 'E',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x04', '\x00', '\x00', '\x00', '\x64', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x00', '\x05'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg = {
+        '\x00', '\x1f', 'E',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00', '\x00',
+        '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04', '\x00',
+        '\x00', '\x00', '\x64', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x05'};
+    auto messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::OrderExecutedMessage>(messages[0]));
@@ -256,12 +258,12 @@ TEST_F(MessagesTest, OrderExecutedMessage) {
 }
 
 TEST_F(MessagesTest, OrderExecutedWithPriceMessage) {
-    const char raw_msg[] = {'\x00', '\x24', 'C',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x04', '\x00', '\x00', '\x00',
-                            '\x64', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
-                            '\x05', 'Y',    '\x00', '\x00', '\x00', '\x06'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x24', 'C',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x04', '\x00', '\x00', '\x00',
+                                 '\x64', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+                                 '\x05', 'Y',    '\x00', '\x00', '\x00', '\x06'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::OrderExecutedWithPriceMessage>(messages[0]));
@@ -277,10 +279,11 @@ TEST_F(MessagesTest, OrderExecutedWithPriceMessage) {
 }
 
 TEST_F(MessagesTest, OrderCancelMessage) {
-    const char raw_msg[] = {'\x00', '\x17', 'X',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x04', '\x00', '\x00', '\x00', '\x64'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x17', 'X',    '\x00', '\x01', '\x00', '\x02',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04',
+                                 '\x00', '\x00', '\x00', '\x64'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::OrderCancelMessage>(messages[0]));
@@ -293,10 +296,10 @@ TEST_F(MessagesTest, OrderCancelMessage) {
 }
 
 TEST_F(MessagesTest, OrderDeleteMessage) {
-    const char raw_msg[] = {'\x00', '\x13', 'D',    '\x00', '\x01', '\x00', '\x02',
-                            '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x13', 'D',    '\x00', '\x01', '\x00', '\x02',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::OrderDeleteMessage>(messages[0]));
@@ -308,12 +311,12 @@ TEST_F(MessagesTest, OrderDeleteMessage) {
 }
 
 TEST_F(MessagesTest, OrderReplaceMessage) {
-    const char raw_msg[] = {'\x00', '\x23', 'U',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x04', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x05', '\x00', '\x00', '\x00',
-                            '\x64', '\x00', '\x00', '\x00', '\x06'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x23', 'U',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x04', '\x00', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x05', '\x00', '\x00', '\x00',
+                                 '\x64', '\x00', '\x00', '\x00', '\x06'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::OrderReplaceMessage>(messages[0]));
@@ -328,13 +331,13 @@ TEST_F(MessagesTest, OrderReplaceMessage) {
 }
 
 TEST_F(MessagesTest, NonCrossTradeMessage) {
-    const char raw_msg[] = {'\x00', '\x2c', 'P',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x04', 'B',    '\x00', '\x00',
-                            '\x00', '\x64', 'S',    'T',    'O',    'C',    'K',    '1',
-                            ' ',    ' ',    '\x00', '\x00', '\x00', '\x05', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x00', '\x06'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x2c', 'P',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x04', 'B',    '\x00', '\x00',
+                                 '\x00', '\x64', 'S',    'T',    'O',    'C',    'K',    '1',
+                                 ' ',    ' ',    '\x00', '\x00', '\x00', '\x05', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x06'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::NonCrossTradeMessage>(messages[0]));
@@ -351,12 +354,12 @@ TEST_F(MessagesTest, NonCrossTradeMessage) {
 }
 
 TEST_F(MessagesTest, CrossTradeMessage) {
-    const char raw_msg[] = {'\x00', '\x28', 'Q',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x64', 'S',    'T',    'O',    'C',    'K',    '1',
-                            ' ',    ' ',    '\x00', '\x00', '\x00', '\x05', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x06', 'C'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg = {
+        '\x00', '\x28', 'Q',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00', '\x00',
+        '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x64', 'S',
+        'T',    'O',    'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00', '\x00', '\x05',
+        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x06', 'C'};
+    auto messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::CrossTradeMessage>(messages[0]));
@@ -372,10 +375,10 @@ TEST_F(MessagesTest, CrossTradeMessage) {
 }
 
 TEST_F(MessagesTest, BrokenTradeMessage) {
-    const char raw_msg[] = {'\x00', '\x13', 'B',    '\x00', '\x01', '\x00', '\x02',
-                            '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x13', 'B',    '\x00', '\x01', '\x00', '\x02',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::BrokenTradeMessage>(messages[0]));
@@ -387,13 +390,13 @@ TEST_F(MessagesTest, BrokenTradeMessage) {
 }
 
 TEST_F(MessagesTest, NOIIMessage) {
-    const char raw_msg[] = {'\x00', '\x32', 'I',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00',
-                            '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00',
-                            '\x00', '\x00', '\x64', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
-                            '\x00', '\xc8', 'B',    'S',    'T',    'O',    'C',    'K',    '1',
-                            ' ',    ' ',    '\x00', '\x00', '\x00', '\x05', '\x00', '\x00', '\x00',
-                            '\x06', '\x00', '\x00', '\x00', '\x07', 'O',    ' '};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg = {
+        '\x00', '\x32', 'I',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00', '\x00',
+        '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x64', '\x00',
+        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\xc8', 'B',    'S',    'T',    'O',
+        'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00', '\x00', '\x05', '\x00', '\x00',
+        '\x00', '\x06', '\x00', '\x00', '\x00', '\x07', 'O',    ' '};
+    auto messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::NOIIMessage>(messages[0]));
@@ -413,10 +416,10 @@ TEST_F(MessagesTest, NOIIMessage) {
 }
 
 TEST_F(MessagesTest, RetailPriceImprovementIndicatorMessage) {
-    const char raw_msg[] = {'\x00', '\x14', 'N',    '\x00', '\x01', '\x00', '\x02', '\x00',
-                            '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
-                            'C',    'K',    '1',    ' ',    ' ',    'A'};
-    auto       messages  = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x14', 'N',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', 'S',    'T',    'O',
+                                 'C',    'K',    '1',    ' ',    ' ',    'A'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::RetailPriceImprovementIndicatorMessage>(messages[0]));

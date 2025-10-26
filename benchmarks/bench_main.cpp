@@ -33,29 +33,36 @@
 
 #include "parser.hpp"
 
-std::string g_data_filename;
+namespace data {
+// NOLINTNEXTLINE
+std::string g_data_filename{};
+}  // namespace data
+
+constexpr double KILOBYTE = 1024.0;
+constexpr double MEGABYTE = KILOBYTE * KILOBYTE;
 
 // A benchmark fixture to load the specified data file once.
 class ParserBenchmark : public benchmark::Fixture {
    public:
     std::vector<char> itch_data;
+    itch::Parser      parser;
 
     void SetUp(::benchmark::State& state) override {
-        if (g_data_filename.empty()) {
+        if (data::g_data_filename.empty()) {
             state.SkipWithError(
                 "ITCH data file not provided. Pass the file path as a "
                 "command-line argument.");
             return;
         }
 
-        std::ifstream file(g_data_filename, std::ios::binary);
+        std::ifstream file(data::g_data_filename, std::ios::binary);
         if (!file) {
-            state.SkipWithError(("Failed to open ITCH data file: " + g_data_filename).c_str());
+            state.SkipWithError(("Failed to open ITCH data file: " + data::g_data_filename));
             return;
         }
 
         file.seekg(0, std::ios::end);
-        size_t size = file.tellg();
+        auto size = file.tellg();
         file.seekg(0, std::ios::beg);
 
         itch_data.resize(size);
@@ -63,8 +70,9 @@ class ParserBenchmark : public benchmark::Fixture {
 
         // Report the size of the data being processed.
         state.SetBytesProcessed(0);  // Clear any previous settings
+        double size_mb = static_cast<double>(size) / MEGABYTE;
         state.counters["FileSizeMB"] =
-            benchmark::Counter(size / (1024.0 * 1024.0), benchmark::Counter::kIsIterationInvariant);
+            benchmark::Counter(size_mb, benchmark::Counter::kIsIterationInvariant);
     }
     void TearDown([[maybe_unused]] const ::benchmark::State& state) override {
         // Clear the memory.
@@ -74,41 +82,39 @@ class ParserBenchmark : public benchmark::Fixture {
 };
 
 BENCHMARK_F(ParserBenchmark, BM_ParseWithCallback)(benchmark::State& state) {
-    itch::Parser parser;
-    size_t       total_bytes = 0;
-    for (auto _ : state) {
+    size_t total_bytes = 0;
+    for ([[maybe_unused]] auto iter : state) {
         size_t message_count = 0;
         auto   callback      = [&](const itch::Message& msg) {
-            benchmark::DoNotOptimize(msg);
+            // NOLINTNEXTLINE
+            benchmark::DoNotOptimize(std::move(const_cast<itch::Message&>(msg)));
             ++message_count;
         };
         parser.parse(itch_data.data(), itch_data.size(), callback);
         total_bytes += itch_data.size();
     }
     // Report throughput in MB/s
-    state.SetBytesProcessed(total_bytes);
+    state.SetBytesProcessed(static_cast<int64_t>(total_bytes));
 }
 
 BENCHMARK_F(ParserBenchmark, BM_ParseAndCollectAll)(benchmark::State& state) {
-    itch::Parser parser;
-    size_t       total_bytes = 0;
-    for (auto _ : state) {
+    size_t total_bytes = 0;
+    for ([[maybe_unused]] auto iter : state) {
         auto messages = parser.parse(itch_data.data(), itch_data.size());
         benchmark::DoNotOptimize(messages.data());
         total_bytes += itch_data.size();
     }
-    state.SetBytesProcessed(total_bytes);
+    state.SetBytesProcessed(static_cast<int64_t>(total_bytes));
 }
 
 BENCHMARK_F(ParserBenchmark, BM_ParseAndFilter)(benchmark::State& state) {
-    itch::Parser parser;
-    size_t       total_bytes = 0;
-    for (auto _ : state) {
+    size_t total_bytes = 0;
+    for ([[maybe_unused]] auto iter : state) {
         auto messages = parser.parse(itch_data.data(), itch_data.size(), {'A', 'P', 'E', 'C', 'X'});
         benchmark::DoNotOptimize(messages.data());
         total_bytes += itch_data.size();
     }
-    state.SetBytesProcessed(total_bytes);
+    state.SetBytesProcessed(static_cast<int64_t>(total_bytes));
 }
 
 int main(int argc, char** argv) {
@@ -117,7 +123,7 @@ int main(int argc, char** argv) {
                      "benchmark options]\n";
         return 1;
     }
-    g_data_filename = argv[1];
+    data::g_data_filename = argv[1];
 
     // Manually remove the filename argument from the list before passing to
     // benchmark::Initialize. We do this by shifting all subsequent arguments
@@ -136,7 +142,7 @@ int main(int argc, char** argv) {
 
     // Check if any benchmarks are targeted to run. If not, we might want to
     // return.
-    if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
+    if (benchmark::ReportUnrecognizedArguments(argc, argv)) {return 1;};
 
     benchmark::RunSpecifiedBenchmarks();
     benchmark::Shutdown();
