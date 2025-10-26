@@ -5,8 +5,8 @@ set(LIB_SOURCES
 )
 
 add_library(parserlib ${LIB_SOURCES})
-setup_target(parserlib) # CXX standard
-target_link_libraries(parserlib StrictWarnings)
+set_cxx_std(parserlib 23)
+target_link_libraries(parserlib warnings::strict)
 
 add_library(itch::parser ALIAS parserlib)
 target_include_directories(parserlib PUBLIC 
