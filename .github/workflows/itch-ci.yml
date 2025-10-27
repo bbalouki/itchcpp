@@ -39,8 +39,6 @@ jobs:
       # 3. Set up vcpkg
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: 'latest'
 
       # 4. Cache CMake build artifacts
       - name: Cache CMake build
