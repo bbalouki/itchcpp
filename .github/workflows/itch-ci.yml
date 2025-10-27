@@ -61,7 +61,11 @@ jobs:
               if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
                 echo "x64-windows"
               elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-                echo "x64-osx"
+                if [[ "$(uname -m)" == "arm64" ]]; then
+                  echo "arm64-osx"
+                else
+                  echo "x64-osx"
+                fi
               else
                 echo "x64-linux"
               fi
@@ -69,7 +73,7 @@ jobs:
 
       # 6. Build the project
       - name: Build
-        run: cmake --build $BUILD_DIR --config ${{ matrix.build_type }} -j$(nproc || sysctl -n hw.ncpu || echo 4)
+        run: cmake --build $BUILD_DIR --config ${{ matrix.build_type }}
 
       # 7. Run tests
       - name: Run tests
