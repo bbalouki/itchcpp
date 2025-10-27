@@ -53,7 +53,13 @@ jobs:
       - name: Configure CMake
         shell: bash
         run: |
-          cmake -S . -B $BUILD_DIR \
+          cmake -S . -B $BUILD_DIR=$(
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cmake --build "$env:BUILD_DIR" --config Debug
+          else
+            cmake --build "$BUILD_DIR" --config Debug
+          fi
+          ) \
             -DPROJECT_ENV=PROD \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
@@ -78,11 +84,3 @@ jobs:
       # 7. Run tests
       - name: Run tests
         run: ctest --test-dir $BUILD_DIR --output-on-failure --build-config ${{ matrix.build_type }}
-
-      # 8. Upload build artifacts for inspection
-      # - name: Upload binaries
-      #   if: success() && matrix.build_type == 'Release'
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{ matrix.os }}-binaries
-      #     path: ${{ env.BUILD_DIR }}
