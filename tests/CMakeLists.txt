@@ -8,7 +8,7 @@ add_executable(
 )
 target_include_directories(
   itch_tests PRIVATE
-  "${PROJECT_SOURCE_DIR}/include"
+  "${PROJECT_SOURCE_DIR}/include/itch"
 )
 
 target_link_libraries(
