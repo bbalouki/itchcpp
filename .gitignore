@@ -5,7 +5,7 @@
 *.pdf
 build/
 install/
-CMakeUserPresets.json
 *-workspace
 *_ITCH50
 scripts.sh
+*Presets.json
