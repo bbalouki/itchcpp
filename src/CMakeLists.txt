@@ -19,13 +19,13 @@ add_library(itch::messages ALIAS messages)
 set_target_properties(
     parser PROPERTIES
     OUTPUT_NAME parser 
-    EXPORT_NAME Lib 
+    EXPORT_NAME Lib
 )
 
 set_target_properties(
     messages PROPERTIES
     OUTPUT_NAME messages 
-    EXPORT_NAME Lib 
+    EXPORT_NAME Lib
 )
 
 # Step 2: Update Include Directories
@@ -47,11 +47,16 @@ target_include_directories(
 
 # Step 3: Specify Output Destinations
 install(
-    TARGETS parser messages warnings
+    TARGETS parser messages
     EXPORT ItchTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+    TARGETS warnings
+    EXPORT ItchTargets
 )
 
 # Step 4: Specify Header Destinations
