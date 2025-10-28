@@ -173,9 +173,7 @@ T swap_bytes(T value) {
         uint8_t bytes[sizeof(T)];
     } src, dst;
     src.val = value;
-    for (size_t i = 0; i < sizeof(T); ++i) {
-        dst.bytes[i] = src.bytes[sizeof(T) - 1 - i];
-    }
+    for (size_t i = 0; i < sizeof(T); ++i) { dst.bytes[i] = src.bytes[sizeof(T) - 1 - i]; }
     return dst.val;
 }
 
