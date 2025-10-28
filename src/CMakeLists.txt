@@ -4,18 +4,17 @@ include(GNUInstallDirs)
 
 # Step 1: Add targets and properties
 add_library(messageslib messages.cpp)
+#add_library(itch::messages ALIAS messageslib)
 set_cxx_std(messageslib 23)
 target_link_libraries(messageslib PRIVATE warnings::strict)
 
 add_library(parserlib parser.cpp)
+#add_library(itch::parser ALIAS parserlib)
 target_link_libraries(
     parserlib
     PRIVATE warnings::strict
     PUBLIC messageslib
-)
-
-add_library(itch::parser ALIAS parserlib)
-add_library(itch::messages ALIAS messageslib)
+) 
 
 set_target_properties(
     parserlib PROPERTIES
