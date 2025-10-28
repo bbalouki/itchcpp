@@ -19,13 +19,13 @@ add_library(itch::messages ALIAS messages)
 set_target_properties(
     parser PROPERTIES
     OUTPUT_NAME parser 
-    EXPORT_NAME Lib
+    EXPORT_NAME parser
 )
 
 set_target_properties(
     messages PROPERTIES
     OUTPUT_NAME messages 
-    EXPORT_NAME Lib
+    EXPORT_NAME parser
 )
 
 configure_visibility(parser)
