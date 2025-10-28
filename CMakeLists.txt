@@ -6,7 +6,6 @@ project(ITCH VERSION "1.0.0" LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-option(BUILD_SHARED_LIBS "Build libraries as shared" OFF)
 
 if(PROJECT_ENV STREQUAL "DEV")
     include(cmake/Tidy.cmake)
