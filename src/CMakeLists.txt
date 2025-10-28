@@ -12,10 +12,6 @@ target_link_libraries(parser
     PRIVATE warnings::strict
     PUBLIC messages
 )
-
-add_library(itch::parser ALIAS parser)
-add_library(itch::messages ALIAS messages)
-
 set_target_properties(
     parser PROPERTIES
     OUTPUT_NAME parser 
