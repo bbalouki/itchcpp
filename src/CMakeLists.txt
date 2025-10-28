@@ -63,12 +63,8 @@ install(
 )
 
 # Step 4: Specify Header Destinations
-file(
-    GLOB_RECURSE ITCH_ROOT_HEADERS 
-    "${PROJECT_SOURCE_DIR}/include/itch/*.h"
-)
 install(
-    FILES ${ITCH_ROOT_HEADERS}
+    DIRECTORY ${PROJECT_SOURCE_DIR}/include/itch/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/itch
 )
 
