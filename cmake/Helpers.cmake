@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 
-option(BUILD_TESTS "Add tests" ON)
+option(BUILD_TESTS "Add tests" OFF)
 option(BUILD_BENCHMARKS "Add benchmark analisys" OFF)
 option(BUILD_EXAMPLES "Build some examples" OFF)
 

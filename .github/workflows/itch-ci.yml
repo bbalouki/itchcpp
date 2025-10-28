@@ -53,6 +53,7 @@ jobs:
         run: |
           cmake -S . -B $BUILD_DIR \
             -DPROJECT_ENV=PROD \
+            -DBUILD_TESTS=ON \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=$(
