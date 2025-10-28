@@ -311,8 +311,8 @@ using Message =
                  BrokenTradeMessage, NOIIMessage, RetailPriceImprovementIndicatorMessage,
                  DLCRMessage>;
 
-constexpr int STOCK_LEN = 8;
-constexpr double PRICE_DIVISOR = 10000.0;
+constexpr int    STOCK_LEN          = 8;
+constexpr double PRICE_DIVISOR      = 10000.0;
 constexpr double MWCB_PRICE_DIVISOR = 1.0E8;
 
 // Convert char arrays to strings, trimming trailing spaces.
