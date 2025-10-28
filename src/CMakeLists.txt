@@ -28,6 +28,26 @@ set_target_properties(
     EXPORT_NAME Lib
 )
 
+if (WIN32 AND BUILD_SHARED_LIBS)
+    set_target_properties(
+        parser PROPERTIES 
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+    )
+    set_target_properties(
+        messages PROPERTIES 
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+    )
+elseif(BUILD_SHARED_LIBS)
+    set_target_properties(
+        parser PROPERTIES 
+        CXX_VISIBILITY_PRESET default
+    )
+    set_target_properties(
+        messages PROPERTIES 
+        CXX_VISIBILITY_PRESET default
+    )
+endif()
+
 # Step 2: Update Include Directories
 target_include_directories(
     parser PUBLIC 
