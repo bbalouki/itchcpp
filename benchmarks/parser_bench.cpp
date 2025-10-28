@@ -119,7 +119,7 @@ BENCHMARK_F(ParserBenchmark, BM_ParseAndFilter)(benchmark::State& state) {
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-        std::cerr << "Usage: ./benchmark.exe <path_to_itch_data_file> [google "
+        std::cerr << "Usage: ./parser_bench <path_to_itch_data_file> [google "
                      "benchmark options]\n";
         return 1;
     }
