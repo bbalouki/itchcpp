@@ -15,6 +15,19 @@ function(set_cxx_std target_name standard)
     target_compile_features(${target_name} PUBLIC cxx_std_${standard})
 endfunction()
 
+function(configure_visibility target_name)
+    if (WIN32 AND BUILD_SHARED_LIBS)
+        set_target_properties(${target_name} PROPERTIES
+            WINDOWS_EXPORT_ALL_SYMBOLS ON
+        )
+    elseif (BUILD_SHARED_LIBS)
+        set_target_properties(${target_name} PROPERTIES
+            CXX_VISIBILITY_PRESET default
+        )
+    endif()
+endfunction()
+
+
 add_library(warnings INTERFACE)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
      target_compile_options(warnings INTERFACE /W4 /permissive-)

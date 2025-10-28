@@ -1,4 +1,0 @@
-@PACKAGE_INIT@
-
-
-include("ItchTargets.cmake")
