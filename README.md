@@ -1,6 +1,7 @@
 
 # High-Performance NASDAQ ITCH 5.0 Parser
 
+[![build](https://github.com/bbalouki/itchcpp/actions/workflows/itch-ci.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/itch-ci.yml)
 [![C++20](https://img.shields.io/badge/C++-20-blue.svg)](https://isocpp.org/std/the-standard)
 [![CMake](https://img.shields.io/badge/CMake-3.20+-blue.svg)](https://cmake.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
