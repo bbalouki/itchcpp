@@ -4,6 +4,8 @@ include(${CMAKE_SOURCE_DIR}/cmake/Helpers.cmake)
 
 project(ITCH VERSION "1.0.0" LANGUAGES CXX)
 
+option(ITCH_CXX_STANDARD "C++ standard for the project" 20)
+set(CMAKE_CXX_STANDARD ${ITCH_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
