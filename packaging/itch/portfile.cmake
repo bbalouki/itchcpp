@@ -3,7 +3,7 @@ vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO bbalouki/itchcpp
     REF "v${VERSION}"
-    SHA512 0
+    SHA512 3a65d57cd6cca1b32b066bf989365c2c7fa6e93d1a700a3fd076fe2c707e80e11e8d48b3a574ff5d53115f974918c000a5d202453083340b1a42d2ed2ba66b61
     HEAD_REF main
 )
 
