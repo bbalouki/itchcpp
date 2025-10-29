@@ -1,4 +1,4 @@
-name: build
+name: macOS
 
 on:
   push:
@@ -6,14 +6,12 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ${{ matrix.os }}
-
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [Release, Debug]
-
+        cpp_standard: [20, 23]
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       BUILD_DIR: ${{ github.workspace }}/build
@@ -23,7 +21,6 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      # 2. Cache vcpkg installation
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
@@ -34,11 +31,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
-      # 3. Set up vcpkg
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
 
-      # 4. Cache CMake build artifacts
       - name: Cache CMake build
         uses: actions/cache@v4
         with:
@@ -47,35 +42,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.build_type }}-cmake-
 
-      # 5. Configure CMake
       - name: Configure CMake
         shell: bash
         run: |
           cmake -S . -B $BUILD_DIR \
             -DITCH_PROJECT_ENV=PROD \
             -DITCH_BUILD_TESTS=ON \
+            -DITCH_CXX_STANDARD=${{ matrix.cpp_standard }} \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
-            -DVCPKG_TARGET_TRIPLET=$(
-              if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-                echo "x64-windows"
-              elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-                if [[ "$(uname -m)" == "arm64" ]]; then
-                  echo "arm64-osx"
-                else
-                  echo "x64-osx"
-                fi
-              else
-                echo "x64-linux"
-              fi
-            )
-
-      # 6. Build the project
+            -DVCPKG_TARGET_TRIPLET=$(if [[ "$(uname -m)" == "arm64" ]]; then echo "arm64-osx"; else echo "x64-osx"; fi)
+      
       - name: Build
         shell: bash
         run: cmake --build $BUILD_DIR --config ${{ matrix.build_type }}
 
-      # 7. Run tests
       - name: Run tests
         shell: bash
         run: ctest --test-dir $BUILD_DIR --output-on-failure --build-config ${{ matrix.build_type }}
