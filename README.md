@@ -1,7 +1,9 @@
 
 # High-Performance NASDAQ ITCH 5.0 Parser
 
-[![build](https://github.com/bbalouki/itchcpp/actions/workflows/itch-ci.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/itch-ci.yml)
+[![Linux](https://github.com/bbalouki/itchcpp/actions/workflows/linux.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/linux.yml)
+[![macOS](https://github.com/bbalouki/itchcpp/actions/workflows/macos.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/macos.yml)
+[![Windows](https://github.com/bbalouki/itchcpp/actions/workflows/windows.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/windows.yml)
 [![C++20](https://img.shields.io/badge/C++-20-blue.svg)](https://isocpp.org/std/the-standard)
 [![CMake](https://img.shields.io/badge/CMake-3.20+-blue.svg)](https://cmake.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -41,6 +43,7 @@ A modern, high-performance C++20 library for parsing NASDAQ TotalView-ITCH 5.0 p
 10. [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
 11. [Contributing](#contributing)
 12. [License](#license)
+13. [References](#references)
 
 ---
 
@@ -129,7 +132,7 @@ The project includes unit tests and performance benchmarks that can be built by 
 *   **To build and run tests:**
     ```bash
     # Configure with tests enabled
-    cmake -S . -B build -DBUILD_TESTS=ON
+    cmake -S . -B build -DITCH_BUILD_TESTS=ON
 
     # Build
     cmake --build build --config Release
@@ -141,13 +144,13 @@ The project includes unit tests and performance benchmarks that can be built by 
 *   **To build and run benchmarks:**
     ```bash
     # Configure with benchmarks enabled
-    cmake -S . -B build -DBUILD_BENCHMARKS=ON
+    cmake -S . -B build -DITCH_BUILD_BENCHMARKS=ON
 
     # Build
     cmake --build build --config Release
 
     # Run benchmarks
-    ./build/benchmarks/benchmark
+    ./build/benchmarks/parser_bench
     ```
 
 ---
@@ -166,6 +169,8 @@ These are handled automatically by Microsoft's `vcpkg` package manager. When you
 
 ## Comprehensive Usage Guide
 
+Download some sample data [here](https://emi.nasdaq.com/ITCH/Nasdaq%20ITCH/)
+
 ### Example 1: Parsing a File into a Vector
 
 This is the simplest approach. It reads an entire file into memory and returns a `std::vector` of parsed messages. This method is convenient for smaller files but may consume significant memory for large datasets.
@@ -178,7 +183,7 @@ This is the simplest approach. It reads an entire file into memory and returns a
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <path_to_itch_file.bin>\n";
+        std::cerr << "Usage: " << argv[0] << " <path_to_itch_file>\n";
         return 1;
     }
 
@@ -229,7 +234,7 @@ void message_counter(const itch::Message& message) {
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <path_to_itch_file.bin>\n";
+        std::cerr << "Usage: " << argv[0] << " <path_to_itch_file>\n";
         return 1;
     }
 
@@ -326,7 +331,7 @@ auto message_visitor = [](const auto& msg) {
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <path_to_itch_file.bin>\n";
+        std::cerr << "Usage: " << argv[0] << " <path_to_itch_file>\n";
         return 1;
     }
 
@@ -417,11 +422,11 @@ The parser is designed for high-throughput scenarios. Performance is heavily dep
 To run the performance benchmarks:
 ```bash
 # Configure and build with benchmarks enabled
-cmake -S . -B build -DBUILD_BENCHMARKS=ON
+cmake -S . -B build -DITCH_BUILD_BENCHMARKS=ON
 cmake --build build --config Release
 
 # Run the benchmark suite
-./build/benchmarks/benchmark
+./build/benchmarks/parser_bench
 ```
 The output will show the parsing rate in messages per second and throughput in GB/s. On modern server hardware, expect throughput in the multi-gigabytes per second range when parsing from an in-memory buffer.
 
@@ -452,3 +457,7 @@ Contributions are welcome! Whether it's a bug report, a feature request, or a pu
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## References
+
+*   **Nasdaq TotalView-ITCH 5.0 Specification:** The official [documentation](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf) is the definitive source for protocol details.
