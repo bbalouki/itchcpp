@@ -3,37 +3,37 @@ cmake_minimum_required(VERSION 3.20)
 include(GNUInstallDirs)
 
 # Step 1: Add targets and properties
-add_library(messageslib messages.cpp)
-add_library(itch::messages ALIAS messageslib)
-set_cxx_std(messageslib 23)
-target_link_libraries(messageslib PRIVATE warnings::strict)
+add_library(messages messages.cpp)
+add_library(itch::messages ALIAS messages)
+set_cxx_std(messages 23)
+target_link_libraries(messages PRIVATE warnings::strict)
 
-add_library(parserlib parser.cpp)
-add_library(itch::parser ALIAS parserlib)
+add_library(parser parser.cpp)
+add_library(itch::parser ALIAS parser)
 target_link_libraries(
-    parserlib
+    parser
     PRIVATE warnings::strict
-    PUBLIC messageslib
+    PUBLIC messages
 ) 
 
 # set_target_properties(
-#     parserlib PROPERTIES
+#     parser PROPERTIES
 #     OUTPUT_NAME parser 
 #     EXPORT_NAME parser
 # )
 
 # set_target_properties(
-#     messageslib PROPERTIES
+#     messages PROPERTIES
 #     OUTPUT_NAME messages 
 #     EXPORT_NAME parser
 # )
 
-configure_visibility(parserlib)
-configure_visibility(messageslib)
+configure_visibility(parser)
+configure_visibility(messages)
 
 # Step 2: Update Include Directories
 target_include_directories(
-    parserlib PUBLIC 
+    parser PUBLIC 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/itch>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/itch>
@@ -41,7 +41,7 @@ target_include_directories(
 )
 
 target_include_directories(
-    messageslib PUBLIC 
+    messages PUBLIC 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/itch>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/itch>
@@ -50,7 +50,7 @@ target_include_directories(
 
 # Step 3: Specify Output Destinations
 install(
-    TARGETS parserlib messageslib
+    TARGETS parser messages
     EXPORT ItchTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
