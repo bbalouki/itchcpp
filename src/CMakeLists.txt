@@ -14,19 +14,7 @@ target_link_libraries(
     parser
     PRIVATE warnings::strict
     PUBLIC messages
-) 
-
-# set_target_properties(
-#     parser PROPERTIES
-#     OUTPUT_NAME parser 
-#     EXPORT_NAME parser
-# )
-
-# set_target_properties(
-#     messages PROPERTIES
-#     OUTPUT_NAME messages 
-#     EXPORT_NAME parser
-# )
+)
 
 configure_visibility(parser)
 configure_visibility(messages)
