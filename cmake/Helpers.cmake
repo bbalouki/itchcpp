@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.23)
 
-option(BUILD_TESTS "Add tests" OFF)
-option(BUILD_BENCHMARKS "Add benchmark analisys" OFF)
-option(BUILD_EXAMPLES "Build some examples" OFF)
+option(ITCH_BUILD_TESTS "Add tests" OFF)
+option(ITCH_BUILD_BENCHMARKS "Add benchmark analisys" OFF)
+option(ITCH_BUILD_EXAMPLES "Build some examples" OFF)
 
-set(PROJECT_ENV "DEV" CACHE STRING "Development environment")
-set_property(CACHE PROJECT_ENV PROPERTY STRINGS "DEV" "PROD")
-message(STATUS "Building for environment: ${PROJECT_ENV}")
+set(ITCH_PROJECT_ENV "DEV" CACHE STRING "Development environment")
+set_property(CACHE ITCH_PROJECT_ENV PROPERTY STRINGS "DEV" "PROD")
+message(STATUS "Building for environment: ${ITCH_PROJECT_ENV}")
 
 function(set_cxx_std target_name standard)
     message(STATUS
@@ -29,6 +29,7 @@ endfunction()
 
 
 add_library(warnings INTERFACE)
+add_library(warnings::strict ALIAS warnings)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
      target_compile_options(warnings INTERFACE /W4 /permissive-)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|AppleClang")
@@ -38,5 +39,3 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|AppleClang")
         -Wpedantic
     )
 endif()
-
-add_library(warnings::strict ALIAS warnings)
