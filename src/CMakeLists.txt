@@ -4,29 +4,20 @@ include(GNUInstallDirs)
 
 # Step 1: Add targets and properties
 add_library(messages messages.cpp)
+add_library(itch::messages ALIAS messages)
 set_cxx_std(messages 23)
 target_link_libraries(messages PRIVATE warnings::strict)
 
 add_library(parser parser.cpp)
-target_link_libraries(parser
+add_library(itch::parser ALIAS parser)
+target_link_libraries(
+    parser
     PRIVATE warnings::strict
     PUBLIC messages
 )
 
-add_library(itch::parser ALIAS parser)
-add_library(itch::messages ALIAS messages)
-
-set_target_properties(
-    parser PROPERTIES
-    OUTPUT_NAME parser 
-    EXPORT_NAME Lib 
-)
-
-set_target_properties(
-    messages PROPERTIES
-    OUTPUT_NAME messages 
-    EXPORT_NAME Lib 
-)
+configure_visibility(parser)
+configure_visibility(messages)
 
 # Step 2: Update Include Directories
 target_include_directories(
@@ -47,20 +38,21 @@ target_include_directories(
 
 # Step 3: Specify Output Destinations
 install(
-    TARGETS parser messages warnings
+    TARGETS parser messages
     EXPORT ItchTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-# Step 4: Specify Header Destinations
-file(
-    GLOB_RECURSE ITCH_ROOT_HEADERS 
-    "${PROJECT_SOURCE_DIR}/include/itch/*.h"
-)
 install(
-    FILES ${ITCH_ROOT_HEADERS}
+    TARGETS warnings
+    EXPORT ItchTargets
+)
+
+# Step 4: Specify Header Destinations
+install(
+    DIRECTORY ${PROJECT_SOURCE_DIR}/include/itch/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/itch
 )
 
@@ -76,7 +68,7 @@ install(
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
-    "${PROJECT_SOURCE_DIR}/cmake/ItchConfig.cmake.in"
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/ItchConfig.cmake.in"
     "ItchConfig.cmake"
     INSTALL_DESTINATION 
     "${CMAKE_INSTALL_LIBDIR}/cmake/itch"
