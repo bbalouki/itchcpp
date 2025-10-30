@@ -318,7 +318,9 @@ constexpr double MWCB_PRICE_DIVISOR = 1.0E8;
 // Convert char arrays to strings, trimming trailing spaces.
 inline std::string to_string(const char* arr, size_t size) {
     size_t len = size;
-    while (len > 0 && (arr[len - 1] == ' ' || arr[len - 1] == '\0')) { len--; }
+    while (len > 0 && (arr[len - 1] == ' ' || arr[len - 1] == '\0')) {
+        len--;
+    }
     return std::string{arr, len};
 }
 

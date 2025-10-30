@@ -128,7 +128,9 @@ int main(int argc, char** argv) {
     // Manually remove the filename argument from the list before passing to
     // benchmark::Initialize. We do this by shifting all subsequent arguments
     // one position to the left.
-    for (int i = 1; i < argc - 1; ++i) { argv[i] = argv[i + 1]; }
+    for (int i = 1; i < argc - 1; ++i) {
+        argv[i] = argv[i + 1];
+    }
     // Decrement the argument count to reflect the removal of our custom
     // argument.
     argc--;
@@ -140,7 +142,9 @@ int main(int argc, char** argv) {
 
     // Check if any benchmarks are targeted to run. If not, we might want to
     // return.
-    if (benchmark::ReportUnrecognizedArguments(argc, argv)) { return 1; };
+    if (benchmark::ReportUnrecognizedArguments(argc, argv)) {
+        return 1;
+    };
 
     benchmark::RunSpecifiedBenchmarks();
     benchmark::Shutdown();
