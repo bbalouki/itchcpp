@@ -31,11 +31,21 @@ endfunction()
 add_library(warnings INTERFACE)
 add_library(warnings::strict ALIAS warnings)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-     target_compile_options(warnings INTERFACE /W4 /permissive-)
+     target_compile_options(warnings INTERFACE 
+        /W4                     # Warning level 4
+        /WX                     # Treat warnings as errors
+        /permissive-            # Enforce standard C++ conformance
+        /options:strict         # unrecognized compiler options are an error
+    )
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|AppleClang")
     target_compile_options(warnings INTERFACE
-        -Wall 
-        -Wextra 
-        -Wpedantic
+        -Wall                   # Enable most warning messages.
+        -Wpedantic              # Enforces strict adherence to the C++ standard.
+        -Werror                 # Treat warnings as errors
+        -Wconversion            # Warns about implicit type conversions that may cause loss of data.
+        -pedantic-errors        # Like -pedantic but issue them as errors.
+        -Wsign-conversion       # Warns about implicit conversions between signed and unsigned types.
+        -Wshadow                # Warn when one variable shadows another (globally).
+        -Wshadow=local          # Warn when one local variable shadows another local variable or parameter.
     )
 endif()
