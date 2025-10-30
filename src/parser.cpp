@@ -350,7 +350,12 @@ static std::vector<char> read_stream_into_buffer(std::istream& data) {
     data.seekg(0, std::ios::end);
     auto size = data.tellg();
     data.seekg(0, std::ios::beg);
-    std::vector<char> buffer(size);
+
+    if (size < 0) {
+        throw std::runtime_error("Failed to determine stream size.");
+    }
+
+    std::vector<char> buffer(static_cast<size_t>(size));
     data.read(buffer.data(), size);
     return buffer;
 }
