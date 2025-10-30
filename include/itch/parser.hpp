@@ -89,12 +89,12 @@ class Parser {
      * types.
      *
      * A convenience method that parses the entire buffer but only collects
-     * messages whose type character is present in the `messages_to_keep` filter
+     * messages whose type character is present in the `messages` filter
      * list.
      *
      * @param data A pointer to the start of the memory buffer.
      * @param size The total size of the buffer in bytes.
-     * @param messages_to_keep A vector of message type characters to keep
+     * @param messages A vector of message type characters to keep
      * (e.g., {'A', 'P'}).
      * @return A std::vector<Message> containing only the filtered messages.
      * @throw std::runtime_error on buffer parsing errors.
