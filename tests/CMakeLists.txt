@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.23)
 
-find_package(GTest CONFIG REQUIRED)
+if(DEFINED CMAKE_TOOLCHAIN_FILE)
+    find_package(GTest CONFIG REQUIRED)
+else()
+    set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/.cache/_deps")
+    include(FetchContent)
+    FetchContent_Declare(
+        GTest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG "v${GTEST_VERSION}"
+    )
+    FetchContent_MakeAvailable(GTest)
+endif()
 
 add_executable(
   itch_tests
