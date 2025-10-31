@@ -20,8 +20,6 @@ option(${PROJECT_NAME}_APPLY_CLANG_TIDY_GLOBALY "Apply clang tidy globaly" OFF)
 option(${PROJECT_NAME}_BUILD_DOCUMENTATION "Build documenation with Doxygen" OFF)
 option(${PROJECT_NAME}_ENABLE_ADDRESS_SANITIZER "Enable Address Sanitizer" OFF)
 
-option(USE_PER_FILE_FORMATTING "Apply formating on one file at the time" OFF)
-
 ######################################################
 function(set_cxx_std target_name standard)
     message(STATUS
