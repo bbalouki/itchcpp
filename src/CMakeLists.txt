@@ -3,32 +3,18 @@ cmake_minimum_required(VERSION 3.20)
 include(GNUInstallDirs)
 
 # Step 1: Add targets and properties
-add_library(messages messages.cpp)
-add_library(itch::messages ALIAS messages)
-target_link_libraries(messages PRIVATE warnings::strict)
-
-add_library(parser parser.cpp)
-add_library(itch::parser ALIAS parser)
+add_library(itch_parser parser.cpp messages.cpp)
+add_library(itch::parser ALIAS itch_parser)
 target_link_libraries(
-    parser
+    itch_parser
     PRIVATE warnings::strict
-    PUBLIC messages
 )
 
-configure_visibility(parser)
-configure_visibility(messages)
+configure_visibility(itch_parser)
 
 # Step 2: Update Include Directories
 target_include_directories(
-    parser PUBLIC 
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/itch>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/itch>
-
-)
-
-target_include_directories(
-    messages PUBLIC 
+    itch_parser PUBLIC 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/itch>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/itch>
@@ -37,7 +23,7 @@ target_include_directories(
 
 # Step 3: Specify Output Destinations
 install(
-    TARGETS parser messages
+    TARGETS itch_parser
     EXPORT ItchTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
