@@ -3,18 +3,18 @@ cmake_minimum_required(VERSION 3.20)
 include(GNUInstallDirs)
 
 # Step 1: Add targets and properties
-add_library(itch_parser parser.cpp messages.cpp)
-add_library(itch::parser ALIAS itch_parser)
+add_library(parser parser.cpp messages.cpp)
+add_library(itch::parser ALIAS parser)
 target_link_libraries(
-    itch_parser
+    parser
     PRIVATE warnings::strict
 )
 
-configure_visibility(itch_parser)
+configure_visibility(parser)
 
 # Step 2: Update Include Directories
 target_include_directories(
-    itch_parser PUBLIC 
+    parser PUBLIC 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/itch>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/itch>
@@ -23,9 +23,8 @@ target_include_directories(
 
 # Step 3: Specify Output Destinations
 install(
-    TARGETS itch_parser
+    TARGETS parser
     EXPORT ItchTargets
-    EXPORT_NAME parser
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
