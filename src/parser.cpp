@@ -28,7 +28,9 @@ inline bool is_little_endian() {
 
 template <typename T>
 T from_big_endian(T value) {
-    if (is_little_endian()) { return swap_bytes(value); }
+    if (is_little_endian()) {
+        return swap_bytes(value);
+    }
     return value;
 }
 
@@ -294,7 +296,9 @@ void Parser::parse(const char* data, size_t size, const MessageCallback& callbac
         length = utils::from_big_endian(length);
         offset += sizeof(uint16_t);
 
-        if (length == 0) { continue; }
+        if (length == 0) {
+            continue;
+        }
 
         // Ensure the full message payload is available
         if (offset + length > size) {
@@ -326,12 +330,16 @@ auto Parser::parse(const char* data, size_t size, const std::vector<char>& messa
     std::vector<Message> results;
     std::set<char>       filter(messages.begin(), messages.end());
 
-    if (filter.empty()) { return results; }
+    if (filter.empty()) {
+        return results;
+    }
     results.reserve(size / average_message_size);
 
     auto callback = [&](const Message& msg) {
         char message_type = std::visit([](auto&& arg) { return arg.message_type; }, msg);
-        if (filter.contains(message_type)) { results.push_back(msg); }
+        if (filter.contains(message_type)) {
+            results.push_back(msg);
+        }
     };
     parse(data, size, callback);
     return results;
@@ -342,7 +350,12 @@ static std::vector<char> read_stream_into_buffer(std::istream& data) {
     data.seekg(0, std::ios::end);
     auto size = data.tellg();
     data.seekg(0, std::ios::beg);
-    std::vector<char> buffer(size);
+
+    if (size < 0) {
+        throw std::runtime_error("Failed to determine stream size.");
+    }
+
+    std::vector<char> buffer(static_cast<size_t>(size));
     data.read(buffer.data(), size);
     return buffer;
 }

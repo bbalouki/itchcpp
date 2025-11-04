@@ -1,0 +1,4 @@
+cmake_minimum_required(VERSION 3.20)
+
+set(GTEST_VERSION 1.17.0 CACHE STRING "")
+set(BENCHMARK_VERSION 1.9.4 CACHE STRING "")
