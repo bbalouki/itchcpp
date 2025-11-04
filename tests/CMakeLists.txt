@@ -21,7 +21,7 @@ add_executable(
 
 target_link_libraries(
   itch_tests PRIVATE
-  itch::parser
+  itch::itch
   GTest::gtest
   GTest::gtest_main
 )

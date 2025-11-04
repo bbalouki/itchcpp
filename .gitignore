@@ -10,3 +10,4 @@ install/
 scripts.sh
 *Presets.json
 .cache/
+/packaging
