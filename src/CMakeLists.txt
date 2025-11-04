@@ -5,10 +5,12 @@ include(GNUInstallDirs)
 # Step 1: Add targets and properties
 add_library(itch parser.cpp messages.cpp)
 add_library(itch::itch ALIAS itch)
-target_link_libraries(
-    itch
-    PRIVATE warnings::strict
-)
+if (NOT ANDROID)
+    target_link_libraries(
+        itch
+        PRIVATE warnings::strict
+    )
+endif()
 
 configure_visibility(itch)
 
