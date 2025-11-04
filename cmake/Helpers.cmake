@@ -62,7 +62,6 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|AppleClang")
         -pedantic-errors            # Like -pedantic but issue them as errors.
         -Wsign-conversion           # Warns about implicit conversions between signed and unsigned types.
         -Wshadow                    # Warn when one variable shadows another (globally).
-        -Wshadow=local              # Warn when one local variable shadows another local variable or parameter.
     )
 endif()
 
