@@ -16,7 +16,7 @@ endif()
 add_executable(parser_bench parser_bench.cpp)
 target_link_libraries(
     parser_bench PRIVATE 
-    itch::parser
+    itch::itch
     benchmark::benchmark
     benchmark::benchmark_main
 )

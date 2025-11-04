@@ -13,10 +13,10 @@
  * not skew the parsing performance measurements.
  *
  * Usage:
- *   ./benchmark.exe <path_to_itch_data_file> [google benchmark options]
+ *   ./parser_bench.exe <path_to_itch_data_file> [google benchmark options]
  *
  * Example:
- *   ./benchmark.exe data/itch_data.bin --benchmark_filter=BM_ParseWithCallback
+ *   ./parser_bench.exe data/itch_data.bin --benchmark_filter=BM_ParseWithCallback
  *
  * Note:
  *   Ensure that the Google Benchmark library is properly linked during
