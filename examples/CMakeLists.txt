@@ -8,3 +8,10 @@ target_link_libraries(
     warnings::strict
 )
 
+add_executable(order_book_example order_book/main.cpp)
+
+target_link_libraries(
+    order_book_example PRIVATE
+    itch::itch
+    warnings::strict
+)
