@@ -17,6 +17,7 @@ add_executable(
   itch_tests
   test_parser.cpp
   test_messages.cpp
+  test_order_book.cpp
 )
 
 target_link_libraries(
