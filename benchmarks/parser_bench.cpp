@@ -1,5 +1,5 @@
 /**
- * @file bench_main.cpp
+ * @file parser_bench.cpp
  * @brief Benchmarking suite for the ITCH message parser using Google Benchmark.
  *
  * This file defines a set of benchmarks to evaluate the performance of the
@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-#include "parser.hpp"
+#include "itch/parser.hpp"
 
 namespace data {
 // NOLINTNEXTLINE
