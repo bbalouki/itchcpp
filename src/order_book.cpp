@@ -3,7 +3,6 @@
 #include <chrono>
 #include <thread>
 
-
 namespace itch {
 
 void PriceLevel::add_order(std::shared_ptr<Order> order) {
