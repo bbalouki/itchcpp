@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 3.20)
 include(GNUInstallDirs)
 
 # Step 1: Add targets and properties
-add_library(itch parser.cpp messages.cpp)
+add_library(
+    itch 
+    parser.cpp 
+    messages.cpp 
+    order_book.cpp
+)
 add_library(itch::itch ALIAS itch)
 if (NOT ANDROID)
     target_link_libraries(
@@ -18,8 +23,8 @@ configure_visibility(itch)
 target_include_directories(
     itch PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/itch>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/itch>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 
 )
 
@@ -39,7 +44,7 @@ install(
 
 # Step 4: Specify Header Destinations
 install(
-    DIRECTORY ${PROJECT_SOURCE_DIR}/include/itch/
+    DIRECTORY ${PROJECT_SOURCE_DIR}/include
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/itch
 )
 

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#include "parser.hpp"
+#include "itch/parser.hpp"
 
 namespace dt = std::chrono;
 
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     try {
         // USAGE EXAMPLE 1:
         std::cout << "========================\n";
-        std::cout << "Parsing with a callback\n";
+        std::cout << "Parsing with a callback \n";
         std::cout << "========================\n";
 
         parser.parse(file, print_message);
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
         // USAGE EXAMPLE 2:
         std::cout << "=====================================\n";
         std::cout << "Collecting all messages into a vector\n";
-        std::cout << "======================================\n";
+        std::cout << "=====================================\n";
 
         auto start_time   = dt::steady_clock::now();
         auto all_messages = parser.parse(file);
@@ -56,9 +56,9 @@ int main(int argc, char* argv[]) {
         file.seekg(0);
 
         // USAGE EXAMPLE 3:
-        std::cout << "===================================================\n";
-        std::cout << "Filtering for Add ('A') and Executed ('E') messages\n ";
-        std::cout << "===================================================\n";
+        std::cout << "====================================================\n";
+        std::cout << "Filtering for Add ('A') and Executed ('E') messages \n";
+        std::cout << "====================================================\n";
         std::vector<char> filter            = {'A', 'E'};
         auto              filtered_messages = parser.parse(file, filter);
         std::cout << "Filtered messages collected: " << filtered_messages.size() << "\n";

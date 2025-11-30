@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 
-#include "parser.hpp"
+#include "itch/parser.hpp"
 
 class MessagesTest : public ::testing::Test {
    protected:
