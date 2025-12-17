@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(ITCH VERSION "1.0.0")
 
-include(${CMAKE_SOURCE_DIR}/cmake/Helpers.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/Versions.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/Helpers.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/Versions.cmake)
 
 if(${PROJECT_NAME}_ADD_COVERAGE_ANALYSIS)
     add_coverage_analysis()
