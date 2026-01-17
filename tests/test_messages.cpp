@@ -18,11 +18,12 @@ class MessagesTest : public ::testing::Test {
 };
 
 TEST_F(MessagesTest, StockDirectoryMessage) {
-    const std::array raw_msg = {
-        '\x00', '\x27', 'R',    '\x00', '\x04', '\x00', '\x05', '\x00', '\x00', '\x00', '\x00',
-        '\x00', '\x06', 'S',    'T',    'O',    'C',    'K',    '1',    ' ',    ' ',    'C',
-        'N',    '\x00', '\x00', '\x00', '\x64', 'N',    'C',    ' ',    ' ',    'P',    'N',
-        'N',    ' ',    'N',    '\x00', '\x00', '\x00', '\x00', 'N'};
+    const std::array raw_msg = {'\x00', '\x27', 'R',    '\x00', '\x04', '\x00', '\x05',
+                                '\x00', '\x00', '\x00', '\x00', '\x00', '\x06', 'S',
+                                'T',    'O',    'C',    'K',    '1',    ' ',    ' ',
+                                'C',    'N',    '\x00', '\x00', '\x00', '\x64', 'N',
+                                'C',    ' ',    ' ',    'P',    'N',    'N',    ' ',
+                                'N',    '\x00', '\x00', '\x00', '\x00', 'N'};
 
     auto messages = parse_message(raw_msg);
 
@@ -126,9 +127,23 @@ TEST_F(MessagesTest, MWCBDeclineLevelMessage) {
 }
 
 TEST_F(MessagesTest, MWCBStatusMessage) {
-    const std::array raw_msg  = {'\x00', '\x0c', 'W',    '\x00', '\x01', '\x00', '\x02',
-                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', 'B'};
-    auto             messages = parse_message(raw_msg);
+    const std::array raw_msg = {
+        '\x00',
+        '\x0c',
+        'W',
+        '\x00',
+        '\x01',
+        '\x00',
+        '\x02',
+        '\x00',
+        '\x00',
+        '\x00',
+        '\x00',
+        '\x00',
+        '\x03',
+        'B'
+    };
+    auto messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::MWCBStatusMessage>(messages[0]));
@@ -218,12 +233,13 @@ TEST_F(MessagesTest, AddOrderMessage) {
 }
 
 TEST_F(MessagesTest, AddOrderMPIDAttributionMessage) {
-    const std::array raw_msg = {
-        '\x00', '\x28', 'F',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00', '\x00',
-        '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04', 'B',
-        '\x00', '\x00', '\x00', '\x64', 'S',    'T',    'O',    'C',    'K',    '1',    ' ',
-        ' ',    '\x00', '\x00', '\x00', '\x05', 'A',    'T',    'T',    'R'};
-    auto messages = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x28', 'F',    '\x00', '\x01', '\x00', '\x02',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04',
+                                 'B',    '\x00', '\x00', '\x00', '\x64', 'S',    'T',
+                                 'O',    'C',    'K',    '1',    ' ',    ' ',    '\x00',
+                                 '\x00', '\x00', '\x05', 'A',    'T',    'T',    'R'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::AddOrderMPIDAttributionMessage>(messages[0]));
@@ -240,11 +256,12 @@ TEST_F(MessagesTest, AddOrderMPIDAttributionMessage) {
 }
 
 TEST_F(MessagesTest, OrderExecutedMessage) {
-    const std::array raw_msg = {
-        '\x00', '\x1f', 'E',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00', '\x00',
-        '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04', '\x00',
-        '\x00', '\x00', '\x64', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x05'};
-    auto messages = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x1f', 'E',    '\x00', '\x01', '\x00', '\x02',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x04',
+                                 '\x00', '\x00', '\x00', '\x64', '\x00', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x05'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::OrderExecutedMessage>(messages[0]));
@@ -354,12 +371,13 @@ TEST_F(MessagesTest, NonCrossTradeMessage) {
 }
 
 TEST_F(MessagesTest, CrossTradeMessage) {
-    const std::array raw_msg = {
-        '\x00', '\x28', 'Q',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00', '\x00',
-        '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x64', 'S',
-        'T',    'O',    'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00', '\x00', '\x05',
-        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x06', 'C'};
-    auto messages = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x28', 'Q',    '\x00', '\x01', '\x00', '\x02',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x03', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x64',
+                                 'S',    'T',    'O',    'C',    'K',    '1',    ' ',
+                                 ' ',    '\x00', '\x00', '\x00', '\x05', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x06', 'C'};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::CrossTradeMessage>(messages[0]));
@@ -390,13 +408,14 @@ TEST_F(MessagesTest, BrokenTradeMessage) {
 }
 
 TEST_F(MessagesTest, NOIIMessage) {
-    const std::array raw_msg = {
-        '\x00', '\x32', 'I',    '\x00', '\x01', '\x00', '\x02', '\x00', '\x00', '\x00', '\x00',
-        '\x00', '\x03', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x64', '\x00',
-        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\xc8', 'B',    'S',    'T',    'O',
-        'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00', '\x00', '\x05', '\x00', '\x00',
-        '\x00', '\x06', '\x00', '\x00', '\x00', '\x07', 'O',    ' '};
-    auto messages = parse_message(raw_msg);
+    const std::array raw_msg  = {'\x00', '\x32', 'I',    '\x00', '\x01', '\x00', '\x02', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x03', '\x00', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\x64', '\x00', '\x00', '\x00',
+                                 '\x00', '\x00', '\x00', '\x00', '\xc8', 'B',    'S',    'T',
+                                 'O',    'C',    'K',    '1',    ' ',    ' ',    '\x00', '\x00',
+                                 '\x00', '\x05', '\x00', '\x00', '\x00', '\x06', '\x00', '\x00',
+                                 '\x00', '\x07', 'O',    ' '};
+    auto             messages = parse_message(raw_msg);
 
     ASSERT_EQ(messages.size(), 1);
     ASSERT_TRUE(std::holds_alternative<itch::NOIIMessage>(messages[0]));
@@ -429,4 +448,77 @@ TEST_F(MessagesTest, RetailPriceImprovementIndicatorMessage) {
     EXPECT_EQ(msg.timestamp, 3);
     EXPECT_EQ(std::string(msg.stock, 8), "STOCK1  ");
     EXPECT_EQ(msg.interest_flag, 'A');
+}
+
+TEST_F(MessagesTest, SystemEventMessagePrint) {
+    itch::SystemEventMessage msg;
+    msg.timestamp  = 12345;
+    msg.event_code = 'E';
+    std::stringstream stream;
+    itch::print_message(stream, msg);
+    std::string output = stream.str();
+    EXPECT_NE(output.find("System Event"), std::string::npos);
+    EXPECT_NE(output.find("12345"), std::string::npos);
+    EXPECT_NE(output.find("E"), std::string::npos);
+}
+
+TEST_F(MessagesTest, StockDirectoryMessagePrint) {
+    itch::StockDirectoryMessage msg;
+    msg.timestamp = 12345;
+    strncpy(msg.stock, "AAPL", sizeof(msg.stock));
+    std::stringstream stream;
+    itch::print_message(stream, msg);
+    std::string output = stream.str();
+    EXPECT_NE(output.find("Stock Directory"), std::string::npos);
+    EXPECT_NE(output.find("12345"), std::string::npos);
+    EXPECT_NE(output.find("AAPL"), std::string::npos);
+}
+
+TEST_F(MessagesTest, StockTradingActionMessagePrint) {
+    itch::StockTradingActionMessage msg;
+    msg.timestamp = 12345;
+    strncpy(msg.stock, "AAPL", sizeof(msg.stock));
+    msg.trading_state = 'H';
+    std::stringstream stream;
+    itch::print_message(stream, msg);
+    std::string output = stream.str();
+    EXPECT_NE(output.find("Stock Trading Action"), std::string::npos);
+    EXPECT_NE(output.find("12345"), std::string::npos);
+    EXPECT_NE(output.find("AAPL"), std::string::npos);
+    EXPECT_NE(output.find("H"), std::string::npos);
+}
+
+TEST_F(MessagesTest, AllMessagesPrint) {
+    std::stringstream stream;
+
+    auto test_print = [&](auto msg_variant, const std::string& expected_name) {
+        stream.str("");
+        stream.clear();
+        itch::print_message(stream, msg_variant);
+        EXPECT_NE(stream.str().find(expected_name), std::string::npos);
+    };
+
+    test_print(itch::SystemEventMessage(), "System Event");
+    test_print(itch::StockDirectoryMessage(), "Stock Directory");
+    test_print(itch::StockTradingActionMessage(), "Stock Trading Action");
+    test_print(itch::RegSHOMessage(), "Reg SHO Message");
+    test_print(itch::MarketParticipantPositionMessage(), "Market Participant Position");
+    test_print(itch::MWCBDeclineLevelMessage(), "MWCB Decline Level");
+    test_print(itch::MWCBStatusMessage(), "MWCB Status");
+    test_print(itch::IPOQuotingPeriodUpdateMessage(), "IPO Quoting Period Update");
+    test_print(itch::LULDAuctionCollarMessage(), "LULD Auction Collar");
+    test_print(itch::OperationalHaltMessage(), "Operational Halt");
+    test_print(itch::AddOrderMessage(), "Add Order");
+    test_print(itch::AddOrderMPIDAttributionMessage(), "Add Order (MPID)");
+    test_print(itch::OrderExecutedMessage(), "Order Executed");
+    test_print(itch::OrderExecutedWithPriceMessage(), "Order Executed w/ Price");
+    test_print(itch::OrderCancelMessage(), "Order Cancel");
+    test_print(itch::OrderDeleteMessage(), "Order Delete");
+    test_print(itch::OrderReplaceMessage(), "Order Replace");
+    test_print(itch::NonCrossTradeMessage(), "Non-Cross Trade");
+    test_print(itch::CrossTradeMessage(), "Cross Trade");
+    test_print(itch::BrokenTradeMessage(), "Broken Trade");
+    test_print(itch::NOIIMessage(), "NOII Message");
+    test_print(itch::RetailPriceImprovementIndicatorMessage(), "RPII Message");
+    test_print(itch::DLCRMessage(), "DLCR Message");
 }
