@@ -53,8 +53,8 @@ inline void unpack_string(const char* buffer, size_t& offset, char* dest, size_t
 }
 
 inline uint64_t unpack_timestamp(const char* buffer, size_t& offset) {
-    uint16_t      high{};
-    uint32_t      low{};
+    uint16_t      high {};
+    uint32_t      low {};
     constexpr int lower_shift = 32;
     std::memcpy(&high, buffer + offset, sizeof(high));
     offset += sizeof(high);
@@ -291,7 +291,7 @@ void Parser::parse(const char* data, size_t size, const MessageCallback& callbac
         if (offset + sizeof(uint16_t) > size) {
             throw std::runtime_error("Incomplete message header at end of buffer.");
         }
-        uint16_t length{};
+        uint16_t length {};
         std::memcpy(&length, data + offset, sizeof(length));
         length = utils::from_big_endian(length);
         offset += sizeof(uint16_t);

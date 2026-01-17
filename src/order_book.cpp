@@ -21,7 +21,8 @@ void LimitOrderBook::process(const Message& message) {
             }
             this->handle_message(msg);
         },
-        message);
+        message
+    );
 }
 
 void LimitOrderBook::print(std::ostream& out, unsigned int delay_ms) const {

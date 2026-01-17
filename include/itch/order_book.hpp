@@ -32,11 +32,11 @@ struct Order {
     PriceLevel* level;                ///< Pointer to the price level containing this order.
 
     Order(uint64_t ref_num, char side, uint32_t shrs, uint32_t prc)
-        : order_reference_number{ref_num},
-          buy_sell_indicator{side},
-          shares{shrs},
-          price{prc},
-          level{nullptr} {}
+        : order_reference_number {ref_num},
+          buy_sell_indicator {side},
+          shares {shrs},
+          price {prc},
+          level {nullptr} {}
 };
 
 /// Iterator type for navigating the list of orders within a price level.
@@ -50,7 +50,7 @@ using OrderIt = std::list<std::shared_ptr<Order>>::iterator;
  * (FIFO) execution. It tracks the aggregate share volume for this level.
  */
 struct PriceLevel {
-    uint32_t total_shares{0};                  ///< Aggregate volume of shares at this price.
+    uint32_t total_shares {0};                 ///< Aggregate volume of shares at this price.
     std::list<std::shared_ptr<Order>> orders;  ///< FIFO queue of orders.
 
     /**
@@ -117,7 +117,7 @@ class LimitOrderBook {
     const AskMap& get_asks() const { return m_asks; }
 
     /// Set of message type characters that affect the book state.
-    const std::set<char> book_messages{'A', 'F', 'E', 'C', 'X', 'D', 'U'};
+    const std::set<char> book_messages {'A', 'F', 'E', 'C', 'X', 'D', 'U'};
 
    private:
     BidMap                      m_bids;  ///< Ask price levels (Price -> Level). Sorted Low-to-High.

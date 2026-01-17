@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(ITCH VERSION "1.0.0")
+file(READ "VERSION.txt" RAW_VERSION)
+string(STRIP "${RAW_VERSION}" APP_VERSION)
+
+project(ITCH VERSION ${APP_VERSION})
 
 include(${CMAKE_SOURCE_DIR}/cmake/Helpers.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/Versions.cmake)

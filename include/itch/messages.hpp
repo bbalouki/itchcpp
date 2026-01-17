@@ -301,15 +301,30 @@ TotalView ITCH is 200,000.0000 (decimal, 77359400 hex). ``price_precision`` is
 4 for all messages except MWCBDeclineLeveMessage where ``price_precision``
 is 8.
 */
-using Message =
-    std::variant<SystemEventMessage, StockDirectoryMessage, StockTradingActionMessage,
-                 RegSHOMessage, MarketParticipantPositionMessage, MWCBDeclineLevelMessage,
-                 MWCBStatusMessage, IPOQuotingPeriodUpdateMessage, LULDAuctionCollarMessage,
-                 OperationalHaltMessage, AddOrderMessage, AddOrderMPIDAttributionMessage,
-                 OrderExecutedMessage, OrderExecutedWithPriceMessage, OrderCancelMessage,
-                 OrderDeleteMessage, OrderReplaceMessage, NonCrossTradeMessage, CrossTradeMessage,
-                 BrokenTradeMessage, NOIIMessage, RetailPriceImprovementIndicatorMessage,
-                 DLCRMessage>;
+using Message = std::variant<
+    SystemEventMessage,
+    StockDirectoryMessage,
+    StockTradingActionMessage,
+    RegSHOMessage,
+    MarketParticipantPositionMessage,
+    MWCBDeclineLevelMessage,
+    MWCBStatusMessage,
+    IPOQuotingPeriodUpdateMessage,
+    LULDAuctionCollarMessage,
+    OperationalHaltMessage,
+    AddOrderMessage,
+    AddOrderMPIDAttributionMessage,
+    OrderExecutedMessage,
+    OrderExecutedWithPriceMessage,
+    OrderCancelMessage,
+    OrderDeleteMessage,
+    OrderReplaceMessage,
+    NonCrossTradeMessage,
+    CrossTradeMessage,
+    BrokenTradeMessage,
+    NOIIMessage,
+    RetailPriceImprovementIndicatorMessage,
+    DLCRMessage>;
 
 constexpr int    STOCK_LEN          = 8;
 constexpr double PRICE_DIVISOR      = 10000.0;
@@ -321,7 +336,7 @@ inline std::string to_string(const char* arr, size_t size) {
     while (len > 0 && (arr[len - 1] == ' ' || arr[len - 1] == '\0')) {
         len--;
     }
-    return std::string{arr, len};
+    return std::string {arr, len};
 }
 
 void print_impl(std::ostream& out, const SystemEventMessage& msg);
