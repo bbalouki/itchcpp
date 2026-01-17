@@ -6,6 +6,7 @@
 [![Windows](https://github.com/bbalouki/itchcpp/actions/workflows/windows.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/windows.yml)
 [![C++20](https://img.shields.io/badge/C++-20-blue.svg)](https://isocpp.org/std/the-standard)
 [![CMake](https://img.shields.io/badge/CMake-3.20+-blue.svg)](https://cmake.org/)
+[![CodeFactor](https://www.codefactor.io/repository/github/bbalouki/itchcpp/badge)](https://www.codefactor.io/repository/github/bbalouki/itchcpp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-grey?logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/bertin-balouki-simyeli-15b17a1a6/)
 [![PayPal Me](https://img.shields.io/badge/PayPal%20Me-blue?logo=paypal)](https://paypal.me/bertinbalouki?country.x=SN&locale.x=en_US)
