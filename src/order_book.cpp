@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <thread>
+#include <type_traits>
 
 namespace itch {
 
@@ -67,28 +68,58 @@ void LimitOrderBook::print(std::ostream& out, unsigned int delay_ms) const {
 }
 
 void LimitOrderBook::handle_message(const AddOrderMessage& msg) {
-    add_order(msg.order_reference_number, msg.buy_sell_indicator, msg.shares, msg.price);
+    if (to_string(msg.stock, sizeof(msg.stock)) != m_stock_symbol) {
+        return;
+    }
+    add_order(
+        msg.order_reference_number,
+        msg.buy_sell_indicator,
+        msg.shares,
+        msg.price,
+        to_string(msg.stock, sizeof(msg.stock))
+    );
 }
 
 void LimitOrderBook::handle_message(const AddOrderMPIDAttributionMessage& msg) {
-    add_order(msg.order_reference_number, msg.buy_sell_indicator, msg.shares, msg.price);
+    if (to_string(msg.stock, sizeof(msg.stock)) != m_stock_symbol) {
+        return;
+    }
+    add_order(
+        msg.order_reference_number,
+        msg.buy_sell_indicator,
+        msg.shares,
+        msg.price,
+        to_string(msg.stock, sizeof(msg.stock))
+    );
 }
 
 void LimitOrderBook::handle_message(const OrderExecutedMessage& msg) {
+    auto it = m_orders.find(msg.order_reference_number);
+    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+        return;
+    }
     remove_order(msg.order_reference_number, msg.executed_shares);
 }
 
 void LimitOrderBook::handle_message(const OrderExecutedWithPriceMessage& msg) {
+    auto it = m_orders.find(msg.order_reference_number);
+    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+        return;
+    }
     remove_order(msg.order_reference_number, msg.executed_shares);
 }
 
 void LimitOrderBook::handle_message(const OrderCancelMessage& msg) {
+    auto it = m_orders.find(msg.order_reference_number);
+    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+        return;
+    }
     remove_order(msg.order_reference_number, msg.cancelled_shares);
 }
 
 void LimitOrderBook::handle_message(const OrderDeleteMessage& msg) {
     auto iter = m_orders.find(msg.order_reference_number);
-    if (iter != m_orders.end()) {
+    if (iter != m_orders.end() && (*iter->second)->stock == m_stock_symbol) {
         auto order = *iter->second;
         remove_order(msg.order_reference_number, order->shares);
     }
@@ -96,16 +127,19 @@ void LimitOrderBook::handle_message(const OrderDeleteMessage& msg) {
 
 void LimitOrderBook::handle_message(const OrderReplaceMessage& msg) {
     auto iter = m_orders.find(msg.original_order_reference_number);
-    if (iter != m_orders.end()) {
-        auto old_order = *iter->second;
-        char side      = old_order->buy_sell_indicator;
+    if (iter != m_orders.end() && (*iter->second)->stock == m_stock_symbol) {
+        auto               old_order = *iter->second;
+        char               side      = old_order->buy_sell_indicator;
+        const std::string& stock     = old_order->stock;
         remove_order(msg.original_order_reference_number, old_order->shares);
-        add_order(msg.new_order_reference_number, side, msg.shares, msg.price);
+        add_order(msg.new_order_reference_number, side, msg.shares, msg.price, stock);
     }
 }
 
-void LimitOrderBook::add_order(uint64_t order_ref, char side, uint32_t shares, uint32_t price) {
-    auto order = std::make_shared<Order>(order_ref, side, shares, price);
+void LimitOrderBook::add_order(
+    uint64_t order_ref, char side, uint32_t shares, uint32_t price, const std::string& stock
+) {
+    auto order = std::make_shared<Order>(order_ref, side, shares, price, stock);
 
     PriceLevel* level = nullptr;
 

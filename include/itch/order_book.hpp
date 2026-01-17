@@ -30,13 +30,15 @@ struct Order {
     uint32_t shares;                  ///< Current quantity of shares available in this order.
     uint32_t price;                   ///< Limit price of the order.
     PriceLevel* level;                ///< Pointer to the price level containing this order.
+    std::string stock;                ///< The stock symbol for this order.
 
-    Order(uint64_t ref_num, char side, uint32_t shrs, uint32_t prc)
+    Order(uint64_t ref_num, char side, uint32_t shrs, uint32_t prc, const std::string& stk)
         : order_reference_number {ref_num},
           buy_sell_indicator {side},
           shares {shrs},
           price {prc},
-          level {nullptr} {}
+          level {nullptr},
+          stock {stk} {}
 };
 
 /// Iterator type for navigating the list of orders within a price level.
@@ -80,6 +82,7 @@ struct PriceLevel {
  */
 class LimitOrderBook {
    public:
+    LimitOrderBook(const std::string& stock_symbol) : m_stock_symbol(stock_symbol) {}
     /**
      * @brief Dispatches and processes a generic ITCH message.
      *
@@ -120,6 +123,7 @@ class LimitOrderBook {
     const std::set<char> book_messages {'A', 'F', 'E', 'C', 'X', 'D', 'U'};
 
    private:
+    std::string                 m_stock_symbol;
     BidMap                      m_bids;  ///< Ask price levels (Price -> Level). Sorted Low-to-High.
     AskMap                      m_asks;  ///< Bid price levels (Price -> Level). Sorted High-to-Low.
     std::map<uint64_t, OrderIt> m_orders;  ///< Hash map for O(1) order lookup by Reference Number.
@@ -140,7 +144,9 @@ class LimitOrderBook {
     /**
      * @brief Creates an Order object and inserts it into the appropriate PriceLevel.
      */
-    void add_order(uint64_t order_ref, char side, uint32_t shares, uint32_t price);
+    void add_order(
+        uint64_t order_ref, char side, uint32_t shares, uint32_t price, const std::string& stock
+    );
 
     /**
      * @brief Reduces shares from an order or removes it entirely if fully depleted.

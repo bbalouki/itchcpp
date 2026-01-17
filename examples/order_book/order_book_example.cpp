@@ -7,8 +7,8 @@
 #include "itch/parser.hpp"
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <itch_file>\n";
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <itch_file> <symbol>\n";
         return 1;
     }
 
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     }
 
     itch::Parser         parser;
-    itch::LimitOrderBook order_book;
+    itch::LimitOrderBook order_book {argv[2]};
 
     try {
         auto processor = [&](auto&& msg) { order_book.process(msg); };

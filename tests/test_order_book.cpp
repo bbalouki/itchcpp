@@ -1,15 +1,19 @@
 #include <gtest/gtest.h>
 
+#include <cstring>
+
 #include "itch/messages.hpp"
 #include "itch/order_book.hpp"
 
 class LimitOrderBookTest : public ::testing::Test {
    protected:
+    LimitOrderBookTest() : book("ZVZZT") {}
     itch::LimitOrderBook book;
 };
 
 TEST_F(LimitOrderBookTest, AddOrder) {
     itch::AddOrderMessage msg;
+    strncpy(msg.stock, "ZVZZT", sizeof(msg.stock));
     msg.order_reference_number = 12345;
     msg.buy_sell_indicator     = 'B';
     msg.shares                 = 100;
@@ -23,6 +27,7 @@ TEST_F(LimitOrderBookTest, AddOrder) {
 
 TEST_F(LimitOrderBookTest, ExecuteOrder) {
     itch::AddOrderMessage add_msg;
+    strncpy(add_msg.stock, "ZVZZT", sizeof(add_msg.stock));
     add_msg.order_reference_number = 12345;
     add_msg.buy_sell_indicator     = 'S';
     add_msg.shares                 = 100;
@@ -41,6 +46,7 @@ TEST_F(LimitOrderBookTest, ExecuteOrder) {
 
 TEST_F(LimitOrderBookTest, DeleteOrder) {
     itch::AddOrderMessage add_msg;
+    strncpy(add_msg.stock, "ZVZZT", sizeof(add_msg.stock));
     add_msg.order_reference_number = 12345;
     add_msg.buy_sell_indicator     = 'B';
     add_msg.shares                 = 100;
@@ -57,6 +63,7 @@ TEST_F(LimitOrderBookTest, DeleteOrder) {
 
 TEST_F(LimitOrderBookTest, ReplaceOrder) {
     itch::AddOrderMessage add_msg;
+    strncpy(add_msg.stock, "ZVZZT", sizeof(add_msg.stock));
     add_msg.order_reference_number = 12345;
     add_msg.buy_sell_indicator     = 'B';
     add_msg.shares                 = 100;
@@ -83,6 +90,18 @@ TEST_F(LimitOrderBookTest, CancelNonExistentOrder) {
     book.process(msg);
     ASSERT_TRUE(book.get_bids().empty());
     ASSERT_TRUE(book.get_asks().empty());
+}
+
+TEST_F(LimitOrderBookTest, IgnoreOtherSymbols) {
+    itch::AddOrderMessage msg;
+    strncpy(msg.stock, "AAPL", sizeof(msg.stock));
+    msg.order_reference_number = 12345;
+    msg.buy_sell_indicator     = 'B';
+    msg.shares                 = 100;
+    msg.price                  = 5000;
+    book.process(msg);
+    const auto& bids = book.get_bids();
+    ASSERT_TRUE(bids.empty());
 }
 
 TEST_F(LimitOrderBookTest, DeleteNonExistentOrder) {
