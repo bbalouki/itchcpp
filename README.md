@@ -356,6 +356,81 @@ int main(int argc, char* argv[]) {
 }
 ```
 
+### Example 5: Building and Displaying an Order Book
+
+Beyond simple parsing, this library provides a high-level `LimitOrderBook` utility that reconstructs the full order book state for a given financial instrument from an ITCH data stream. This is essential for applications requiring market depth analysis, such as algorithmic trading or market making.
+
+The `itch::LimitOrderBook` class processes ITCH messages and internally manages the addition, removal, and modification of orders, giving you a complete, real-time view of the market. This example demonstrates how to parse an ITCH file and use the messages to build an order book for a specific stock (e.g., "AAPL"). After processing all messages, it prints a snapshot of the final book state.
+
+```cpp
+#include <fstream>
+#include <iostream>
+#include "itch/parser.hpp"
+#include "itch/order_book.hpp"
+
+int main(int argc, char* argv[]) {
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <itch_file> <symbol>\n";
+        return 1;
+    }
+
+    std::ifstream file(argv[1], std::ios::binary);
+    if (!file) {
+        std::cerr << "Error: Could not open file " << argv[1] << "\n";
+        return 1;
+    }
+
+    // Initialize the order book for the target stock symbol
+    itch::LimitOrderBook order_book(argv[2]);
+
+    // Create a parser and configure it to only process book-related messages
+    // This is a performance optimization.
+    itch::Parser parser;
+    std::vector<char> book_messages(order_book.book_messages.begin(), 
+                                    order_book.book_messages.end());
+
+    try {
+        // Define a callback to process each relevant message
+        auto callback = [&](const itch::Message& msg) {
+            order_book.process(msg);
+        };
+
+        // Start parsing the file with the filter and callback
+        parser.parse(file, callback, book_messages);
+
+        // Print the final state of the order book
+        std::cout << "Final Order Book for " << argv[2] << ":\n";
+        order_book.print(std::cout);
+
+    } catch (const std::exception& e) {
+        std::cerr << "An error occurred: " << e.what() << "\n";
+        return 1;
+    }
+
+    return 0;
+}
+```
+
+#### Example Output
+
+The `print()` method provides a formatted snapshot of the top of the book. It displays the total volume at each price level for both bids and asks.
+
+```
++-----------------------------------------------------+
+|                         AAPL                        |
++--------------------------+--------------------------+
+|        ASKS (SELL)       |        BIDS (BUY)        | 
++------------+-------------+------------+-------------+
+|   PRICE    |    VOLUME   |   PRICE    |    VOLUME   |   
++------------+-------------+------------+-------------+
+|   173.5000 |      15,000 |   173.4900 |      23,500 |
+|   173.5100 |      12,300 |   173.4800 |      18,900 |
+|   173.5200 |       8,000 |   173.4700 |      31,200 |
+|   173.5300 |      21,100 |   173.4600 |       5,600 |
+|   173.5400 |       4,500 |   173.4500 |      14,400 |
++------------+-------------+------------+-------------+
+```
+
 ---
 
 ## API Reference: ITCH 5.0 Message Types
