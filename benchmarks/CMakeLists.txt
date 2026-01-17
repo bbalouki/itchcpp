@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.23)
 
-if(DEFINED CMAKE_TOOLCHAIN_FILE)
-    find_package(benchmark CONFIG REQUIRED)
-else()
+find_package(benchmark CONFIG QUIET)
+
+if(NOT benchmark_FOUND)
     set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/.cache/_deps")
     include(FetchContent)
     FetchContent_Declare(

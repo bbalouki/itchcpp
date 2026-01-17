@@ -35,7 +35,7 @@
 
 namespace data {
 // NOLINTNEXTLINE
-std::string g_data_filename{};
+std::string g_data_filename {};
 }  // namespace data
 
 constexpr double KILOBYTE = 1024.0;
@@ -51,7 +51,8 @@ class ParserBenchmark : public benchmark::Fixture {
         if (data::g_data_filename.empty()) {
             state.SkipWithError(
                 "ITCH data file not provided. Pass the file path as a "
-                "command-line argument.");
+                "command-line argument."
+            );
             return;
         }
 

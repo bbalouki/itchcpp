@@ -274,84 +274,97 @@ struct DLCRMessage {
 // RESTORE DEFAULT PADDING
 #pragma pack(pop)
 
-/**
- The TotalView ITCH feed is composed of a series of messages that describe
-orders added to, removed from, and executed on Nasdaq as well as disseminate
-Cross and Stock Directory information.
-Each message begins with a one-byte Message Type field that identifies the
-structure of the remainder of the message.  The Message Type is followed by
-fields that are specific to each message type.
-
-All Message have the following attributes:
-- message_type: A single letter that identify the message
-- timestamp: Time at which the message was generated (Nanoseconds past
-midnight)
-- stock_locate: Locate code identifying the security
-- tracking_number: Nasdaq internal tracking number
-
-for more details on each message type, see the
-[documentation](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf).
-
-@note
-Prices are integers fields supplied with an associated precision.  When
-converted to a decimal format, prices are in fixed point format, where the
-precision defines the number of decimal places. For example, a field flagged as
-Price (4) has an implied 4 decimal places.  The maximum value of price (4) in
-TotalView ITCH is 200,000.0000 (decimal, 77359400 hex). ``price_precision`` is
-4 for all messages except MWCBDeclineLeveMessage where ``price_precision``
-is 8.
-*/
-using Message =
-    std::variant<SystemEventMessage, StockDirectoryMessage, StockTradingActionMessage,
-                 RegSHOMessage, MarketParticipantPositionMessage, MWCBDeclineLevelMessage,
-                 MWCBStatusMessage, IPOQuotingPeriodUpdateMessage, LULDAuctionCollarMessage,
-                 OperationalHaltMessage, AddOrderMessage, AddOrderMPIDAttributionMessage,
-                 OrderExecutedMessage, OrderExecutedWithPriceMessage, OrderCancelMessage,
-                 OrderDeleteMessage, OrderReplaceMessage, NonCrossTradeMessage, CrossTradeMessage,
-                 BrokenTradeMessage, NOIIMessage, RetailPriceImprovementIndicatorMessage,
-                 DLCRMessage>;
+/// The TotalView ITCH feed is composed of a series of messages that describe
+/// orders added to, removed from, and executed on Nasdaq as well as disseminate
+/// Cross and Stock Directory information.
+/// Each message begins with a one-byte Message Type field that identifies the
+/// structure of the remainder of the message.  The Message Type is followed by
+/// fields that are specific to each message type.
+///
+/// All Message have the following attributes:
+/// - message_type: A single letter that identify the message
+/// - timestamp: Time at which the message was generated (Nanoseconds past
+/// midnight)
+/// - stock_locate: Locate code identifying the security
+/// - tracking_number: Nasdaq internal tracking number
+///
+/// for more details on each message type, see the
+/// [documentation](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf).
+///
+/// @note
+/// Prices are integers fields supplied with an associated precision.  When
+/// converted to a decimal format, prices are in fixed point format, where the
+/// precision defines the number of decimal places. For example, a field flagged as
+/// Price (4) has an implied 4 decimal places.  The maximum value of price (4) in
+/// TotalView ITCH is 200,000.0000 (decimal, 77359400 hex). ``price_precision`` is
+/// 4 for all messages except MWCBDeclineLeveMessage where ``price_precision``
+/// is 8.
+using Message = std::variant<
+    SystemEventMessage,
+    StockDirectoryMessage,
+    StockTradingActionMessage,
+    RegSHOMessage,
+    MarketParticipantPositionMessage,
+    MWCBDeclineLevelMessage,
+    MWCBStatusMessage,
+    IPOQuotingPeriodUpdateMessage,
+    LULDAuctionCollarMessage,
+    OperationalHaltMessage,
+    AddOrderMessage,
+    AddOrderMPIDAttributionMessage,
+    OrderExecutedMessage,
+    OrderExecutedWithPriceMessage,
+    OrderCancelMessage,
+    OrderDeleteMessage,
+    OrderReplaceMessage,
+    NonCrossTradeMessage,
+    CrossTradeMessage,
+    BrokenTradeMessage,
+    NOIIMessage,
+    RetailPriceImprovementIndicatorMessage,
+    DLCRMessage>;
 
 constexpr int    STOCK_LEN          = 8;
 constexpr double PRICE_DIVISOR      = 10000.0;
 constexpr double MWCB_PRICE_DIVISOR = 1.0E8;
 
 // Convert char arrays to strings, trimming trailing spaces.
-inline std::string to_string(const char* arr, size_t size) {
+inline auto to_string(const char* arr, size_t size) -> std::string {
     size_t len = size;
     while (len > 0 && (arr[len - 1] == ' ' || arr[len - 1] == '\0')) {
         len--;
     }
-    return std::string{arr, len};
+    return std::string {arr, len};
 }
 
-void print_impl(std::ostream& out, const SystemEventMessage& msg);
-void print_impl(std::ostream& out, const StockDirectoryMessage& msg);
-void print_impl(std::ostream& out, const StockTradingActionMessage& msg);
-void print_impl(std::ostream& out, const RegSHOMessage& msg);
-void print_impl(std::ostream& out, const MarketParticipantPositionMessage& msg);
-void print_impl(std::ostream& out, const MWCBDeclineLevelMessage& msg);
-void print_impl(std::ostream& out, const MWCBStatusMessage& msg);
-void print_impl(std::ostream& out, const IPOQuotingPeriodUpdateMessage& msg);
-void print_impl(std::ostream& out, const LULDAuctionCollarMessage& msg);
-void print_impl(std::ostream& out, const OperationalHaltMessage& msg);
-void print_impl(std::ostream& out, const AddOrderMessage& msg);
-void print_impl(std::ostream& out, const AddOrderMPIDAttributionMessage& msg);
-void print_impl(std::ostream& out, const OrderExecutedMessage& msg);
-void print_impl(std::ostream& out, const OrderExecutedWithPriceMessage& msg);
-void print_impl(std::ostream& out, const OrderCancelMessage& msg);
-void print_impl(std::ostream& out, const OrderDeleteMessage& msg);
-void print_impl(std::ostream& out, const OrderReplaceMessage& msg);
-void print_impl(std::ostream& out, const NonCrossTradeMessage& msg);
-void print_impl(std::ostream& out, const CrossTradeMessage& msg);
-void print_impl(std::ostream& out, const BrokenTradeMessage& msg);
-void print_impl(std::ostream& out, const NOIIMessage& msg);
-void print_impl(std::ostream& out, const RetailPriceImprovementIndicatorMessage& msg);
-void print_impl(std::ostream& out, const DLCRMessage& msg);
+auto print_impl(std::ostream& out, const SystemEventMessage& msg) -> void;
+auto print_impl(std::ostream& out, const StockDirectoryMessage& msg) -> void;
+auto print_impl(std::ostream& out, const StockTradingActionMessage& msg) -> void;
+auto print_impl(std::ostream& out, const RegSHOMessage& msg) -> void;
+auto print_impl(std::ostream& out, const MarketParticipantPositionMessage& msg) -> void;
+auto print_impl(std::ostream& out, const MWCBDeclineLevelMessage& msg) -> void;
+auto print_impl(std::ostream& out, const MWCBStatusMessage& msg) -> void;
+auto print_impl(std::ostream& out, const IPOQuotingPeriodUpdateMessage& msg) -> void;
+auto print_impl(std::ostream& out, const LULDAuctionCollarMessage& msg) -> void;
+auto print_impl(std::ostream& out, const OperationalHaltMessage& msg) -> void;
+auto print_impl(std::ostream& out, const AddOrderMessage& msg) -> void;
+auto print_impl(std::ostream& out, const AddOrderMPIDAttributionMessage& msg) -> void;
+auto print_impl(std::ostream& out, const OrderExecutedMessage& msg) -> void;
+auto print_impl(std::ostream& out, const OrderExecutedWithPriceMessage& msg) -> void;
+auto print_impl(std::ostream& out, const OrderCancelMessage& msg) -> void;
+auto print_impl(std::ostream& out, const OrderDeleteMessage& msg) -> void;
+auto print_impl(std::ostream& out, const OrderReplaceMessage& msg) -> void;
+auto print_impl(std::ostream& out, const NonCrossTradeMessage& msg) -> void;
+auto print_impl(std::ostream& out, const CrossTradeMessage& msg) -> void;
+auto print_impl(std::ostream& out, const BrokenTradeMessage& msg) -> void;
+auto print_impl(std::ostream& out, const NOIIMessage& msg) -> void;
+auto print_impl(std::ostream& out, const RetailPriceImprovementIndicatorMessage& msg) -> void;
+auto print_impl(std::ostream& out, const DLCRMessage& msg) -> void;
 
 // General print function that dispatches to the correct implementation
-void print_message(std::ostream& out, const Message& msg);
+auto print_message(std::ostream& out, const Message& msg) -> void;
 
 // print an itch::Message
-std::ostream& operator<<(std::ostream& out, const Message& msg);
+auto operator<<(std::ostream& out, const Message& msg) -> std::ostream&;
 
 }  // namespace itch

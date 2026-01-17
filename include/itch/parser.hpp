@@ -9,157 +9,138 @@
 
 namespace itch {
 
-/**
- * @brief The signature for the callback function used in streaming parse
- * methods.
- *
- * @param const Message& A const reference to the fully parsed message object.
- */
+/// @brief The signature for the callback function used in streaming parse
+/// methods.
+///
+/// @param const Message& A const reference to the fully parsed message object.
 using MessageCallback = std::function<void(const Message&)>;
 
-/**
- * @brief A high-performance parser for the NASDAQ TotalView-ITCH 5.0 protocol.
- *
- * This class is designed to parse a raw binary feed of ITCH 5.0 messages,
- * handle message framing (based on the 2-byte length prefix), and deserialize
- * the byte payloads into structured, type-safe C++ objects.
- *
- * The primary interface is designed for maximum performance, operating directly
- * on a pre-loaded, contiguous block of memory (a `const char*` buffer). This
- * approach avoids all per-message memory allocations and stream I/O overhead,
- * allowing for throughput measured in gigabytes per second.
- *
- * For convenience, the parser also provides `std::istream` based wrappers.
- * These are easier to use for simple cases but are significantly slower, as
- * they must read the entire stream into an in-memory buffer before parsing.
- *
- * @note This parser assumes the input is a raw, sequenced ITCH 5.0 feed
- *       without any higher-level protocol framing (e.g., SoupBinTCP packet
- * headers).
- */
+/// @brief A high-performance parser for the NASDAQ TotalView-ITCH 5.0 protocol.
+///
+/// This class is designed to parse a raw binary feed of ITCH 5.0 messages,
+/// handle message framing (based on the 2-byte length prefix), and deserialize
+/// the byte payloads into structured, type-safe C++ objects.
+///
+/// The primary interface is designed for maximum performance, operating directly
+/// on a pre-loaded, contiguous block of memory (a `const char*` buffer). This
+/// approach avoids all per-message memory allocations and stream I/O overhead,
+/// allowing for throughput measured in gigabytes per second.
+///
+/// For convenience, the parser also provides `std::istream` based wrappers.
+/// These are easier to use for simple cases but are significantly slower, as
+/// they must read the entire stream into an in-memory buffer before parsing.
+///
+/// @note This parser assumes the input is a raw, sequenced ITCH 5.0 feed
+///       without any higher-level protocol framing (e.g., SoupBinTCP packet
+/// headers).
 class Parser {
    public:
-    /**
-     * @brief Constructs a Parser instance.
-     *
-     * The constructor pre-populates an internal dispatch table (a map of
-     * handlers) by registering a specific parsing function for each known ITCH
-     * message type. This setup makes the parsing process a fast lookup
-     * operation at runtime.
-     */
+    /// @brief Constructs a Parser instance.
+    ///
+    /// The constructor pre-populates an internal dispatch table (a map of
+    /// handlers) by registering a specific parsing function for each known ITCH
+    /// message type. This setup makes the parsing process a fast lookup
+    /// operation at runtime.
     Parser();
 
-    /**
-     * @brief Parses messages from a memory buffer and invokes a callback for
-     * each.
-     *
-     * This is the core, high-performance parsing method. It iterates through
-     * the provided memory buffer, identifies each message, and invokes the
-     * callback with the parsed object. This approach is highly efficient as it
-     * performs no memory allocations in its main loop.
-     *
-     * @param data A pointer to the start of the memory buffer containing ITCH
-     * data.
-     * @param size The total size of the buffer in bytes.
-     * @param callback A function to be called for each successfully parsed
-     * message.
-     * @throw std::runtime_error if the buffer ends unexpectedly in the middle
-     * of a message.
-     */
-    void parse(const char* data, size_t size, const MessageCallback& callback);
+    /// @brief Parses messages from a memory buffer and invokes a callback for
+    /// each.
+    ///
+    /// This is the core, high-performance parsing method. It iterates through
+    /// the provided memory buffer, identifies each message, and invokes the
+    /// callback with the parsed object. This approach is highly efficient as it
+    /// performs no memory allocations in its main loop.
+    ///
+    /// @param data A pointer to the start of the memory buffer containing ITCH
+    /// data.
+    /// @param size The total size of the buffer in bytes.
+    /// @param callback A function to be called for each successfully parsed
+    /// message.
+    /// @throw std::runtime_error if the buffer ends unexpectedly in the middle
+    /// of a message.
+    auto parse(const char* data, size_t size, const MessageCallback& callback) -> void;
 
-    /**
-     * @brief Parses all messages from a memory buffer and returns them in a
-     * vector.
-     *
-     * A convenience method that parses the entire buffer and collects all
-     * messages into a single vector.
-     *
-     * @param data A pointer to the start of the memory buffer.
-     * @param size The total size of the buffer in bytes.
-     * @return A std::vector<Message> containing all parsed messages.
-     * @throw std::runtime_error on buffer parsing errors.
-     * @note Be cautious with very large buffers, as this will load all parsed
-     *       messages into memory, consuming significant RAM.
-     */
-    std::vector<Message> parse(const char* data, size_t size);
+    /// @brief Parses all messages from a memory buffer and returns them in a
+    /// vector.
+    ///
+    /// A convenience method that parses the entire buffer and collects all
+    /// messages into a single vector.
+    ///
+    /// @param data A pointer to the start of the memory buffer.
+    /// @param size The total size of the buffer in bytes.
+    /// @return A std::vector<Message> containing all parsed messages.
+    /// @throw std::runtime_error on buffer parsing errors.
+    /// @note Be cautious with very large buffers, as this will load all parsed
+    ///       messages into memory, consuming significant RAM.
+    auto parse(const char* data, size_t size) -> std::vector<Message>;
 
-    /**
-     * @brief Parses messages from a buffer, returning only those of specified
-     * types.
-     *
-     * A convenience method that parses the entire buffer but only collects
-     * messages whose type character is present in the `messages` filter
-     * list.
-     *
-     * @param data A pointer to the start of the memory buffer.
-     * @param size The total size of the buffer in bytes.
-     * @param messages A vector of message type characters to keep
-     * (e.g., {'A', 'P'}).
-     * @return A std::vector<Message> containing only the filtered messages.
-     * @throw std::runtime_error on buffer parsing errors.
-     */
-    std::vector<Message> parse(const char* data, size_t size, const std::vector<char>& messages);
+    /// @brief Parses messages from a buffer, returning only those of specified
+    /// types.
+    ///
+    /// A convenience method that parses the entire buffer but only collects
+    /// messages whose type character is present in the `messages` filter
+    /// list.
+    ///
+    /// @param data A pointer to the start of the memory buffer.
+    /// @param size The total size of the buffer in bytes.
+    /// @param messages A vector of message type characters to keep
+    /// (e.g., {'A', 'P'}).
+    /// @return A std::vector<Message> containing only the filtered messages.
+    /// @throw std::runtime_error on buffer parsing errors.
+    auto parse(const char* data, size_t size, const std::vector<char>& messages)
+        -> std::vector<Message>;
 
-    /**
-     * @brief [Convenience Wrapper] Parses messages from a stream via a
-     * callback.
-     *
-     * This method reads the *entire* stream into an internal memory buffer and
-     * then calls the high-performance buffer-based parser. It is provided for
-     * ease of use with stream-based APIs.
-     *
-     * @param data A reference to an std::istream opened in binary mode.
-     * @param callback A function to be called for each successfully parsed
-     * message.
-     * @throw std::runtime_error on stream reading errors.
-     * @note For maximum performance, load the data into memory yourself and use
-     *       the `const char*` overload directly.
-     */
-    void parse(std::istream& data, const MessageCallback& callback);
+    /// @brief [Convenience Wrapper] Parses messages from a stream via a
+    /// callback.
+    ///
+    /// This method reads the *entire* stream into an internal memory buffer and
+    /// then calls the high-performance buffer-based parser. It is provided for
+    /// ease of use with stream-based APIs.
+    ///
+    /// @param data A reference to an std::istream opened in binary mode.
+    /// @param callback A function to be called for each successfully parsed
+    /// message.
+    /// @throw std::runtime_error on stream reading errors.
+    /// @note For maximum performance, load the data into memory yourself and use
+    ///       the `const char*` overload directly.
+    auto parse(std::istream& data, const MessageCallback& callback) -> void;
 
-    /**
-     * @brief [Convenience Wrapper] Parses all messages from a stream into a
-     * vector.
-     *
-     * This method reads the *entire* stream into memory before parsing.
-     *
-     * @param data A reference to an std::istream opened in binary mode.
-     * @return A std::vector<Message> containing all parsed messages.
-     * @throw std::runtime_error on stream reading errors.
-     * @note Be cautious with large files, as this will load the entire raw file
-     *       *and* all parsed messages into memory.
-     */
-    std::vector<Message> parse(std::istream& data);
+    /// @brief [Convenience Wrapper] Parses all messages from a stream into a
+    /// vector.
+    ///
+    /// This method reads the *entire* stream into memory before parsing.
+    ///
+    /// @param data A reference to an std::istream opened in binary mode.
+    /// @return A std::vector<Message> containing all parsed messages.
+    /// @throw std::runtime_error on stream reading errors.
+    /// @note Be cautious with large files, as this will load the entire raw file
+    ///       *and* all parsed messages into memory.
+    auto parse(std::istream& data) -> std::vector<Message>;
 
-    /**
-     * @brief [Convenience Wrapper] Parses and filters messages from a stream.
-     *
-     * This method reads the *entire* stream into memory before parsing and
-     * filtering.
-     *
-     * @param data A reference to an std::istream opened in binary mode.
-     * @param messages A vector of message type characters to keep (e.g., {'A',
-     * 'E', 'P'}).
-     * @return A std::vector<Message> containing only the filtered messages.
-     * @throw std::runtime_error on stream reading errors.
-     */
-    std::vector<Message> parse(std::istream& data, const std::vector<char>& messages);
+    /// @brief [Convenience Wrapper] Parses and filters messages from a stream.
+    ///
+    /// This method reads the *entire* stream into memory before parsing and
+    /// filtering.
+    ///
+    /// @param data A reference to an std::istream opened in binary mode.
+    /// @param messages A vector of message type characters to keep (e.g., {'A',
+    /// 'E', 'P'}).
+    /// @return A std::vector<Message> containing only the filtered messages.
+    /// @throw std::runtime_error on stream reading errors.
+    auto parse(std::istream& data, const std::vector<char>& messages) -> std::vector<Message>;
 
    private:
     using Handler = std::function<Message(const char*)>;
     std::map<char, Handler> m_handlers;
 
-    /**
-     * @brief A template function to register a handler for a specific
-     * message type.
-     * @tparam T The C++ struct type representing the message (e.g.,
-     * AddOrderMessage).
-     * @param type The character identifier for this message type (e.g.,
-     * 'A').
-     */
+    /// @brief A template function to register a handler for a specific
+    /// message type.
+    /// @tparam T The C++ struct type representing the message (e.g.,
+    /// AddOrderMessage).
+    /// @param type The character identifier for this message type (e.g.,
+    /// 'A').
     template <typename T>
-    void register_handler(char type);
+    auto register_handler(char type) -> void;
 };
 
 namespace utils {

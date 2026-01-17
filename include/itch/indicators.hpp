@@ -2,16 +2,22 @@
 
 #include <map>
 #include <string>
+#include <string_view>
 
 namespace itch {
 namespace indicators {
+using sv = std::string_view;
 
-const std::map<char, std::string> SYSTEM_EVENT_CODES = {
-    {'O', "Start of Messages"},   {'S', "Start of System hours"}, {'Q', "Start of Market hours"},
-    {'M', "End of Market hours"}, {'E', "End of System hours"},   {'C', "End of Messages"},
+const std::map<char, sv> SYSTEM_EVENT_CODES = {
+    {'O', "Start of Messages"},
+    {'S', "Start of System hours"},
+    {'Q', "Start of Market hours"},
+    {'M', "End of Market hours"},
+    {'E', "End of System hours"},
+    {'C', "End of Messages"},
 };
 
-const std::map<char, std::string> MARKET_CATEGORY = {
+const std::map<char, sv> MARKET_CATEGORY = {
     {'N', "NYSE"},
     {'A', "AMEX"},
     {'P', "Arca"},
@@ -23,7 +29,7 @@ const std::map<char, std::string> MARKET_CATEGORY = {
     {' ', "Not available"},
 };
 
-const std::map<char, std::string> FINANCIAL_STATUS_INDICATOR = {
+const std::map<char, sv> FINANCIAL_STATUS_INDICATOR = {
     {'D', "Deficient"},
     {'E', "Delinquent"},
     {'Q', "Bankrupt"},
@@ -37,7 +43,7 @@ const std::map<char, std::string> FINANCIAL_STATUS_INDICATOR = {
     {' ', "Not available. Firms should refer to SIAC feeds for code if needed"},
 };
 
-const std::map<char, std::string> ISSUE_CLASSIFICATION_VALUES = {
+const std::map<char, sv> ISSUE_CLASSIFICATION_VALUES = {
     {'A', "American Depositary Share"},
     {'B', "Bond"},
     {'C', "Common Stock"},
@@ -56,7 +62,7 @@ const std::map<char, std::string> ISSUE_CLASSIFICATION_VALUES = {
     {'W', "Warrant"},
 };
 
-const std::map<std::string, std::string> ISSUE_SUB_TYPE_VALUES = {
+const std::map<sv, sv> ISSUE_SUB_TYPE_VALUES = {
     {"A", "Preferred Trust Securities"},
     {"AI", "Alpha Index ETNs"},
     {"B", "Index Based Derivative"},
@@ -118,7 +124,7 @@ const std::map<std::string, std::string> ISSUE_SUB_TYPE_VALUES = {
 
 };
 
-const std::map<std::string, std::string> TRADING_ACTION_REASON_CODES = {
+const std::map<sv, sv> TRADING_ACTION_REASON_CODES = {
     {"T1", "Halt News Pending"},
     {"T2", "Halt News Disseminated"},
     {"T3", "News and Resumption Times"},
@@ -157,27 +163,44 @@ const std::map<std::string, std::string> TRADING_ACTION_REASON_CODES = {
     {" ", "Reason Not Available"},
 };
 
-const std::map<char, std::string> TRADING_STATES = {
+const std::map<char, sv> TRADING_STATES = {
     {'H', "Halted across all U.S. equity markets / SROs"},
     {'P', "Paused across all U.S. equity markets / SROs"},
     {'Q', "Quotation only period for cross-SRO halt or pause"},
     {'T', "Trading on NASDAQ"},
 };
 
-const std::map<char, std::string> MARKET_MAKER_MODE = {
-    {'N', "Normal"}, {'P', "Passive"}, {'S', "Syndicate"}, {'R', "Pre-syndicate"}, {'L', "Penalty"},
+const std::map<char, sv> MARKET_MAKER_MODE = {
+    {'N', "Normal"},
+    {'P', "Passive"},
+    {'S', "Syndicate"},
+    {'R', "Pre-syndicate"},
+    {'L', "Penalty"},
 };
 
-const std::map<char, std::string> MARKET_PARTICIPANT_STATE = {
-    {'A', "Active"}, {'E', "Excused"}, {'W', "Withdrawn"}, {'S', "Suspended"}, {'D', "Deleted"},
+const std::map<char, sv> MARKET_PARTICIPANT_STATE = {
+    {'A', "Active"},
+    {'E', "Excused"},
+    {'W', "Withdrawn"},
+    {'S', "Suspended"},
+    {'D', "Deleted"},
 };
 
-const std::map<char, std::string> PRICE_VARIATION_INDICATOR = {
-    {'L', "Less than 1%"},   {'1', "1 to 1.99%"},           {'2', "2 to 2.99%"},
-    {'3', "3 to 3.99%"},     {'4', "4 to 4.99%"},           {'5', "5 to 5.99%"},
-    {'6', "6 to 6.99%"},     {'7', "7 to 7.99%"},           {'8', "8 to 8.99%"},
-    {'9', "9 to 9.99%"},     {'A', "10 to 19.99%"},         {'B', "20 to 29.99%"},
-    {'C', "30% or greater"}, {' ', "Cannot be calculated"},
+const std::map<char, sv> PRICE_VARIATION_INDICATOR = {
+    {'L', "Less than 1%"},
+    {'1', "1 to 1.99%"},
+    {'2', "2 to 2.99%"},
+    {'3', "3 to 3.99%"},
+    {'4', "4 to 4.99%"},
+    {'5', "5 to 5.99%"},
+    {'6', "6 to 6.99%"},
+    {'7', "7 to 7.99%"},
+    {'8', "8 to 8.99%"},
+    {'9', "9 to 9.99%"},
+    {'A', "10 to 19.99%"},
+    {'B', "20 to 29.99%"},
+    {'C', "30% or greater"},
+    {' ', "Cannot be calculated"},
 };
 
 }  // namespace indicators

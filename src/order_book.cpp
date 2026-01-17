@@ -2,18 +2,19 @@
 
 #include <chrono>
 #include <thread>
+#include <type_traits>
 
 namespace itch {
 
-void PriceLevel::add_order(std::shared_ptr<Order> order) {
+auto PriceLevel::add_order(std::shared_ptr<Order> order) -> void {
     total_shares += order->shares;
     orders.push_back(order);
     order->level = this;
 }
 
-void PriceLevel::remove_order(OrderIt order_it) { orders.erase(order_it); }
+auto PriceLevel::remove_order(OrderIt order_it) -> void { orders.erase(order_it); }
 
-void LimitOrderBook::process(const Message& message) {
+auto LimitOrderBook::process(const Message& message) -> void {
     std::visit(
         [this](auto&& msg) {
             if (!book_messages.contains(msg.message_type)) {
@@ -21,10 +22,11 @@ void LimitOrderBook::process(const Message& message) {
             }
             this->handle_message(msg);
         },
-        message);
+        message
+    );
 }
 
-void LimitOrderBook::print(std::ostream& out, unsigned int delay_ms) const {
+auto LimitOrderBook::print(std::ostream& out, unsigned int delay_ms) const -> void {
     std::ios state(nullptr);
     state.copyfmt(out);
     out << std::fixed << std::setprecision(4);
@@ -65,46 +67,79 @@ void LimitOrderBook::print(std::ostream& out, unsigned int delay_ms) const {
     out.copyfmt(state);
 }
 
-void LimitOrderBook::handle_message(const AddOrderMessage& msg) {
-    add_order(msg.order_reference_number, msg.buy_sell_indicator, msg.shares, msg.price);
+auto LimitOrderBook::handle_message(const AddOrderMessage& msg) -> void {
+    if (to_string(msg.stock, sizeof(msg.stock)) != m_stock_symbol) {
+        return;
+    }
+    add_order(
+        msg.order_reference_number,
+        msg.buy_sell_indicator,
+        msg.shares,
+        msg.price,
+        to_string(msg.stock, sizeof(msg.stock))
+    );
 }
 
-void LimitOrderBook::handle_message(const AddOrderMPIDAttributionMessage& msg) {
-    add_order(msg.order_reference_number, msg.buy_sell_indicator, msg.shares, msg.price);
+auto LimitOrderBook::handle_message(const AddOrderMPIDAttributionMessage& msg) -> void {
+    if (to_string(msg.stock, sizeof(msg.stock)) != m_stock_symbol) {
+        return;
+    }
+    add_order(
+        msg.order_reference_number,
+        msg.buy_sell_indicator,
+        msg.shares,
+        msg.price,
+        to_string(msg.stock, sizeof(msg.stock))
+    );
 }
 
-void LimitOrderBook::handle_message(const OrderExecutedMessage& msg) {
+auto LimitOrderBook::handle_message(const OrderExecutedMessage& msg) -> void {
+    auto it = m_orders.find(msg.order_reference_number);
+    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+        return;
+    }
     remove_order(msg.order_reference_number, msg.executed_shares);
 }
 
-void LimitOrderBook::handle_message(const OrderExecutedWithPriceMessage& msg) {
+auto LimitOrderBook::handle_message(const OrderExecutedWithPriceMessage& msg) -> void {
+    auto it = m_orders.find(msg.order_reference_number);
+    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+        return;
+    }
     remove_order(msg.order_reference_number, msg.executed_shares);
 }
 
-void LimitOrderBook::handle_message(const OrderCancelMessage& msg) {
+auto LimitOrderBook::handle_message(const OrderCancelMessage& msg) -> void {
+    auto it = m_orders.find(msg.order_reference_number);
+    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+        return;
+    }
     remove_order(msg.order_reference_number, msg.cancelled_shares);
 }
 
-void LimitOrderBook::handle_message(const OrderDeleteMessage& msg) {
+auto LimitOrderBook::handle_message(const OrderDeleteMessage& msg) -> void {
     auto iter = m_orders.find(msg.order_reference_number);
-    if (iter != m_orders.end()) {
+    if (iter != m_orders.end() && (*iter->second)->stock == m_stock_symbol) {
         auto order = *iter->second;
         remove_order(msg.order_reference_number, order->shares);
     }
 }
 
-void LimitOrderBook::handle_message(const OrderReplaceMessage& msg) {
+auto LimitOrderBook::handle_message(const OrderReplaceMessage& msg) -> void {
     auto iter = m_orders.find(msg.original_order_reference_number);
-    if (iter != m_orders.end()) {
-        auto old_order = *iter->second;
-        char side      = old_order->buy_sell_indicator;
+    if (iter != m_orders.end() && (*iter->second)->stock == m_stock_symbol) {
+        auto               old_order = *iter->second;
+        char               side      = old_order->buy_sell_indicator;
+        const std::string& stock     = old_order->stock;
         remove_order(msg.original_order_reference_number, old_order->shares);
-        add_order(msg.new_order_reference_number, side, msg.shares, msg.price);
+        add_order(msg.new_order_reference_number, side, msg.shares, msg.price, stock);
     }
 }
 
-void LimitOrderBook::add_order(uint64_t order_ref, char side, uint32_t shares, uint32_t price) {
-    auto order = std::make_shared<Order>(order_ref, side, shares, price);
+auto LimitOrderBook::add_order(
+    uint64_t order_ref, char side, uint32_t shares, uint32_t price, const std::string& stock
+) -> void {
+    auto order = std::make_shared<Order>(order_ref, side, shares, price, stock);
 
     PriceLevel* level = nullptr;
 
@@ -118,7 +153,7 @@ void LimitOrderBook::add_order(uint64_t order_ref, char side, uint32_t shares, u
     m_orders[order_ref] = std::prev(level->orders.end());
 }
 
-void LimitOrderBook::remove_order(uint64_t order_ref, uint32_t canceled_shares) {
+auto LimitOrderBook::remove_order(uint64_t order_ref, uint32_t canceled_shares) -> void {
     auto iter = m_orders.find(order_ref);
     if (iter == m_orders.end()) {
         return;
