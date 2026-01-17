@@ -9,7 +9,7 @@
 namespace itch {
 
 namespace utils {
-inline bool is_little_endian() {
+inline auto is_little_endian() -> bool {
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return true;
 #elif defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -27,7 +27,7 @@ inline bool is_little_endian() {
 }
 
 template <typename T>
-T from_big_endian(T value) {
+auto from_big_endian(T value) -> T {
     if (is_little_endian()) {
         return swap_bytes(value);
     }
@@ -35,7 +35,7 @@ T from_big_endian(T value) {
 }
 
 template <typename T>
-T unpack(const char* buffer, size_t& offset) {
+auto unpack(const char* buffer, size_t& offset) -> T {
     T value;
     std::memcpy(&value, buffer + offset, sizeof(T));
     offset += sizeof(T);
@@ -47,12 +47,12 @@ T unpack(const char* buffer, size_t& offset) {
     }
 }
 
-inline void unpack_string(const char* buffer, size_t& offset, char* dest, size_t size) {
+inline auto unpack_string(const char* buffer, size_t& offset, char* dest, size_t size) -> void {
     std::memcpy(dest, buffer + offset, size);
     offset += size;
 }
 
-inline uint64_t unpack_timestamp(const char* buffer, size_t& offset) {
+inline auto unpack_timestamp(const char* buffer, size_t& offset) -> uint64_t {
     uint16_t      high {};
     uint32_t      low {};
     constexpr int lower_shift = 32;
@@ -66,11 +66,11 @@ inline uint64_t unpack_timestamp(const char* buffer, size_t& offset) {
 }
 }  // namespace utils
 
-void unpack_message(SystemEventMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(SystemEventMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.event_code = utils::unpack<char>(buffer, offset);
 }
 
-void unpack_message(StockDirectoryMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(StockDirectoryMessage& msg, const char* buffer, size_t& offset) -> void {
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.market_category            = utils::unpack<char>(buffer, offset);
     msg.financial_status_indicator = utils::unpack<char>(buffer, offset);
@@ -88,19 +88,20 @@ void unpack_message(StockDirectoryMessage& msg, const char* buffer, size_t& offs
     msg.inverse_indicator              = utils::unpack<char>(buffer, offset);
 }
 
-void unpack_message(StockTradingActionMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(StockTradingActionMessage& msg, const char* buffer, size_t& offset) -> void {
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.trading_state = utils::unpack<char>(buffer, offset);
     msg.reserved      = utils::unpack<char>(buffer, offset);
     utils::unpack_string(buffer, offset, msg.reason, 4);
 }
 
-void unpack_message(RegSHOMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(RegSHOMessage& msg, const char* buffer, size_t& offset) -> void {
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.reg_sho_action = utils::unpack<char>(buffer, offset);
 }
 
-void unpack_message(MarketParticipantPositionMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(MarketParticipantPositionMessage& msg, const char* buffer, size_t& offset)
+    -> void {
     utils::unpack_string(buffer, offset, msg.mpid, 4);
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.primary_market_maker     = utils::unpack<char>(buffer, offset);
@@ -108,24 +109,25 @@ void unpack_message(MarketParticipantPositionMessage& msg, const char* buffer, s
     msg.market_participant_state = utils::unpack<char>(buffer, offset);
 }
 
-void unpack_message(MWCBDeclineLevelMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(MWCBDeclineLevelMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.level1 = utils::unpack<uint64_t>(buffer, offset);
     msg.level2 = utils::unpack<uint64_t>(buffer, offset);
     msg.level3 = utils::unpack<uint64_t>(buffer, offset);
 }
 
-void unpack_message(MWCBStatusMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(MWCBStatusMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.breached_level = utils::unpack<char>(buffer, offset);
 }
 
-void unpack_message(IPOQuotingPeriodUpdateMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(IPOQuotingPeriodUpdateMessage& msg, const char* buffer, size_t& offset)
+    -> void {
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.ipo_quotation_release_time      = utils::unpack<uint32_t>(buffer, offset);
     msg.ipo_quotation_release_qualifier = utils::unpack<char>(buffer, offset);
     msg.ipo_price                       = utils::unpack<uint32_t>(buffer, offset);
 }
 
-void unpack_message(LULDAuctionCollarMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(LULDAuctionCollarMessage& msg, const char* buffer, size_t& offset) -> void {
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.auction_collar_reference_price = utils::unpack<uint32_t>(buffer, offset);
     msg.upper_auction_collar_price     = utils::unpack<uint32_t>(buffer, offset);
@@ -133,13 +135,13 @@ void unpack_message(LULDAuctionCollarMessage& msg, const char* buffer, size_t& o
     msg.auction_collar_extension       = utils::unpack<uint32_t>(buffer, offset);
 }
 
-void unpack_message(OperationalHaltMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(OperationalHaltMessage& msg, const char* buffer, size_t& offset) -> void {
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.market_code             = utils::unpack<char>(buffer, offset);
     msg.operational_halt_action = utils::unpack<char>(buffer, offset);
 }
 
-void unpack_message(AddOrderMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(AddOrderMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.order_reference_number = utils::unpack<uint64_t>(buffer, offset);
     msg.buy_sell_indicator     = utils::unpack<char>(buffer, offset);
     msg.shares                 = utils::unpack<uint32_t>(buffer, offset);
@@ -147,7 +149,8 @@ void unpack_message(AddOrderMessage& msg, const char* buffer, size_t& offset) {
     msg.price = utils::unpack<uint32_t>(buffer, offset);
 }
 
-void unpack_message(AddOrderMPIDAttributionMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(AddOrderMPIDAttributionMessage& msg, const char* buffer, size_t& offset)
+    -> void {
     msg.order_reference_number = utils::unpack<uint64_t>(buffer, offset);
     msg.buy_sell_indicator     = utils::unpack<char>(buffer, offset);
     msg.shares                 = utils::unpack<uint32_t>(buffer, offset);
@@ -157,13 +160,14 @@ void unpack_message(AddOrderMPIDAttributionMessage& msg, const char* buffer, siz
     utils::unpack_string(buffer, offset, msg.attribution, 4);
 }
 
-void unpack_message(OrderExecutedMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(OrderExecutedMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.order_reference_number = utils::unpack<uint64_t>(buffer, offset);
     msg.executed_shares        = utils::unpack<uint32_t>(buffer, offset);
     msg.match_number           = utils::unpack<uint64_t>(buffer, offset);
 }
 
-void unpack_message(OrderExecutedWithPriceMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(OrderExecutedWithPriceMessage& msg, const char* buffer, size_t& offset)
+    -> void {
     msg.order_reference_number = utils::unpack<uint64_t>(buffer, offset);
     msg.executed_shares        = utils::unpack<uint32_t>(buffer, offset);
     msg.match_number           = utils::unpack<uint64_t>(buffer, offset);
@@ -171,23 +175,23 @@ void unpack_message(OrderExecutedWithPriceMessage& msg, const char* buffer, size
     msg.execution_price        = utils::unpack<uint32_t>(buffer, offset);
 }
 
-void unpack_message(OrderCancelMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(OrderCancelMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.order_reference_number = utils::unpack<uint64_t>(buffer, offset);
     msg.cancelled_shares       = utils::unpack<uint32_t>(buffer, offset);
 }
 
-void unpack_message(OrderDeleteMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(OrderDeleteMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.order_reference_number = utils::unpack<uint64_t>(buffer, offset);
 }
 
-void unpack_message(OrderReplaceMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(OrderReplaceMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.original_order_reference_number = utils::unpack<uint64_t>(buffer, offset);
     msg.new_order_reference_number      = utils::unpack<uint64_t>(buffer, offset);
     msg.shares                          = utils::unpack<uint32_t>(buffer, offset);
     msg.price                           = utils::unpack<uint32_t>(buffer, offset);
 }
 
-void unpack_message(NonCrossTradeMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(NonCrossTradeMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.order_reference_number = utils::unpack<uint64_t>(buffer, offset);
     msg.buy_sell_indicator     = utils::unpack<char>(buffer, offset);
     msg.shares                 = utils::unpack<uint32_t>(buffer, offset);
@@ -198,7 +202,7 @@ void unpack_message(NonCrossTradeMessage& msg, const char* buffer, size_t& offse
     msg.match_number = utils::unpack<uint64_t>(buffer, offset);
 }
 
-void unpack_message(CrossTradeMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(CrossTradeMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.shares = utils::unpack<uint64_t>(buffer, offset);
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
 
@@ -207,11 +211,11 @@ void unpack_message(CrossTradeMessage& msg, const char* buffer, size_t& offset) 
     msg.cross_type   = utils::unpack<char>(buffer, offset);
 }
 
-void unpack_message(BrokenTradeMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(BrokenTradeMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.match_number = utils::unpack<uint64_t>(buffer, offset);
 }
 
-void unpack_message(NOIIMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(NOIIMessage& msg, const char* buffer, size_t& offset) -> void {
     msg.paired_shares       = utils::unpack<uint64_t>(buffer, offset);
     msg.imbalance_shares    = utils::unpack<uint64_t>(buffer, offset);
     msg.imbalance_direction = utils::unpack<char>(buffer, offset);
@@ -226,12 +230,12 @@ void unpack_message(NOIIMessage& msg, const char* buffer, size_t& offset) {
 }
 
 using RPIMsg = RetailPriceImprovementIndicatorMessage;
-void unpack_message(RPIMsg& msg, const char* buffer, size_t& offset) {
+auto unpack_message(RPIMsg& msg, const char* buffer, size_t& offset) -> void {
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.interest_flag = utils::unpack<char>(buffer, offset);
 }
 
-void unpack_message(DLCRMessage& msg, const char* buffer, size_t& offset) {
+auto unpack_message(DLCRMessage& msg, const char* buffer, size_t& offset) -> void {
     utils::unpack_string(buffer, offset, msg.stock, STOCK_LEN);
     msg.open_eligibility_status  = utils::unpack<char>(buffer, offset);
     msg.minimum_allowable_price  = utils::unpack<uint32_t>(buffer, offset);
@@ -243,7 +247,7 @@ void unpack_message(DLCRMessage& msg, const char* buffer, size_t& offset) {
 }
 
 template <typename T>
-void Parser::register_handler(char type) {
+auto Parser::register_handler(char type) -> void {
     m_handlers[type] = [](const char* buffer) -> Message {
         T      msg;
         size_t offset = 1;  // Skip message type
@@ -284,7 +288,7 @@ Parser::Parser() {
     register_handler<DLCRMessage>('O');
 }
 
-void Parser::parse(const char* data, size_t size, const MessageCallback& callback) {
+auto Parser::parse(const char* data, size_t size, const MessageCallback& callback) -> void {
     size_t offset = 0;
     while (offset < size) {
         // Ensure we can read the length field
@@ -317,8 +321,8 @@ void Parser::parse(const char* data, size_t size, const MessageCallback& callbac
     }
 }
 
-constexpr size_t     average_message_size = 20;
-std::vector<Message> Parser::parse(const char* data, size_t size) {
+constexpr size_t average_message_size = 20;
+auto             Parser::parse(const char* data, size_t size) -> std::vector<Message> {
     std::vector<Message> messages;
     messages.reserve(size / average_message_size);
     parse(data, size, [&](const Message& msg) { messages.push_back(msg); });
@@ -346,7 +350,7 @@ auto Parser::parse(const char* data, size_t size, const std::vector<char>& messa
 }
 
 // Read the whole stream into a buffer
-static std::vector<char> read_stream_into_buffer(std::istream& data) {
+static auto read_stream_into_buffer(std::istream& data) -> std::vector<char> {
     data.seekg(0, std::ios::end);
     auto size = data.tellg();
     data.seekg(0, std::ios::beg);
@@ -360,17 +364,17 @@ static std::vector<char> read_stream_into_buffer(std::istream& data) {
     return buffer;
 }
 
-void Parser::parse(std::istream& data, const MessageCallback& callback) {
+auto Parser::parse(std::istream& data, const MessageCallback& callback) -> void {
     auto buffer = read_stream_into_buffer(data);
     parse(buffer.data(), buffer.size(), callback);
 }
 
-std::vector<Message> Parser::parse(std::istream& data) {
+auto Parser::parse(std::istream& data) -> std::vector<Message> {
     auto buffer = read_stream_into_buffer(data);
     return parse(buffer.data(), buffer.size());
 }
 
-std::vector<Message> Parser::parse(std::istream& data, const std::vector<char>& messages) {
+auto Parser::parse(std::istream& data, const std::vector<char>& messages) -> std::vector<Message> {
     auto buffer = read_stream_into_buffer(data);
     return parse(buffer.data(), buffer.size(), messages);
 }
