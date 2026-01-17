@@ -227,9 +227,9 @@ TEST_F(LimitOrderBookTest, ExecWithPrice_Unknown) {
 }
 
 TEST_F(LimitOrderBookTest, Print_Fully_Empty) {
-    std::stringstream ss;
-    book.print(ss);
-    std::string out = ss.str();
+    std::stringstream stream;
+    book.print(stream);
+    std::string out = stream.str();
     EXPECT_NE(out.find("SHARES"), std::string::npos);
     EXPECT_EQ(out.find("Bid"), std::string::npos);
 }
@@ -251,9 +251,9 @@ TEST_F(LimitOrderBookTest, Print_With_Delay) {
     a.price                  = 200;
     book.process(a);
 
-    std::stringstream ss;
-    book.print(ss, 1);
-    std::string out = ss.str();
+    std::stringstream stream;
+    book.print(stream, 1);
+    std::string out = stream.str();
     EXPECT_NE(out.find("Bid"), std::string::npos);
     EXPECT_NE(out.find("Ask"), std::string::npos);
 }
