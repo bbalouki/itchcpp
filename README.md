@@ -1,9 +1,10 @@
 
 # High-Performance NASDAQ ITCH 5.0 Parser
 
-[![Linux](https://github.com/bbalouki/itchcpp/actions/workflows/linux.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/linux.yml)
-[![macOS](https://github.com/bbalouki/itchcpp/actions/workflows/macos.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/macos.yml)
-[![Windows](https://github.com/bbalouki/itchcpp/actions/workflows/windows.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/windows.yml)
+[![Build](https://github.com/bbalouki/itchcpp/actions/workflows/build.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/build.yml)
+![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)
+![macOS](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white)
 [![C++20](https://img.shields.io/badge/C++-20-blue.svg)](https://isocpp.org/std/the-standard)
 [![CMake](https://img.shields.io/badge/CMake-3.20+-blue.svg)](https://cmake.org/)
 [![CodeFactor](https://www.codefactor.io/repository/github/bbalouki/itchcpp/badge)](https://www.codefactor.io/repository/github/bbalouki/itchcpp)

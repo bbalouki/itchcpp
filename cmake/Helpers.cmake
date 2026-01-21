@@ -183,7 +183,7 @@ function(apply_formating USE_PER_FILE_LOGIC)
         foreach(file ${ALL_FILES})
             add_custom_command(
                 TARGET format
-                POST_BUILD
+                PRE_BUILD
                 COMMAND ${CLANG_FORMAT_EXE} -i "${file}"
                 COMMENT "Formatting ${file}"
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
