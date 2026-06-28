@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.25)
 
 find_package(GTest CONFIG QUIET)
 
@@ -16,8 +16,12 @@ endif()
 add_executable(
   itch_tests
   test_parser.cpp
+  test_parser_edge.cpp
   test_messages.cpp
   test_order_book.cpp
+  test_order_book_extra.cpp
+  test_price_time.cpp
+  test_conformance.cpp
 )
 
 target_link_libraries(
