@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.25)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,16 +8,17 @@ set(CMAKE_CXX_STANDARD ${${PROJECT_NAME}_CXX_STANDARD})
 option(${PROJECT_NAME}_BUILD_TESTS "Add tests" OFF)
 option(${PROJECT_NAME}_BUILD_BENCHMARKS "Add benchmark analysis" OFF)
 option(${PROJECT_NAME}_BUILD_EXAMPLES "Build some examples" OFF)
+option(${PROJECT_NAME}_BUILD_FUZZERS "Build libFuzzer targets (Clang only)" OFF)
 
 set(${PROJECT_NAME}_PROJECT_ENV "DEV" CACHE STRING "Development environment")
 set_property(CACHE ${PROJECT_NAME}_PROJECT_ENV PROPERTY STRINGS "DEV" "PROD")
 message(STATUS "Building for environment: ${${PROJECT_NAME}_PROJECT_ENV}")
 
-option(${PROJECT_NAME}_ADD_COVERAGE_ANALYSIS "Enable coverage analisys" OFF)
-option(${PROJECT_NAME}_APPLY_FORMATING "Apply formating with clang-format" OFF)
+option(${PROJECT_NAME}_ADD_COVERAGE_ANALYSIS "Enable coverage analysis" OFF)
+option(${PROJECT_NAME}_APPLY_FORMATING "Apply formatting with clang-format" OFF)
 option(${PROJECT_NAME}_USE_PER_FILE_FORMATTING "For very large projects" OFF)
-option(${PROJECT_NAME}_APPLY_CLANG_TIDY_GLOBALY "Apply clang tidy globaly" OFF)
-option(${PROJECT_NAME}_BUILD_DOCUMENTATION "Build documenation with Doxygen" OFF)
+option(${PROJECT_NAME}_APPLY_CLANG_TIDY_GLOBALY "Apply clang tidy globally" OFF)
+option(${PROJECT_NAME}_BUILD_DOCUMENTATION "Build documentation with Doxygen" OFF)
 option(${PROJECT_NAME}_ENABLE_ADDRESS_SANITIZER "Enable Address Sanitizer" OFF)
 
 ######################################################
@@ -86,7 +87,7 @@ function(apply_clang_tidy TARGET_NAME)
 endfunction()
 
 ###################################################
-function(apply_clang_tidy_globaly)
+function(apply_clang_tidy_globally)
   find_program(CLANG_TIDY_EXE "clang-tidy")
 
   if(CLANG_TIDY_EXE)
@@ -133,7 +134,7 @@ function(add_coverage_analysis)
 endfunction()
 
 ####################################################
-function(build_documenation)
+function(build_documentation)
     find_package(Doxygen)
     if (Doxygen_FOUND)
         message(
@@ -156,7 +157,7 @@ function(build_documenation)
 endfunction()
 
 #####################################################
-function(apply_formating USE_PER_FILE_LOGIC)
+function(apply_formatting USE_PER_FILE_LOGIC)
     find_program(CLANG_FORMAT_EXE clang-format)
 
     if (NOT CLANG_FORMAT_EXE)
@@ -203,7 +204,7 @@ function(apply_formating USE_PER_FILE_LOGIC)
 endfunction()
 
 #####################################################
-function(anable_address_sanitizer)
+function(enable_address_sanitizer)
   set(SANITIZER_SUPPORTED OFF)
   if (MINGW)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
