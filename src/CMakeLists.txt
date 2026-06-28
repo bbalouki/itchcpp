@@ -4,10 +4,13 @@ include(GNUInstallDirs)
 
 # Step 1: Add targets and properties
 add_library(
-    itch 
-    parser.cpp 
-    messages.cpp 
+    itch
+    parser.cpp
+    messages.cpp
     order_book.cpp
+    transport/moldudp64.cpp
+    transport/soupbintcp.cpp
+    transport/pcap.cpp
 )
 add_library(itch::itch ALIAS itch)
 if (NOT ANDROID)

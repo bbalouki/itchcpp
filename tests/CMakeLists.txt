@@ -22,7 +22,10 @@ add_executable(
   test_order_book_extra.cpp
   test_price_time.cpp
   test_conformance.cpp
+  transport/test_transport.cpp
 )
+
+target_include_directories(itch_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(
   itch_tests PRIVATE

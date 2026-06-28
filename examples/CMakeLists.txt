@@ -15,3 +15,11 @@ target_link_libraries(
     itch::itch
     warnings::strict
 )
+
+add_executable(pcap_replay_example transport/pcap_replay_example.cpp)
+
+target_link_libraries(
+    pcap_replay_example PRIVATE
+    itch::itch
+    warnings::strict
+)

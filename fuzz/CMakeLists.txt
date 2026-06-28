@@ -17,3 +17,10 @@ target_compile_options(parser_fuzzer PRIVATE -g -fsanitize=fuzzer,address,undefi
 target_link_options(parser_fuzzer PRIVATE -fsanitize=fuzzer,address,undefined)
 
 message(STATUS "Added 'parser_fuzzer' target")
+
+add_executable(moldudp64_fuzzer moldudp64_fuzzer.cpp)
+target_link_libraries(moldudp64_fuzzer PRIVATE itch::itch)
+target_compile_options(moldudp64_fuzzer PRIVATE -g -fsanitize=fuzzer,address,undefined)
+target_link_options(moldudp64_fuzzer PRIVATE -fsanitize=fuzzer,address,undefined)
+
+message(STATUS "Added 'moldudp64_fuzzer' target")

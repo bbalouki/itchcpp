@@ -253,11 +253,14 @@ jobs:
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++
 
-      - name: Build fuzzer
-        run: cmake --build $BUILD_DIR --target parser_fuzzer
+      - name: Build fuzzers
+        run: cmake --build $BUILD_DIR --target parser_fuzzer moldudp64_fuzzer
 
-      - name: Run fuzzer (time-budgeted)
+      - name: Run parser fuzzer (time-budgeted)
         run: $BUILD_DIR/fuzz/parser_fuzzer -max_total_time=60 -max_len=512 -print_final_stats=1
+
+      - name: Run transport fuzzer (time-budgeted)
+        run: $BUILD_DIR/fuzz/moldudp64_fuzzer -max_total_time=60 -max_len=2048 -print_final_stats=1
 
   benchmark-smoke:
     runs-on: ubuntu-latest

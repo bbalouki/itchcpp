@@ -63,6 +63,10 @@ The design of this ITCH parser is guided by three principles:
 
 ## Key Features
 
+- **Real Feed Ingestion**: Consume ITCH as it actually arrives — MoldUDP64 UDP
+  multicast framing, SoupBinTCP (Glimpse/recovery) framing, and `.pcap`/`.pcapng`
+  captures — with per-session sequence tracking and gap detection. No libpcap
+  dependency. See [Feed Ingestion](#feed-ingestion-transport).
 - **High Throughput**: Multi-gigabyte-per-second parsing on modern hardware (see [Benchmarks](#benchmarks) for measured numbers).
 - **Allocation-Free Core**: The callback-based parsing loop performs zero dynamic memory allocations, minimizing latency and jitter.
 - **Type-Safe API**: All ITCH messages are deserialized into a `std::variant` of dedicated, packed `struct`s, ensuring compile-time safety.
@@ -441,6 +445,41 @@ The `print()` method provides a formatted snapshot of the top of the book. It di
 |   173.5400 |       4,500 |   173.4500 |      14,400 |
 +------------+-------------+------------+-------------+
 ```
+
+### Feed Ingestion (Transport)
+
+The raw parser assumes a concatenation of length-prefixed messages, but ITCH is
+delivered inside transport framing. The `itch::transport` module decodes the
+framing that actually arrives on the wire and on disk, then feeds the existing
+parser. Everything is implemented in-house with **no libpcap dependency**.
+
+| Decoder | Header | Purpose |
+| ------- | ------ | ------- |
+| `MoldUdp64Decoder` | `itch/transport/moldudp64.hpp` | UDP multicast framing for live dissemination. |
+| `SoupBinDecoder` | `itch/transport/soupbintcp.hpp` | TCP framing for Glimpse snapshots and recovery/replay. |
+| `PcapReader` | `itch/transport/pcap.hpp` | Replay a feed from a `.pcap`/`.pcapng` capture file. |
+| `SequenceTracker` | `itch/transport/sequencing.hpp` | Per-session sequence tracking, gap detection, recovery hooks. |
+
+```cpp
+#include "itch/transport/pcap.hpp"
+
+itch::transport::PcapReader reader{[](const itch::Message& msg) {
+    // ... handle each decoded ITCH message ...
+}};
+
+// Surface any sequence gaps in the multicast stream.
+reader.mold_decoder().tracker().set_gap_callback(
+    [](std::string_view session, std::uint64_t expected, std::uint64_t got) {
+        // ... drive recovery / log the gap ...
+    });
+
+reader.read_file("capture.pcapng");      // walks Ethernet/IP/UDP/MoldUDP64
+// reader.messages_decoded(), reader.udp_datagrams(), tracker().gap_count()
+```
+
+For a live or captured MoldUDP64 datagram you already have in memory, call
+`MoldUdp64Decoder::decode_packet(span)` directly; for a SoupBinTCP byte stream,
+push segments through `SoupBinDecoder::feed(span)` as they arrive.
 
 ---
 
