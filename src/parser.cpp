@@ -1,68 +1,48 @@
 #include "itch/parser.hpp"
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <set>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace itch {
 
 namespace utils {
-inline auto is_little_endian() -> bool {
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    return true;
-#elif defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    return false;
-#elif defined(_WIN32)  // Windows is always little-endian
-    return true;
-#else
-    // Runtime check if compile-time check is not available
-    const union {
-        uint32_t i;
-        char     c[4];
-    } bint = {0x01020304};
-    return bint.c[0] == 4;
-#endif
-}
 
-template <typename T>
-auto from_big_endian(T value) -> T {
-    if (is_little_endian()) {
-        return swap_bytes(value);
-    }
-    return value;
-}
+template <typename ValueType>
+auto unpack(const char* buffer, std::size_t& offset) -> ValueType {
+    ValueType value;
+    std::memcpy(&value, buffer + offset, sizeof(ValueType));
+    offset += sizeof(ValueType);
 
-template <typename T>
-auto unpack(const char* buffer, size_t& offset) -> T {
-    T value;
-    std::memcpy(&value, buffer + offset, sizeof(T));
-    offset += sizeof(T);
-
-    if constexpr (std::is_integral_v<T> && sizeof(T) > 1) {
+    if constexpr (std::is_integral_v<ValueType> && sizeof(ValueType) > 1) {
         return from_big_endian(value);
     } else {
         return value;
     }
 }
 
-inline auto unpack_string(const char* buffer, size_t& offset, char* dest, size_t size) -> void {
+inline auto unpack_string(const char* buffer, std::size_t& offset, char* dest, std::size_t size)
+    -> void {
     std::memcpy(dest, buffer + offset, size);
     offset += size;
 }
 
-inline auto unpack_timestamp(const char* buffer, size_t& offset) -> uint64_t {
-    uint16_t      high {};
-    uint32_t      low {};
-    constexpr int lower_shift = 32;
+inline auto unpack_timestamp(const char* buffer, std::size_t& offset) -> std::uint64_t {
+    std::uint16_t high {};
+    std::uint32_t low {};
+    constexpr int LOWER_SHIFT = 32;
     std::memcpy(&high, buffer + offset, sizeof(high));
     offset += sizeof(high);
     std::memcpy(&low, buffer + offset, sizeof(low));
     offset += sizeof(low);
     high = from_big_endian(high);
     low  = from_big_endian(low);
-    return (static_cast<uint64_t>(high) << lower_shift) | low;
+    return (static_cast<std::uint64_t>(high) << LOWER_SHIFT) | low;
 }
 }  // namespace utils
 
@@ -246,83 +226,163 @@ auto unpack_message(DLCRMessage& msg, const char* buffer, size_t& offset) -> voi
     msg.upper_price_range_collar = utils::unpack<uint32_t>(buffer, offset);
 }
 
-template <typename T>
-auto Parser::register_handler(char type) -> void {
-    m_handlers[type] = [](const char* buffer) -> Message {
-        T      msg;
-        size_t offset = 1;  // Skip message type
+namespace {
 
-        msg.stock_locate    = utils::unpack<uint16_t>(buffer, offset);
-        msg.tracking_number = utils::unpack<uint16_t>(buffer, offset);
-        msg.timestamp       = utils::unpack_timestamp(buffer, offset);
+// The on-wire ITCH timestamp is 48 bits (6 bytes), but every message struct
+// stores it in a 64-bit field. Each struct therefore occupies exactly two bytes
+// more than its on-wire encoding, since the timestamp is the only field whose
+// storage width differs from its wire width.
+constexpr std::size_t TIMESTAMP_STRUCT_PADDING = sizeof(std::uint64_t) - 6;
 
-        unpack_message(msg, buffer, offset);
+/// @brief The exact on-wire size, in bytes, of a fully formed message of type T.
+template <typename MsgType>
+constexpr std::size_t WIRE_SIZE = sizeof(MsgType) - TIMESTAMP_STRUCT_PADDING;
 
-        return msg;
+// Lock the padding assumption to the spec lengths so a future struct change
+// that breaks the derivation is caught at compile time rather than at runtime.
+static_assert(WIRE_SIZE<SystemEventMessage> == 12);
+static_assert(WIRE_SIZE<StockDirectoryMessage> == 39);
+static_assert(WIRE_SIZE<AddOrderMessage> == 36);
+static_assert(WIRE_SIZE<NOIIMessage> == 50);
+static_assert(WIRE_SIZE<DLCRMessage> == 48);
+
+/// @brief Decodes the common header and type-specific body of a message of
+///        type MsgType from a frame, returning it wrapped in the Message variant.
+template <typename MsgType>
+auto decode_typed(const char* buffer) -> Message {
+    MsgType     msg;
+    std::size_t offset = 1;  // Skip the message type byte.
+
+    msg.stock_locate    = utils::unpack<std::uint16_t>(buffer, offset);
+    msg.tracking_number = utils::unpack<std::uint16_t>(buffer, offset);
+    msg.timestamp       = utils::unpack_timestamp(buffer, offset);
+
+    unpack_message(msg, buffer, offset);
+
+    return msg;
+}
+
+/// @brief One slot of the flat, type-byte-indexed dispatch table.
+struct DispatchEntry {
+    std::uint16_t wire_size {0};               ///< Expected on-wire frame size (0 == unknown type).
+    Message (*decode)(const char*) {nullptr};  ///< Decoder, or null for an unknown type.
+};
+
+constexpr std::size_t DISPATCH_TABLE_SIZE = 256;
+
+/// @brief Builds the dispatch table at compile time so message dispatch is a
+///        single flat-array lookup plus a direct (inlinable) call, with no map
+///        traversal and no type-erased `std::function` indirection.
+consteval auto build_dispatch_table() -> std::array<DispatchEntry, DISPATCH_TABLE_SIZE> {
+    std::array<DispatchEntry, DISPATCH_TABLE_SIZE> table {};
+
+    auto add = [&table]<typename MsgType>(char type) {
+        table[static_cast<unsigned char>(type)] =
+            DispatchEntry {static_cast<std::uint16_t>(WIRE_SIZE<MsgType>), &decode_typed<MsgType>};
     };
+
+    add.operator()<SystemEventMessage>('S');
+    add.operator()<StockDirectoryMessage>('R');
+    add.operator()<StockTradingActionMessage>('H');
+    add.operator()<RegSHOMessage>('Y');
+    add.operator()<MarketParticipantPositionMessage>('L');
+    add.operator()<MWCBDeclineLevelMessage>('V');
+    add.operator()<MWCBStatusMessage>('W');
+    add.operator()<IPOQuotingPeriodUpdateMessage>('K');
+    add.operator()<LULDAuctionCollarMessage>('J');
+    add.operator()<OperationalHaltMessage>('h');
+    add.operator()<AddOrderMessage>('A');
+    add.operator()<AddOrderMPIDAttributionMessage>('F');
+    add.operator()<OrderExecutedMessage>('E');
+    add.operator()<OrderExecutedWithPriceMessage>('C');
+    add.operator()<OrderCancelMessage>('X');
+    add.operator()<OrderDeleteMessage>('D');
+    add.operator()<OrderReplaceMessage>('U');
+    add.operator()<NonCrossTradeMessage>('P');
+    add.operator()<CrossTradeMessage>('Q');
+    add.operator()<BrokenTradeMessage>('B');
+    add.operator()<NOIIMessage>('I');
+    add.operator()<RetailPriceImprovementIndicatorMessage>('N');
+    add.operator()<DLCRMessage>('O');
+
+    return table;
 }
 
-Parser::Parser() {
-    register_handler<SystemEventMessage>('S');
-    register_handler<StockDirectoryMessage>('R');
-    register_handler<StockTradingActionMessage>('H');
-    register_handler<RegSHOMessage>('Y');
-    register_handler<MarketParticipantPositionMessage>('L');
-    register_handler<MWCBDeclineLevelMessage>('V');
-    register_handler<MWCBStatusMessage>('W');
-    register_handler<IPOQuotingPeriodUpdateMessage>('K');
-    register_handler<LULDAuctionCollarMessage>('J');
-    register_handler<OperationalHaltMessage>('h');
-    register_handler<AddOrderMessage>('A');
-    register_handler<AddOrderMPIDAttributionMessage>('F');
-    register_handler<OrderExecutedMessage>('E');
-    register_handler<OrderExecutedWithPriceMessage>('C');
-    register_handler<OrderCancelMessage>('X');
-    register_handler<OrderDeleteMessage>('D');
-    register_handler<OrderReplaceMessage>('U');
-    register_handler<NonCrossTradeMessage>('P');
-    register_handler<CrossTradeMessage>('Q');
-    register_handler<BrokenTradeMessage>('B');
-    register_handler<NOIIMessage>('I');
-    register_handler<RetailPriceImprovementIndicatorMessage>('N');
-    register_handler<DLCRMessage>('O');
+constexpr auto DISPATCH_TABLE = build_dispatch_table();
+
+}  // namespace
+
+auto Parser::report_error(ParseError error, char message_type) -> void {
+    switch (error) {
+        case ParseError::unknown_type:
+            ++m_unknown_message_count;
+            break;
+        case ParseError::size_mismatch:
+        case ParseError::truncated:
+            ++m_malformed_message_count;
+            break;
+    }
+    if (m_error_callback) {
+        m_error_callback(error, message_type);
+    }
 }
 
-auto Parser::parse(const char* data, size_t size, const MessageCallback& callback) -> void {
-    size_t offset = 0;
+auto Parser::parse_impl(const char* data, std::size_t size, const MessageCallback& callback)
+    -> std::optional<ParseError> {
+    std::size_t offset = 0;
     while (offset < size) {
-        // Ensure we can read the length field
-        if (offset + sizeof(uint16_t) > size) {
-            throw std::runtime_error("Incomplete message header at end of buffer.");
+        // Ensure we can read the 2-byte length prefix.
+        if (offset + sizeof(std::uint16_t) > size) {
+            report_error(ParseError::truncated, '\0');
+            return ParseError::truncated;
         }
-        uint16_t length {};
+        std::uint16_t length {};
         std::memcpy(&length, data + offset, sizeof(length));
         length = utils::from_big_endian(length);
-        offset += sizeof(uint16_t);
+        offset += sizeof(std::uint16_t);
 
         if (length == 0) {
+            continue;  // Skip zero-length padding frames.
+        }
+
+        // Ensure the full declared payload is present.
+        if (offset + length > size) {
+            report_error(ParseError::truncated, '\0');
+            return ParseError::truncated;
+        }
+
+        const char* message      = data + offset;
+        const char  message_type = message[0];
+        offset += length;
+
+        const DispatchEntry& entry = DISPATCH_TABLE[static_cast<unsigned char>(message_type)];
+        if (entry.decode == nullptr) {
+            // Unknown type: skip and count rather than writing to a global stream.
+            report_error(ParseError::unknown_type, message_type);
+            continue;
+        }
+        // A frame shorter than the type requires would make the decoder read into
+        // the next frame; reject it. A longer frame is tolerated for forward
+        // compatibility (the trailing bytes are simply skipped).
+        if (length < entry.wire_size) {
+            report_error(ParseError::size_mismatch, message_type);
             continue;
         }
 
-        // Ensure the full message payload is available
-        if (offset + length > size) {
-            throw std::runtime_error("Incomplete message at end of buffer.");
-        }
-        const char* message      = data + offset;
-        const char  message_type = message[0];
+        callback(entry.decode(message));
+    }
+    return std::nullopt;
+}
 
-        auto handler_it = m_handlers.find(message_type);
-        if (handler_it != m_handlers.end()) {
-            callback(handler_it->second(message));
-        } else {
-            std::cerr << "Unknown or unhandled message type: " << message_type << '\n';
-        }
-        offset += length;
+auto Parser::parse(const char* data, size_t size, const MessageCallback& callback) -> void {
+    if (parse_impl(data, size, callback).has_value()) {
+        throw std::runtime_error("Incomplete message at end of buffer.");
     }
 }
 
 constexpr size_t average_message_size = 20;
-auto             Parser::parse(const char* data, size_t size) -> std::vector<Message> {
+
+auto Parser::parse(const char* data, size_t size) -> std::vector<Message> {
     std::vector<Message> messages;
     messages.reserve(size / average_message_size);
     parse(data, size, [&](const Message& msg) { messages.push_back(msg); });
@@ -347,6 +407,56 @@ auto Parser::parse(const char* data, size_t size, const std::vector<char>& messa
     };
     parse(data, size, callback);
     return results;
+}
+
+namespace {
+// std::byte and char may legitimately alias; route through void* to obtain the
+// char view the framing core works with, without a forbidden reinterpret_cast.
+auto as_char_ptr(std::span<const std::byte> data) -> const char* {
+    // char may alias std::byte; the house style forbids reinterpret_cast, so the
+    // void* hop is the intended form here.
+    const void* raw = data.data();
+    return static_cast<const char*>(raw);  // NOLINT(bugprone-casting-through-void)
+}
+}  // namespace
+
+auto Parser::parse(std::span<const std::byte> data, const MessageCallback& callback) -> void {
+    parse(as_char_ptr(data), data.size(), callback);
+}
+
+auto Parser::parse(std::span<const std::byte> data) -> std::vector<Message> {
+    return parse(as_char_ptr(data), data.size());
+}
+
+auto Parser::parse(std::span<const std::byte> data, const std::vector<char>& messages)
+    -> std::vector<Message> {
+    return parse(as_char_ptr(data), data.size(), messages);
+}
+
+#ifdef __cpp_lib_expected
+auto Parser::try_parse(std::span<const std::byte> data, const MessageCallback& callback)
+    -> std::expected<void, ParseError> {
+    if (auto error = parse_impl(as_char_ptr(data), data.size(), callback)) {
+        return std::unexpected(*error);
+    }
+    return {};
+}
+
+auto Parser::try_parse(std::span<const std::byte> data)
+    -> std::expected<std::vector<Message>, ParseError> {
+    std::vector<Message> messages;
+    messages.reserve(data.size() / average_message_size);
+    if (auto error = parse_impl(as_char_ptr(data), data.size(), [&](const Message& msg) {
+            messages.push_back(msg);
+        })) {
+        return std::unexpected(*error);
+    }
+    return messages;
+}
+#endif
+
+auto Parser::set_error_callback(ErrorCallback callback) -> void {
+    m_error_callback = std::move(callback);
 }
 
 // Read the whole stream into a buffer
