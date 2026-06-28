@@ -2,11 +2,10 @@
 
 #include <cstdint>
 #include <functional>
-#include <iomanip>
-#include <iostream>
 #include <list>
 #include <map>
 #include <memory>
+#include <ostream>
 #include <set>
 #include <variant>
 
@@ -53,11 +52,11 @@ struct PriceLevel {
 
     /// @brief Appends an order to the end of the queue (Time priority).
     /// @param order Shared pointer to the order to add.
-    auto add_order(std::shared_ptr<Order> order) -> void;
+    auto add_order(const std::shared_ptr<Order>& order) -> void;
 
     /// @brief Removes a specific order from the queue.
     /// @param order_it Iterator pointing to the order to remove.
-    auto remove_order(OrderIt order_it) -> void;
+    auto remove_order(const OrderIt& order_it) -> void;
 };
 
 /// @class LimitOrderBook
