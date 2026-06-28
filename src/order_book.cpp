@@ -1,18 +1,22 @@
 #include "itch/order_book.hpp"
 
 #include <chrono>
+#include <format>
+#include <string_view>
 #include <thread>
 #include <type_traits>
 
+#include "itch/price.hpp"
+
 namespace itch {
 
-auto PriceLevel::add_order(std::shared_ptr<Order> order) -> void {
+auto PriceLevel::add_order(const std::shared_ptr<Order>& order) -> void {
     total_shares += order->shares;
     orders.push_back(order);
     order->level = this;
 }
 
-auto PriceLevel::remove_order(OrderIt order_it) -> void { orders.erase(order_it); }
+auto PriceLevel::remove_order(const OrderIt& order_it) -> void { orders.erase(order_it); }
 
 auto LimitOrderBook::process(const Message& message) -> void {
     std::visit(
@@ -27,44 +31,40 @@ auto LimitOrderBook::process(const Message& message) -> void {
 }
 
 auto LimitOrderBook::print(std::ostream& out, unsigned int delay_ms) const -> void {
-    std::ios state(nullptr);
-    state.copyfmt(out);
-    out << std::fixed << std::setprecision(4);
+    constexpr std::string_view BORDER   = "==========================================\n";
+    constexpr std::string_view MID_RULE = "-----------+--------------+--------------\n";
 
-    out << "==========================================\n";
+    out << BORDER;
     out << "   SHARES  |    PRICE     | SIDE \n";
-    out << "==========================================\n";
+    out << BORDER;
 
-    if (!m_asks.empty()) {
-        for (auto iter = m_asks.rbegin(); iter != m_asks.rend(); ++iter) {
+    const auto print_level =
+        [&](std::uint32_t total_shares, std::uint32_t raw_price, std::string_view side) {
             if (delay_ms > 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
             }
-            double price = iter->first / PRICE_DIVISOR;
-            out << std::setw(10) << iter->second.total_shares << " | " << std::setw(12) << price
-                << " | Ask\n";
-            if (delay_ms > 0)
-                out << std::flush;
-        }
-    }
-
-    out << "-----------+--------------+--------------\n";
-
-    if (!m_bids.empty()) {
-        for (const auto& [raw_price, level] : m_bids) {
+            out << std::format(
+                "{:>10} | {:>12.4f} | {}\n", total_shares, make_price(raw_price).to_double(), side
+            );
             if (delay_ms > 0) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-            }
-            double price = raw_price / PRICE_DIVISOR;
-            out << std::setw(10) << level.total_shares << " | " << std::setw(12) << price
-                << " | Bid\n";
-            if (delay_ms > 0)
                 out << std::flush;
-        }
+            }
+        };
+
+    // Asks are stored low-to-high; print them high-to-low so the best ask sits
+    // just above the spread.
+    for (auto iter = m_asks.rbegin(); iter != m_asks.rend(); ++iter) {
+        print_level(iter->second.total_shares, iter->first, "Ask");
     }
 
-    out << "==========================================\n";
-    out.copyfmt(state);
+    out << MID_RULE;
+
+    // Bids are stored high-to-low, which is already the desired print order.
+    for (const auto& [raw_price, level] : m_bids) {
+        print_level(level.total_shares, raw_price, "Bid");
+    }
+
+    out << BORDER;
 }
 
 auto LimitOrderBook::handle_message(const AddOrderMessage& msg) -> void {
@@ -94,24 +94,24 @@ auto LimitOrderBook::handle_message(const AddOrderMPIDAttributionMessage& msg) -
 }
 
 auto LimitOrderBook::handle_message(const OrderExecutedMessage& msg) -> void {
-    auto it = m_orders.find(msg.order_reference_number);
-    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+    auto order_iter = m_orders.find(msg.order_reference_number);
+    if (order_iter == m_orders.end() || (*order_iter->second)->stock != m_stock_symbol) {
         return;
     }
     remove_order(msg.order_reference_number, msg.executed_shares);
 }
 
 auto LimitOrderBook::handle_message(const OrderExecutedWithPriceMessage& msg) -> void {
-    auto it = m_orders.find(msg.order_reference_number);
-    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+    auto order_iter = m_orders.find(msg.order_reference_number);
+    if (order_iter == m_orders.end() || (*order_iter->second)->stock != m_stock_symbol) {
         return;
     }
     remove_order(msg.order_reference_number, msg.executed_shares);
 }
 
 auto LimitOrderBook::handle_message(const OrderCancelMessage& msg) -> void {
-    auto it = m_orders.find(msg.order_reference_number);
-    if (it == m_orders.end() || (*it->second)->stock != m_stock_symbol) {
+    auto order_iter = m_orders.find(msg.order_reference_number);
+    if (order_iter == m_orders.end() || (*order_iter->second)->stock != m_stock_symbol) {
         return;
     }
     remove_order(msg.order_reference_number, msg.cancelled_shares);
@@ -159,9 +159,11 @@ auto LimitOrderBook::remove_order(uint64_t order_ref, uint32_t canceled_shares) 
         return;
     }
 
-    OrderIt     order_iterator = iter->second;
-    auto        order_ptr      = *order_iterator;
-    PriceLevel* level          = order_ptr->level;
+    auto order_iterator = iter->second;
+    // This copy is deliberate: it keeps the Order alive after the list node is
+    // erased below, since the order's price and side are read afterwards.
+    auto        order_ptr = *order_iterator;  // NOLINT(performance-unnecessary-copy-initialization)
+    PriceLevel* level     = order_ptr->level;
 
     level->total_shares -= canceled_shares;
     order_ptr->shares -= canceled_shares;
