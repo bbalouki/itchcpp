@@ -1,9 +1,20 @@
 #pragma once
 
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <concepts>
+#include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <istream>
-#include <map>
+#include <optional>
+#include <span>
 #include <vector>
+
+#ifdef __cpp_lib_expected
+#include <expected>
+#endif
 
 #include "itch/messages.hpp"
 
@@ -14,6 +25,24 @@ namespace itch {
 ///
 /// @param const Message& A const reference to the fully parsed message object.
 using MessageCallback = std::function<void(const Message&)>;
+
+/// @brief Categories of recoverable problems encountered while framing a feed.
+///
+/// These are surfaced through the non-throwing `try_parse` entry points and the
+/// optional error callback, so callers can react without relying on exceptions
+/// or on the library writing to a global stream.
+enum class ParseError {
+    truncated,      ///< The buffer ended in the middle of a frame.
+    unknown_type,   ///< The message type byte does not correspond to a known message.
+    size_mismatch,  ///< The declared length is shorter than the message type requires.
+};
+
+/// @brief The signature for the optional diagnostics callback.
+///
+/// @param ParseError The category of problem that occurred.
+/// @param char The offending message type byte (`'\0'` when not applicable,
+///             e.g. for a truncated header).
+using ErrorCallback = std::function<void(ParseError, char)>;
 
 /// @brief A high-performance parser for the NASDAQ TotalView-ITCH 5.0 protocol.
 ///
@@ -37,11 +66,9 @@ class Parser {
    public:
     /// @brief Constructs a Parser instance.
     ///
-    /// The constructor pre-populates an internal dispatch table (a map of
-    /// handlers) by registering a specific parsing function for each known ITCH
-    /// message type. This setup makes the parsing process a fast lookup
-    /// operation at runtime.
-    Parser();
+    /// Dispatch is driven by a compile-time table keyed on the message type
+    /// byte, so no per-instance setup is required.
+    Parser() = default;
 
     /// @brief Parses messages from a memory buffer and invokes a callback for
     /// each.
@@ -129,58 +156,136 @@ class Parser {
     /// @throw std::runtime_error on stream reading errors.
     auto parse(std::istream& data, const std::vector<char>& messages) -> std::vector<Message>;
 
-   private:
-    using Handler = std::function<Message(const char*)>;
-    std::map<char, Handler> m_handlers;
+    /// @brief Parses messages from a byte span and invokes a callback for each.
+    ///
+    /// The `std::span` overloads are the preferred modern interface: the span
+    /// carries its own size, which prevents the pointer/length desynchronization
+    /// that the raw `(const char*, size_t)` overloads are prone to. Those raw
+    /// overloads are retained as thin shims for C interop.
+    ///
+    /// @param data A view over the contiguous buffer containing ITCH data.
+    /// @param callback A function to be called for each successfully parsed
+    /// message.
+    /// @throw std::runtime_error if the buffer ends in the middle of a message.
+    auto parse(std::span<const std::byte> data, const MessageCallback& callback) -> void;
 
-    /// @brief A template function to register a handler for a specific
-    /// message type.
-    /// @tparam T The C++ struct type representing the message (e.g.,
-    /// AddOrderMessage).
-    /// @param type The character identifier for this message type (e.g.,
-    /// 'A').
-    template <typename T>
-    auto register_handler(char type) -> void;
+    /// @brief Parses all messages from a byte span and returns them in a vector.
+    auto parse(std::span<const std::byte> data) -> std::vector<Message>;
+
+    /// @brief Parses messages from a byte span, keeping only the requested types.
+    auto parse(std::span<const std::byte> data, const std::vector<char>& messages)
+        -> std::vector<Message>;
+
+#ifdef __cpp_lib_expected
+    /// @brief Non-throwing parse: invokes a callback per message, reporting
+    ///        truncation through the return value instead of an exception.
+    ///
+    /// This is the latency-friendly entry point for callers that prefer not to
+    /// pay for exceptions on the hot path. Unknown message types and oversized
+    /// or undersized frames are routed to the diagnostics policy (counters plus
+    /// the optional error callback) and skipped; only an unrecoverable
+    /// truncation yields an `unexpected` result.
+    ///
+    /// Available when the standard library provides `std::expected` (C++23).
+    ///
+    /// @param data A view over the contiguous buffer containing ITCH data.
+    /// @param callback A function to be called for each successfully parsed
+    /// message.
+    /// @return Nothing on success, or a `ParseError` describing the failure.
+    [[nodiscard]] auto try_parse(std::span<const std::byte> data, const MessageCallback& callback)
+        -> std::expected<void, ParseError>;
+
+    /// @brief Non-throwing parse that collects all messages into a vector.
+    [[nodiscard]] auto try_parse(std::span<const std::byte> data)
+        -> std::expected<std::vector<Message>, ParseError>;
+#endif
+
+    /// @brief Registers a callback invoked for each recoverable framing problem.
+    ///
+    /// Passing an empty function clears any previously installed callback. The
+    /// default behavior, with no callback installed, is to silently skip and
+    /// count the offending frame.
+    auto set_error_callback(ErrorCallback callback) -> void;
+
+    /// @brief The number of frames skipped because their type byte was unknown.
+    [[nodiscard]] auto unknown_message_count() const noexcept -> std::uint64_t {
+        return m_unknown_message_count;
+    }
+
+    /// @brief The number of frames skipped because their declared length was too
+    ///        small for the message type.
+    [[nodiscard]] auto malformed_message_count() const noexcept -> std::uint64_t {
+        return m_malformed_message_count;
+    }
+
+    /// @brief Resets the accumulating diagnostics counters to zero.
+    auto reset_diagnostics() noexcept -> void {
+        m_unknown_message_count   = 0;
+        m_malformed_message_count = 0;
+    }
+
+   private:
+    /// @brief The shared, non-throwing framing loop backing every parse overload.
+    ///        Returns `std::nullopt` on success, or the `ParseError` that aborted
+    ///        the loop (only an unrecoverable truncation aborts it).
+    auto parse_impl(const char* data, std::size_t size, const MessageCallback& callback)
+        -> std::optional<ParseError>;
+
+    /// @brief Records a recoverable framing problem and notifies the callback.
+    auto report_error(ParseError error, char message_type) -> void;
+
+    ErrorCallback m_error_callback {};
+    std::uint64_t m_unknown_message_count {0};
+    std::uint64_t m_malformed_message_count {0};
 };
 
 namespace utils {
 
-// Generic byte-swapping function for any integral type.
-template <typename T>
-T swap_bytes(T value) {
-    static_assert(std::is_integral_v<T>, "swap_bytes can only be used with integral types");
-    union {
-        T       val;
-        uint8_t bytes[sizeof(T)];
-    } src, dst;
-    src.val = value;
-    for (size_t i = 0; i < sizeof(T); ++i) {
-        dst.bytes[i] = src.bytes[sizeof(T) - 1 - i];
+/// @brief Reverses the byte order of an integral value.
+///
+/// Prefers `std::byteswap` (C++23) and otherwise falls back to a well-defined
+/// `std::bit_cast` based reversal. This deliberately avoids reading an inactive
+/// union member, which is undefined behavior in C++ and a hazard on the parser
+/// hot path.
+template <std::integral IntType>
+[[nodiscard]] constexpr auto swap_bytes(IntType value) noexcept -> IntType {
+#ifdef __cpp_lib_byteswap
+    return std::byteswap(value);
+#else
+    if constexpr (sizeof(IntType) == 1) {
+        return value;
+    } else {
+        auto bytes = std::bit_cast<std::array<std::byte, sizeof(IntType)>>(value);
+        std::ranges::reverse(bytes);
+        return std::bit_cast<IntType>(bytes);
     }
-    return dst.val;
+#endif
 }
 
-// Check the system's endianness at compile time (or runtime as a fallback).
-// This determines if we need to swap bytes at all.
-inline bool is_little_endian();
+/// @brief Converts a big-endian (network order) value to the host byte order.
+///
+/// On little-endian hosts this swaps the bytes; on big-endian hosts it is a
+/// no-op. The choice is made at compile time via `std::endian`.
+template <std::integral IntType>
+[[nodiscard]] constexpr auto from_big_endian(IntType value) noexcept -> IntType {
+    if constexpr (std::endian::native == std::endian::little) {
+        return swap_bytes(value);
+    } else {
+        return value;
+    }
+}
 
-// Converts a value from big-endian (network order) to the host's native byte
-// order. On little-endian systems (like x86/x64), it swaps the bytes. On
-// big-endian systems, it does nothing.
-template <typename T>
-T from_big_endian(T value);
+/// @brief Unpacks a value of type T from the buffer, advancing the offset.
+///        Handles endianness conversion for multi-byte integral types.
+template <typename ValueType>
+auto unpack(const char* buffer, std::size_t& offset) -> ValueType;
 
-// Unpacks a value of type T from the buffer at the given offset, updating
-// the offset accordingly. Handles endianness conversion for integral types.
-template <typename T>
-T unpack(const char* buffer, size_t& offset);
+/// @brief Copies a fixed-width character field out of the buffer.
+inline auto unpack_string(const char* buffer, std::size_t& offset, char* dest, std::size_t size)
+    -> void;
 
-// Specialization for char arrays (strings)
-inline void unpack_string(const char* buffer, size_t& offset, char* dest, size_t size);
-
-// ITCH timestamps are 48-bit big-endian integers.
-// 2 bytes for high part, 4 bytes for low part.
-inline uint64_t unpack_timestamp(const char* buffer, size_t& offset);
+/// @brief Unpacks a 48-bit big-endian ITCH timestamp (2-byte high, 4-byte low).
+inline auto unpack_timestamp(const char* buffer, std::size_t& offset) -> std::uint64_t;
 }  // namespace utils
 
 }  // namespace itch
