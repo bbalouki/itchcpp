@@ -11,3 +11,7 @@ scripts.sh
 *Presets.json
 .cache/
 /packaging
+
+# Generated coverage reports must not be committed; they belong in the build tree.
+coverage.html
+docs/coverage.html
