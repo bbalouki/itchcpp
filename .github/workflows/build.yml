@@ -294,8 +294,8 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=x64-linux
 
-      - name: Build benchmark
-        run: cmake --build $BUILD_DIR --target parser_bench
+      - name: Build benchmarks
+        run: cmake --build $BUILD_DIR --target parser_bench book_bench
 
       - name: Generate a small synthetic ITCH sample
         run: |
@@ -307,5 +307,7 @@ jobs:
               out.write(frame * 1_000_000)
           PY
 
-      - name: Run benchmark (smoke)
-        run: $BUILD_DIR/benchmarks/parser_bench sample.itch --benchmark_min_time=1x
+      - name: Run benchmarks (smoke)
+        run: |
+          $BUILD_DIR/benchmarks/parser_bench sample.itch --benchmark_min_time=1x
+          $BUILD_DIR/benchmarks/book_bench sample.itch --benchmark_min_time=1x

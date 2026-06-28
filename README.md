@@ -67,6 +67,13 @@ The design of this ITCH parser is guided by three principles:
   multicast framing, SoupBinTCP (Glimpse/recovery) framing, and `.pcap`/`.pcapng`
   captures — with per-session sequence tracking and gap detection. No libpcap
   dependency. See [Feed Ingestion](#feed-ingestion-transport).
+- **Full-Market Book Engine**: Reconstruct every symbol on the feed in one pass
+  with an allocation-light L3 order book (object pool, intrusive FIFO levels, flat
+  ladders, open-addressed O(1) order lookup), with BBO change events, L2/L3 depth
+  snapshots, and trade-tape extraction. See [Book Engine](#full-market-book-engine).
+- **Zero-Copy Overlay API**: Inspect raw frames through lazy typed views that
+  convert only the fields you read, for hot paths that touch a few fields per
+  message.
 - **High Throughput**: Multi-gigabyte-per-second parsing on modern hardware (see [Benchmarks](#benchmarks) for measured numbers).
 - **Allocation-Free Core**: The callback-based parsing loop performs zero dynamic memory allocations, minimizing latency and jitter.
 - **Type-Safe API**: All ITCH messages are deserialized into a `std::variant` of dedicated, packed `struct`s, ensuring compile-time safety.
@@ -481,6 +488,46 @@ For a live or captured MoldUDP64 datagram you already have in memory, call
 `MoldUdp64Decoder::decode_packet(span)` directly; for a SoupBinTCP byte stream,
 push segments through `SoupBinDecoder::feed(span)` as they arrive.
 
+### Full-Market Book Engine
+
+The original `LimitOrderBook` reconstructs a single, pre-selected symbol. The
+Phase 2 `itch::book::BookManager` reconstructs **every** symbol on the feed in one
+pass, routing each message to that security's book by stock locate code in O(1).
+Each book (`itch::book::L3Book`) is allocation-light: orders live in a reusable
+object pool linked into intrusive FIFO queues, price levels are kept in flat
+sorted ladders, and order lookup by reference number uses a flat open-addressed
+map, so there is no per-order heap allocation or atomic refcount on the hot path.
+
+```cpp
+#include "itch/book/book_manager.hpp"
+#include "itch/parser.hpp"
+
+itch::book::BookManager manager;
+// manager.track_symbol("AAPL");      // optional: restrict to a universe
+
+manager.set_bbo_callback([](const itch::book::L3Book& book, const itch::book::Bbo& bbo) {
+    // best bid/offer for book.symbol() just changed
+});
+manager.set_trade_callback([](const itch::Trade& trade) {
+    // trade.printable distinguishes displayable prints from hidden ones
+});
+
+itch::Parser parser;
+parser.parse(buffer.data(), buffer.size(), [&](const itch::Message& msg) {
+    manager.process(msg);
+});
+
+const itch::book::L3Book* book = manager.book_for_symbol("AAPL");
+auto top  = book->bbo();                          // best bid/offer
+auto l2   = book->depth(itch::book::Side::buy, 5); // top-5 aggregated bids
+auto l3   = book->orders_at(itch::book::Side::buy, top.bid_price.raw()); // order-level
+```
+
+For callers that touch only a few fields per message, `itch/overlay.hpp` provides
+a zero-copy alternative to the eager parser: `for_each_message(buffer, cb)` yields
+a `MessageView` (and typed views like `AddOrderView`) that decode each field
+lazily on access.
+
 ---
 
 ## API Reference: ITCH 5.0 Message Types
@@ -556,6 +603,24 @@ The numbers below were produced by [`benchmarks/parser_bench.cpp`](benchmarks/pa
 - **Dataset**: official NASDAQ TotalView-ITCH 5.0 sample (`01302020`), a ~300 MB frame-aligned slice loaded fully into memory.
 
 The collect/filter paths are slower than the callback path because they allocate and copy each parsed message into a `std::vector`; the callback path does neither, which is why it is the recommended interface for latency-sensitive processing.
+
+#### Book engine and overlay
+
+These are produced by [`benchmarks/book_bench.cpp`](benchmarks/book_bench.cpp).
+The throughput figures below were measured on a synthetic, churn-heavy stream
+(adds and deletes around a moving mid across 100 symbols) on the same hardware,
+Clang 22 `-DCMAKE_BUILD_TYPE=Release`, C++23; book-rebuild throughput on real
+data depends heavily on the depth and churn profile of the feed.
+
+| Configuration | Throughput |
+| ------------- | ---------- |
+| `BookManager::process` — full multi-symbol L3 reconstruction | ~150 MiB/s |
+| Eager `parse`, touching one field per message | ~5.4 GiB/s |
+| Zero-copy `overlay::for_each_message`, touching one field per message | **~9.7 GiB/s** |
+
+The overlay is materially faster than the eager decoder when only a few fields are
+read, because it never decodes the fields the caller does not touch. Reproduce
+with `./build/benchmarks/book_bench <itch_file>`.
 
 ### How to reproduce
 

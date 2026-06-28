@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 2 — Production order-book engine** ([FEATURES.md](FEATURES.md)). A
+  full-market book engine alongside the existing single-symbol `LimitOrderBook`
+  (which is unchanged and retained):
+  - `itch::book::L3Book` (`itch/book/l3_book.hpp`): an allocation-light, order-level
+    book. Orders live in a reusable object pool linked into intrusive FIFO queues,
+    price levels are flat sorted ladders, and order lookup by reference number uses
+    a flat open-addressed map (`itch/book/order_index.hpp`), removing the per-order
+    `std::shared_ptr`, list node, and map node of the original design.
+  - `itch::book::BookManager` (`itch/book/book_manager.hpp`): maintains a book per
+    symbol from one pass over the feed, routed by stock locate code in O(1), with an
+    optional symbol universe filter.
+  - Best-bid/offer change events (`set_bbo_callback`) and configurable L2 aggregated
+    and L3 order-level depth snapshots (`L3Book::depth`, `L3Book::orders_at`).
+  - Trade-tape extraction (`itch/tape.hpp`, `set_trade_callback`) from `E`/`C`/`P`/`Q`
+    messages, exposing the `printable` flag to distinguish displayable from hidden
+    prints.
+  - A zero-copy overlay parse API (`itch/overlay.hpp`): lazy typed views over the
+    raw buffer with on-access endianness conversion, for callers that touch only a
+    few fields per message.
+  - A book/overlay benchmark (`benchmarks/book_bench.cpp`) and a book-engine example
+    (`examples/book/book_engine_example.cpp`), with measured numbers in the README.
+
 - **Phase 1 — Real feed ingestion** ([FEATURES.md](FEATURES.md)). The library can
   now consume ITCH as it is actually delivered, not only pre-stripped message
   streams:

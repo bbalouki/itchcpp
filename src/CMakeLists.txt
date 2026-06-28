@@ -11,6 +11,8 @@ add_library(
     transport/moldudp64.cpp
     transport/soupbintcp.cpp
     transport/pcap.cpp
+    book/l3_book.cpp
+    book/book_manager.cpp
 )
 add_library(itch::itch ALIAS itch)
 if (NOT ANDROID)

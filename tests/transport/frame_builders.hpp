@@ -59,6 +59,30 @@ inline auto system_event_payload(std::uint64_t timestamp, char event_code)
     return payload;
 }
 
+/// @brief Builds the raw payload (no length prefix) of an Add Order (`A`)
+///        message.
+inline auto add_order_payload(
+    std::uint16_t locate, std::uint64_t ref, char side, std::uint32_t shares,
+    std::string_view symbol, std::uint32_t price
+) -> std::vector<std::byte> {
+    std::vector<std::byte> payload;
+    payload.push_back(std::byte {'A'});
+    append_be16(payload, locate);
+    append_be16(payload, 0);  // tracking_number
+    std::vector<std::byte> ts;
+    append_be64(ts, 1234567);
+    payload.insert(payload.end(), ts.begin() + 2, ts.end());  // 48-bit timestamp
+    append_be64(payload, ref);
+    payload.push_back(std::byte {static_cast<unsigned char>(side)});
+    append_be32(payload, shares);
+    for (std::size_t index = 0; index < 8; ++index) {
+        const char chr = index < symbol.size() ? symbol[index] : ' ';
+        payload.push_back(std::byte {static_cast<unsigned char>(chr)});
+    }
+    append_be32(payload, price);
+    return payload;
+}
+
 /// @brief Wraps a raw payload as a length-prefixed ITCH frame (and message
 ///        block, since both use the same 2-byte big-endian length prefix).
 inline auto length_prefixed(const std::vector<std::byte>& payload) -> std::vector<std::byte> {

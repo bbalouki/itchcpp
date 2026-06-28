@@ -23,3 +23,11 @@ target_link_libraries(
     itch::itch
     warnings::strict
 )
+
+add_executable(book_engine_example book/book_engine_example.cpp)
+
+target_link_libraries(
+    book_engine_example PRIVATE
+    itch::itch
+    warnings::strict
+)

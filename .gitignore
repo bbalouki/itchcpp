@@ -4,7 +4,10 @@
 *.gz
 *.pdf
 build/
+build-*/
 install/
+scratch_*
+*.itch
 *-workspace
 *_ITCH50
 scripts.sh

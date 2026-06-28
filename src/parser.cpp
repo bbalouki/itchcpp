@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include "itch/detail/wire.hpp"
+
 namespace itch {
 
 namespace utils {
@@ -228,23 +230,7 @@ auto unpack_message(DLCRMessage& msg, const char* buffer, size_t& offset) -> voi
 
 namespace {
 
-// The on-wire ITCH timestamp is 48 bits (6 bytes), but every message struct
-// stores it in a 64-bit field. Each struct therefore occupies exactly two bytes
-// more than its on-wire encoding, since the timestamp is the only field whose
-// storage width differs from its wire width.
-constexpr std::size_t TIMESTAMP_STRUCT_PADDING = sizeof(std::uint64_t) - 6;
-
-/// @brief The exact on-wire size, in bytes, of a fully formed message of type T.
-template <typename MsgType>
-constexpr std::size_t WIRE_SIZE = sizeof(MsgType) - TIMESTAMP_STRUCT_PADDING;
-
-// Lock the padding assumption to the spec lengths so a future struct change
-// that breaks the derivation is caught at compile time rather than at runtime.
-static_assert(WIRE_SIZE<SystemEventMessage> == 12);
-static_assert(WIRE_SIZE<StockDirectoryMessage> == 39);
-static_assert(WIRE_SIZE<AddOrderMessage> == 36);
-static_assert(WIRE_SIZE<NOIIMessage> == 50);
-static_assert(WIRE_SIZE<DLCRMessage> == 48);
+using detail::WIRE_SIZE;
 
 /// @brief Decodes the common header and type-specific body of a message of
 ///        type MsgType from a frame, returning it wrapped in the Message variant.
@@ -281,29 +267,9 @@ consteval auto build_dispatch_table() -> std::array<DispatchEntry, DISPATCH_TABL
             DispatchEntry {static_cast<std::uint16_t>(WIRE_SIZE<MsgType>), &decode_typed<MsgType>};
     };
 
-    add.operator()<SystemEventMessage>('S');
-    add.operator()<StockDirectoryMessage>('R');
-    add.operator()<StockTradingActionMessage>('H');
-    add.operator()<RegSHOMessage>('Y');
-    add.operator()<MarketParticipantPositionMessage>('L');
-    add.operator()<MWCBDeclineLevelMessage>('V');
-    add.operator()<MWCBStatusMessage>('W');
-    add.operator()<IPOQuotingPeriodUpdateMessage>('K');
-    add.operator()<LULDAuctionCollarMessage>('J');
-    add.operator()<OperationalHaltMessage>('h');
-    add.operator()<AddOrderMessage>('A');
-    add.operator()<AddOrderMPIDAttributionMessage>('F');
-    add.operator()<OrderExecutedMessage>('E');
-    add.operator()<OrderExecutedWithPriceMessage>('C');
-    add.operator()<OrderCancelMessage>('X');
-    add.operator()<OrderDeleteMessage>('D');
-    add.operator()<OrderReplaceMessage>('U');
-    add.operator()<NonCrossTradeMessage>('P');
-    add.operator()<CrossTradeMessage>('Q');
-    add.operator()<BrokenTradeMessage>('B');
-    add.operator()<NOIIMessage>('I');
-    add.operator()<RetailPriceImprovementIndicatorMessage>('N');
-    add.operator()<DLCRMessage>('O');
+    // The canonical message-type registry lives in itch/detail/wire.hpp so the
+    // dispatch table, overlay, and encoder all share one definition.
+    detail::for_each_message_type(add);
 
     return table;
 }
