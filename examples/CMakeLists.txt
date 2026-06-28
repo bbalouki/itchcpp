@@ -31,3 +31,11 @@ target_link_libraries(
     itch::itch
     warnings::strict
 )
+
+add_executable(vwap_example analytics/vwap_example.cpp)
+
+target_link_libraries(
+    vwap_example PRIVATE
+    itch::itch
+    warnings::strict
+)

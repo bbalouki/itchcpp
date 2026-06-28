@@ -25,6 +25,7 @@ add_executable(
   transport/test_transport.cpp
   book/test_book.cpp
   book/test_overlay.cpp
+  analytics/test_analytics.cpp
 )
 
 target_include_directories(itch_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

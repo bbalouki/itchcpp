@@ -74,6 +74,9 @@ The design of this ITCH parser is guided by three principles:
 - **Zero-Copy Overlay API**: Inspect raw frames through lazy typed views that
   convert only the fields you read, for hot paths that touch a few fields per
   message.
+- **Built-in Analytics**: Header-only microstructure layer — OHLCV bar builders
+  (time/tick/volume clocks), VWAP/TWAP, spread, queue imbalance, order-flow
+  imbalance, NOII surfacing, and auction reconstruction. See [Analytics](#analytics).
 - **High Throughput**: Multi-gigabyte-per-second parsing on modern hardware (see [Benchmarks](#benchmarks) for measured numbers).
 - **Allocation-Free Core**: The callback-based parsing loop performs zero dynamic memory allocations, minimizing latency and jitter.
 - **Type-Safe API**: All ITCH messages are deserialized into a `std::variant` of dedicated, packed `struct`s, ensuring compile-time safety.
@@ -527,6 +530,37 @@ For callers that touch only a few fields per message, `itch/overlay.hpp` provide
 a zero-copy alternative to the eager parser: `for_each_message(buffer, cb)` yields
 a `MessageView` (and typed views like `AddOrderView`) that decode each field
 lazily on access.
+
+### Analytics
+
+The header-only `itch::analytics` layer computes the metrics quants ask for,
+directly off the trade tape and book so every downstream team does not
+reimplement them.
+
+| Component | Header | Provides |
+| --------- | ------ | -------- |
+| `BarBuilder<Clock>` | `analytics/bars.hpp` | OHLCV bars over `TimeClock`, `TickClock`, `VolumeClock`. |
+| `Vwap`, `Twap` | `analytics/vwap.hpp` | Running/interval volume- and time-weighted average price. |
+| spread / mid / imbalance | `analytics/microstructure.hpp` | Spread, mid, depth-at-level, queue imbalance, order-flow imbalance. |
+| `ImbalanceInfo` | `analytics/imbalance.hpp` | Decoded NOII (`I`) imbalance data. |
+| `AuctionTracker` | `analytics/auctions.hpp` | Opening/closing/halt/IPO cross reconstruction. |
+
+```cpp
+#include "itch/analytics/vwap.hpp"
+#include "itch/analytics/bars.hpp"
+
+itch::analytics::Vwap vwap;
+itch::analytics::BarBuilder bars{itch::analytics::TimeClock{60'000'000'000ULL}, // 1-minute bars
+                                 [](const itch::analytics::Bar& bar) { /* ... */ }};
+
+manager.set_trade_callback([&](const itch::Trade& trade) {
+    vwap.add(trade.price, trade.shares);
+    bars.add(trade);
+});
+// ... parse the feed ...
+bars.flush();
+double session_vwap = vwap.value();
+```
 
 ---
 

@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 3 — Analytics & microstructure** ([FEATURES.md](FEATURES.md)). A header-only
+  `itch::analytics` layer driven off the Phase 2 trade tape and book:
+  - Bar builders (`analytics/bars.hpp`): OHLCV aggregation over time, tick, and
+    volume clocks via a single `BarBuilder` template parameterized by a clock policy.
+  - VWAP and TWAP (`analytics/vwap.hpp`): running and interval volume- and
+    time-weighted average prices.
+  - Microstructure metrics (`analytics/microstructure.hpp`): spread, mid price,
+    depth-at-level, top-of-book queue imbalance, and Cont-Kukanov-Stoikov order-flow
+    imbalance.
+  - NOII / imbalance (`analytics/imbalance.hpp`): `ImbalanceInfo` surfacing the
+    `I` message fields with strong price types and a direction description.
+  - Auction reconstruction (`analytics/auctions.hpp`): `AuctionTracker` pairs each
+    Cross Trade (`Q`) with the latest NOII (`I`) context to reconstruct opening,
+    closing, halt, and IPO crosses.
+  - Analytics tests and a VWAP example (`examples/analytics/vwap_example.cpp`).
+
 - **Phase 2 — Production order-book engine** ([FEATURES.md](FEATURES.md)). A
   full-market book engine alongside the existing single-symbol `LimitOrderBook`
   (which is unchanged and retained):
