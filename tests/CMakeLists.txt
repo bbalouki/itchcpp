@@ -26,6 +26,7 @@ add_executable(
   book/test_book.cpp
   book/test_overlay.cpp
   analytics/test_analytics.cpp
+  io/test_csv_sink.cpp
 )
 
 target_include_directories(itch_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

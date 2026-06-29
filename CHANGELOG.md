@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 4 — Research & interoperability** ([FEATURES.md](FEATURES.md)):
+  - CSV and streaming sinks (`itch/io/sink.hpp`, `itch/io/csv_sink.hpp`): a generic
+    `MessageSink` interface and a `CsvSink` that flattens every message type into a
+    normalized wide CSV table, with no dependencies.
+  - Apache Arrow / Parquet export (`itch/io/arrow_export.hpp`), gated behind the
+    optional `ITCH_WITH_ARROW` CMake option (Arrow via the `arrow` vcpkg feature);
+    turns a feed into a columnar table for pandas/Polars/DuckDB/Spark. Off by
+    default so the core stays dependency-free.
+  - `itch-tool` command-line utility (`tools/itch_tool`, `ITCH_BUILD_TOOLS`): the
+    `stats`, `inspect`, `filter`, and `convert` subcommands, auto-detecting raw
+    ITCH versus `.pcap`/`.pcapng` input.
+  - pybind11 Python bindings (`python/`, `ITCH_BUILD_PYTHON`): a native module that
+    mirrors the pure-Python `itch` package's `MessageParser` and message-class
+    API (typed messages, `decode_price`) so it can serve as a faster drop-in
+    backend, plus the book engine and VWAP. Includes a `pyproject.toml`
+    (scikit-build-core) and pytest tests.
+  - Per-message Doxygen documentation for every ITCH message struct and field in
+    `itch/messages.hpp`, sourced from the message semantics in the `itch` package.
+
 - **Phase 3 — Analytics & microstructure** ([FEATURES.md](FEATURES.md)). A header-only
   `itch::analytics` layer driven off the Phase 2 trade tape and book:
   - Bar builders (`analytics/bars.hpp`): OHLCV aggregation over time, tick, and

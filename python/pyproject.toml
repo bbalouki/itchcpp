@@ -1,0 +1,28 @@
+[build-system]
+requires = ["scikit-build-core>=0.8", "pybind11>=2.11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "itchcpp"
+version = "1.5.0"
+description = "Native C++ NASDAQ TotalView-ITCH 5.0 parser, book engine, and analytics (a fast backend for the pure-Python `itch` package)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Bertin Balouki Simyeli" }]
+keywords = ["nasdaq", "itch", "market-data", "order-book", "hft"]
+classifiers = [
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.urls]
+Homepage = "https://github.com/bbalouki/itchcpp"
+
+[tool.scikit-build]
+# The bindings live under python/ but compile the library from the repo root.
+cmake.source-dir = ".."
+cmake.args = ["-DITCH_BUILD_PYTHON=ON"]
+wheel.packages = []

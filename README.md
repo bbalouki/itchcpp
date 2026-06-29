@@ -77,6 +77,9 @@ The design of this ITCH parser is guided by three principles:
 - **Built-in Analytics**: Header-only microstructure layer — OHLCV bar builders
   (time/tick/volume clocks), VWAP/TWAP, spread, queue imbalance, order-flow
   imbalance, NOII surfacing, and auction reconstruction. See [Analytics](#analytics).
+- **Interoperability**: CSV and Arrow/Parquet export, a batteries-included
+  `itch-tool` CLI (inspect/filter/stats/convert), and native Python bindings
+  (pybind11). See [Interoperability](#interoperability).
 - **High Throughput**: Multi-gigabyte-per-second parsing on modern hardware (see [Benchmarks](#benchmarks) for measured numbers).
 - **Allocation-Free Core**: The callback-based parsing loop performs zero dynamic memory allocations, minimizing latency and jitter.
 - **Type-Safe API**: All ITCH messages are deserialized into a `std::variant` of dedicated, packed `struct`s, ensuring compile-time safety.
@@ -560,6 +563,37 @@ manager.set_trade_callback([&](const itch::Trade& trade) {
 // ... parse the feed ...
 bars.flush();
 double session_vwap = vwap.value();
+```
+
+### Interoperability
+
+Meet researchers in the tools they already use.
+
+**Output sinks.** `itch/io/csv_sink.hpp` flattens any message stream into a wide
+CSV table (dependency-free). With `-DITCH_WITH_ARROW=ON` (the `arrow` vcpkg
+feature), `itch/io/arrow_export.hpp` writes Parquet for pandas/Polars/DuckDB/Spark.
+
+**`itch-tool` CLI** (`-DITCH_BUILD_TOOLS=ON`). Inspect, filter, and convert feeds
+without writing code; input may be a raw ITCH stream or a `.pcap`/`.pcapng`
+capture (auto-detected):
+
+```bash
+itch-tool stats   data.itch                       # per-type message histogram
+itch-tool inspect data.pcapng --limit 50          # human-readable dump
+itch-tool filter  data.itch --types AEP --out trades.csv
+itch-tool convert data.itch --out data.csv        # ITCH -> CSV (-> Parquet w/ Arrow)
+```
+
+**Python bindings** (`-DITCH_BUILD_PYTHON=ON`, pybind11). A native module that
+mirrors the pure-Python [`itch`](https://github.com/bbalouki/itch) package's API
+so it can act as a faster drop-in backend. See [python/README.md](python/README.md).
+
+```python
+import itchcpp
+parser = itchcpp.MessageParser()
+for message in parser.parse_file("01302020.NASDAQ_ITCH50"):
+    if isinstance(message, itchcpp.AddOrderMessage):
+        print(message.stock, message.decode_price("price"), message.shares)
 ```
 
 ---

@@ -39,5 +39,11 @@ endif()
 if (${PROJECT_NAME}_BUILD_FUZZERS)
     add_subdirectory(fuzz)
 endif()
+if (${PROJECT_NAME}_BUILD_TOOLS)
+    add_subdirectory(tools/itch_tool)
+endif()
+if (${PROJECT_NAME}_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
 
 

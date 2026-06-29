@@ -66,6 +66,8 @@ jobs:
           cmake -S . -B $BUILD_DIR \
             -DITCH_PROJECT_ENV=PROD \
             -DITCH_BUILD_TESTS=ON \
+            -DITCH_BUILD_TOOLS=ON \
+            -DITCH_BUILD_EXAMPLES=ON \
             -DITCH_CXX_STANDARD=${{ matrix.cpp_standard }} \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
@@ -261,6 +263,54 @@ jobs:
 
       - name: Run transport fuzzer (time-budgeted)
         run: $BUILD_DIR/fuzz/moldudp64_fuzzer -max_total_time=60 -max_len=2048 -print_final_stats=1
+
+  python-bindings:
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      BUILD_DIR: ${{ github.workspace }}/build
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}
+            ~/.cache/vcpkg
+          key: ${{ runner.os }}-vcpkg-python-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+
+      - name: Configure CMake (Python bindings)
+        run: |
+          cmake -S . -B $BUILD_DIR \
+            -DITCH_BUILD_PYTHON=ON \
+            -DITCH_CXX_STANDARD=23 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DPython_EXECUTABLE=$(which python) \
+            -DVCPKG_MANIFEST_FEATURES=python \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-linux
+
+      - name: Build extension
+        run: cmake --build $BUILD_DIR --target itchcpp_python
+
+      - name: Run binding tests
+        run: |
+          python -m pip install --upgrade pip pytest
+          cp $BUILD_DIR/python/itchcpp*.so python/tests/
+          cd python/tests && python -m pytest -q
 
   benchmark-smoke:
     runs-on: ubuntu-latest

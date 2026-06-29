@@ -13,7 +13,20 @@ add_library(
     transport/pcap.cpp
     book/l3_book.cpp
     book/book_manager.cpp
+    io/csv_sink.cpp
+    io/arrow_export.cpp
 )
+
+# Apache Arrow / Parquet columnar export is optional and off by default so the
+# core library stays dependency-free. The arrow_export.cpp translation unit is
+# empty unless ITCH_WITH_ARROW is defined.
+if(${PROJECT_NAME}_WITH_ARROW)
+    find_package(Arrow CONFIG REQUIRED)
+    find_package(Parquet CONFIG REQUIRED)
+    target_compile_definitions(itch PUBLIC ITCH_WITH_ARROW)
+    target_link_libraries(itch PUBLIC Arrow::arrow_shared Parquet::parquet_shared)
+    message(STATUS "ITCH: Apache Arrow / Parquet export enabled")
+endif()
 add_library(itch::itch ALIAS itch)
 if (NOT ANDROID)
     target_link_libraries(
