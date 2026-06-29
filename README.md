@@ -1,6 +1,7 @@
 # High-Performance NASDAQ ITCH 5.0 Parser
 
 [![Build](https://github.com/bbalouki/itchcpp/actions/workflows/build.yml/badge.svg)](https://github.com/bbalouki/itchcpp/actions/workflows/build.yml)
+[![Docs](https://github.com/bbalouki/itchcpp/actions/workflows/docs.yml/badge.svg)](https://bbalouki.github.io/itchcpp/)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)
 ![macOS](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white)
@@ -13,6 +14,8 @@
 [![PayPal Me](https://img.shields.io/badge/PayPal%20Me-blue?logo=paypal)](https://paypal.me/bertinbalouki?country.x=SN&locale.x=en_US)
 
 A modern, high-performance C++20 library for parsing NASDAQ TotalView-ITCH 5.0 protocol data feeds. This parser is designed for maximum speed, minimal memory overhead, and type safety, making it ideal for latency-sensitive financial applications, market data analysis, and quantitative research.
+
+📖 **API documentation:** <https://bbalouki.github.io/itchcpp/> (generated with Doxygen, published on every push to `main`).
 
 ---
 

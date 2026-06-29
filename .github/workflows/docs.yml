@@ -1,0 +1,80 @@
+name: docs
+
+# Build the Doxygen documentation and publish it to GitHub Pages on every push to
+# main. The site uses the README as its landing page and the modern
+# doxygen-awesome-css theme with a dark-mode toggle, copy buttons, and an
+# interactive table of contents.
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+# Allow the workflow to publish to GitHub Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; let an in-progress run finish.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+env:
+  DOXYGEN_AWESOME_VERSION: "v2.3.4"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen and Graphviz
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+
+      - name: Fetch the doxygen-awesome-css theme
+        run: |
+          git clone --depth 1 --branch "$DOXYGEN_AWESOME_VERSION" \
+            https://github.com/jothepro/doxygen-awesome-css.git docs/doxygen-awesome-css
+
+      - name: Generate a theme-aware HTML header
+        run: |
+          # Generate the default header for THIS Doxygen version, then inject the
+          # doxygen-awesome enhancements (docs/awesome-head.html) before </head>.
+          # Generating the header with the runner's own Doxygen avoids template
+          # token mismatches across versions.
+          doxygen -w html docs/header.html docs/footer.html docs/_awesome_unused.css docs/Doxyfile
+          awk '/<\/head>/{while((getline line < "docs/awesome-head.html") > 0) print line} {print}' \
+            docs/header.html > docs/header.tmp
+          mv docs/header.tmp docs/header.html
+
+      - name: Build documentation
+        run: |
+          # Append the header and Graphviz settings to the committed Doxyfile, then
+          # build from stdin so the relative INPUT paths resolve from the repo root.
+          {
+            cat docs/Doxyfile
+            echo "HTML_HEADER = docs/header.html"
+            echo "HAVE_DOT = YES"
+            echo "DOT_IMAGE_FORMAT = svg"
+            echo "DOT_TRANSPARENT = YES"
+          } | doxygen -
+          touch docs/html/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

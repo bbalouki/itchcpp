@@ -141,19 +141,27 @@ function(build_documentation)
     find_package(Doxygen)
     if (Doxygen_FOUND)
         message(
-            STATUS 
-            "Found Doxygen Version " "${DOXYGEN_VERSION} " 
+            STATUS
+            "Found Doxygen Version " "${DOXYGEN_VERSION} "
             "at ${DOXYGEN_EXECUTABLE}"
         )
-        configure_file(
-            "${PROJECT_SOURCE_DIR}/docs/Doxyfile.in"
-            "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
-            @ONLY
-        )
-        doxygen_add_docs(
-            docs 
-            CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
+        find_package(Git QUIET)
+        # Run Doxygen on the committed docs/Doxyfile from the source root so its
+        # relative INPUT paths (README.md, include, src) resolve. The same
+        # Doxyfile is used by the GitHub Pages workflow, keeping local and
+        # published documentation identical. The modern theme is fetched first so
+        # local docs are styled like the published site.
+        add_custom_target(
+            docs
+            COMMAND ${CMAKE_COMMAND}
+                -DTHEME_DIR=${PROJECT_SOURCE_DIR}/docs/doxygen-awesome-css
+                -DTHEME_TAG=v2.3.4
+                -DGIT_EXECUTABLE=${GIT_EXECUTABLE}
+                -P ${PROJECT_SOURCE_DIR}/cmake/FetchDocsTheme.cmake
+            COMMAND ${DOXYGEN_EXECUTABLE} "${PROJECT_SOURCE_DIR}/docs/Doxyfile"
+            WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
             COMMENT "Generating docs with Doxygen ..."
+            VERBATIM
         )
         message(STATUS "Add 'docs' target")
     endif()

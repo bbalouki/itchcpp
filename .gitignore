@@ -18,3 +18,9 @@ scripts.sh
 # Generated coverage reports must not be committed; they belong in the build tree.
 coverage.html
 docs/coverage.html
+
+# Generated documentation and the vendored theme (cloned at build/publish time).
+docs/html/
+docs/doxygen-awesome-css/
+docs/header.html
+docs/footer.html

@@ -27,6 +27,10 @@ Optional features are off by default and enabled with:
   vcpkg feature: `-DVCPKG_MANIFEST_FEATURES=python`).
 - `-DITCH_WITH_ARROW=ON` — Apache Arrow / Parquet export (needs the `arrow`
   vcpkg feature: `-DVCPKG_MANIFEST_FEATURES=arrow`).
+- `-DITCH_BUILD_DOCUMENTATION=ON` — the Doxygen `docs` target. Build it with
+  `cmake --build build --target docs` (needs Doxygen; the modern theme is fetched
+  automatically). Output is written to `docs/html`. The same documentation is
+  published to GitHub Pages from `main` by `.github/workflows/docs.yml`.
 
 ## Code style
 

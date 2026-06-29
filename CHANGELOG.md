@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Documentation site**: a Doxygen configuration (`docs/Doxyfile`) using the
+  README as the landing page and the modern doxygen-awesome-css theme (dark-mode
+  toggle, copy buttons, interactive table of contents, tree-view sidebar), plus a
+  GitHub Actions workflow (`.github/workflows/docs.yml`) that builds and publishes
+  it to GitHub Pages on every push to `main`. The local `docs` CMake target
+  (`-DITCH_BUILD_DOCUMENTATION=ON`) builds the same styled documentation.
+
 - **Phase 5 — Simulation & ecosystem** ([FEATURES.md](FEATURES.md)):
   - Replay engine (`itch/replay.hpp`): `ReplayEngine` drives a callback paced by
     the messages' nanosecond timestamps at original or scaled wall-clock speed, for
