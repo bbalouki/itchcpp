@@ -1,9 +1,9 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <format>
 #include <fstream>
 #include <iostream>
-#include <print>
 #include <span>
 #include <string>
 #include <string_view>
@@ -14,6 +14,13 @@
 #include "itch/transport/pcap.hpp"
 
 namespace {
+
+// Writes a formatted line to a stream. Uses std::format (C++20) rather than
+// std::println (C++23) so the tool builds on the project's full standard range.
+template <typename... Args>
+auto print_line(std::ostream& out, std::string_view fmt, const Args&... args) -> void {
+    out << std::vformat(fmt, std::make_format_args(args...)) << '\n';
+}
 
 // Reads an entire file into a byte buffer.
 auto read_file(const std::string& path) -> std::vector<std::byte> {
@@ -63,13 +70,13 @@ auto cmd_stats(std::span<const std::byte> data) -> int {
         ++counts[static_cast<unsigned char>(message_type_of(msg))];
         ++total;
     });
-    std::println("{:<6} {:>14}", "type", "count");
+    print_line(std::cout, "{:<6} {:>14}", "type", "count");
     for (std::size_t type = 0; type < counts.size(); ++type) {
         if (counts[type] > 0) {
-            std::println("{:<6} {:>14}", static_cast<char>(type), counts[type]);
+            print_line(std::cout, "{:<6} {:>14}", static_cast<char>(type), counts[type]);
         }
     }
-    std::println("{:<6} {:>14}", "TOTAL", total);
+    print_line(std::cout, "{:<6} {:>14}", "TOTAL", total);
     return 0;
 }
 
@@ -81,7 +88,7 @@ auto cmd_inspect(std::span<const std::byte> data, std::uint64_t limit) -> int {
             ++shown;
         }
     });
-    std::println("(showed {} messages)", shown);
+    print_line(std::cout, "(showed {} messages)", shown);
     return 0;
 }
 
@@ -95,7 +102,7 @@ auto cmd_filter_or_convert(
     if (!out_path.empty()) {
         file_out.open(out_path, std::ios::binary);
         if (!file_out) {
-            std::println(stderr, "Error: cannot open output '{}'.", out_path);
+            print_line(std::cerr, "Error: cannot open output '{}'.", out_path);
             return 1;
         }
     }
@@ -107,18 +114,18 @@ auto cmd_filter_or_convert(
         }
     });
     sink.flush();
-    std::println(stderr, "Wrote {} rows.", sink.rows_written());
+    print_line(std::cerr, "Wrote {} rows.", sink.rows_written());
     return 0;
 }
 
 auto usage(const char* program) -> int {
-    std::println(stderr, "itch-tool - inspect, filter, and convert NASDAQ ITCH 5.0 data");
-    std::println(stderr, "Usage:");
-    std::println(stderr, "  {} stats   <file>", program);
-    std::println(stderr, "  {} inspect <file> [--limit N]", program);
-    std::println(stderr, "  {} filter  <file> --types <ABC> [--out <file.csv>]", program);
-    std::println(stderr, "  {} convert <file> [--to csv] [--out <file.csv>]", program);
-    std::println(stderr, "Input may be a raw ITCH stream or a .pcap/.pcapng capture.");
+    print_line(std::cerr, "itch-tool - inspect, filter, and convert NASDAQ ITCH 5.0 data");
+    print_line(std::cerr, "Usage:");
+    print_line(std::cerr, "  {} stats   <file>", program);
+    print_line(std::cerr, "  {} inspect <file> [--limit N]", program);
+    print_line(std::cerr, "  {} filter  <file> --types <ABC> [--out <file.csv>]", program);
+    print_line(std::cerr, "  {} convert <file> [--to csv] [--out <file.csv>]", program);
+    print_line(std::cerr, "Input may be a raw ITCH stream or a .pcap/.pcapng capture.");
     return 1;
 }
 
@@ -153,7 +160,7 @@ auto main(int argc, char* argv[]) -> int {
 
     const std::vector<std::byte> data = read_file(path);
     if (data.empty()) {
-        std::println(stderr, "Error: cannot read '{}' (missing or empty).", path);
+        print_line(std::cerr, "Error: cannot read '{}' (missing or empty).", path);
         return 1;
     }
     const std::span<const std::byte> view {data};

@@ -1,5 +1,6 @@
+#include <format>
 #include <fstream>
-#include <print>
+#include <iostream>
 #include <vector>
 
 #include "itch/analytics/vwap.hpp"
@@ -10,13 +11,13 @@
 // trade tape through a running Vwap accumulator.
 auto main(int argc, char* argv[]) -> int {
     if (argc < 3) {
-        std::println(stderr, "Usage: {} <itch_file> <symbol>", argv[0]);
+        std::cerr << std::format("Usage: {} <itch_file> <symbol>\n", argv[0]);
         return 1;
     }
 
     std::ifstream file {argv[1], std::ios::binary};
     if (!file) {
-        std::println(stderr, "Error: cannot open '{}'.", argv[1]);
+        std::cerr << std::format("Error: cannot open '{}'.\n", argv[1]);
         return 1;
     }
     std::vector<char> buffer {std::istreambuf_iterator<char> {file}, {}};
@@ -36,6 +37,8 @@ auto main(int argc, char* argv[]) -> int {
         manager.process(msg);
     });
 
-    std::println("VWAP for {}: {:.4f} over {} shares", argv[2], vwap.value(), vwap.volume());
+    std::cout << std::format(
+        "VWAP for {}: {:.4f} over {} shares\n", argv[2], vwap.value(), vwap.volume()
+    );
     return 0;
 }

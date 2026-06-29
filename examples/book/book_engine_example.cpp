@@ -1,22 +1,23 @@
 #include <cstdint>
+#include <format>
 #include <fstream>
-#include <print>
+#include <iostream>
 #include <vector>
 
 #include "itch/book/book_manager.hpp"
 #include "itch/parser.hpp"
 
 // Reconstructs every symbol's order book in one pass over an ITCH file using the
-// multi-symbol BookManager, printing best-bid/offer changes and the trade tape.
+// multi-symbol BookManager, counting best-bid/offer changes and trades.
 auto main(int argc, char* argv[]) -> int {
     if (argc < 2) {
-        std::println(stderr, "Usage: {} <itch_file> [symbol]", argv[0]);
+        std::cerr << std::format("Usage: {} <itch_file> [symbol]\n", argv[0]);
         return 1;
     }
 
     std::ifstream file {argv[1], std::ios::binary};
     if (!file) {
-        std::println(stderr, "Error: cannot open '{}'.", argv[1]);
+        std::cerr << std::format("Error: cannot open '{}'.\n", argv[1]);
         return 1;
     }
     std::vector<char> buffer {std::istreambuf_iterator<char> {file}, {}};
@@ -38,8 +39,8 @@ auto main(int argc, char* argv[]) -> int {
         manager.process(msg);
     });
 
-    std::println(
-        "Reconstructed {} books, {} BBO changes, {} trades.",
+    std::cout << std::format(
+        "Reconstructed {} books, {} BBO changes, {} trades.\n",
         manager.book_count(),
         bbo_updates,
         trades

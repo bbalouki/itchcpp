@@ -1,5 +1,6 @@
 #include <cstdint>
-#include <print>
+#include <format>
+#include <iostream>
 #include <string>
 
 #include "itch/messages.hpp"
@@ -10,7 +11,7 @@
 // messages, with sequence gaps surfaced through the embedded tracker.
 auto main(int argc, char* argv[]) -> int {
     if (argc < 2) {
-        std::println(stderr, "Usage: {} <capture.pcap[ng]> [udp_port]", argv[0]);
+        std::cerr << std::format("Usage: {} <capture.pcap[ng]> [udp_port]\n", argv[0]);
         return 1;
     }
 
@@ -19,14 +20,14 @@ auto main(int argc, char* argv[]) -> int {
         ++message_count;
         const char type = std::visit([](const auto& msg) { return msg.message_type; }, message);
         if (message_count <= 10) {
-            std::println("message {:>3}: type '{}'", message_count, type);
+            std::cout << std::format("message {:>3}: type '{}'\n", message_count, type);
         }
     }};
 
     reader.mold_decoder().tracker().set_gap_callback(
         [](std::string_view session, std::uint64_t expected, std::uint64_t received) {
-            std::println(
-                stderr, "gap on session '{}': expected {} but got {}", session, expected, received
+            std::cerr << std::format(
+                "gap on session '{}': expected {} but got {}\n", session, expected, received
             );
         }
     );
@@ -36,12 +37,12 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     if (!reader.read_file(argv[1])) {
-        std::println(stderr, "Error: '{}' is not a readable pcap/pcapng capture.", argv[1]);
+        std::cerr << std::format("Error: '{}' is not a readable pcap/pcapng capture.\n", argv[1]);
         return 1;
     }
 
-    std::println(
-        "Decoded {} ITCH messages from {} UDP datagrams ({} missing messages detected).",
+    std::cout << std::format(
+        "Decoded {} ITCH messages from {} UDP datagrams ({} missing messages detected).\n",
         reader.messages_decoded(),
         reader.udp_datagrams(),
         reader.mold_decoder().tracker().gap_count()
