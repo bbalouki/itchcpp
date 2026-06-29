@@ -8,6 +8,7 @@
 
 #include "itch/analytics/vwap.hpp"
 #include "itch/book/book_manager.hpp"
+#include "itch/encoder.hpp"
 #include "itch/messages.hpp"
 #include "itch/parser.hpp"
 
@@ -40,6 +41,13 @@ auto bind_common(py::class_<MsgType>& cls, double price_divisor = STANDARD_DIVIS
         },
         py::arg("attribute_name")
     );
+    // to_bytes() serializes the message back to wire form, matching the upstream
+    // MarketMessage.to_bytes (here it returns the message body without the frame
+    // length prefix).
+    cls.def("to_bytes", [](const MsgType& msg) {
+        const std::vector<std::byte> bytes = itch::encode_message(itch::Message {msg});
+        return py::bytes(reinterpret_cast<const char*>(bytes.data()), bytes.size());  // NOLINT
+    });
 }
 
 // Exposes an 8-char stock symbol field as a trimmed Python string.

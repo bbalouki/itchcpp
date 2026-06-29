@@ -15,6 +15,8 @@ add_library(
     book/book_manager.cpp
     io/csv_sink.cpp
     io/arrow_export.cpp
+    encoder.cpp
+    replay.cpp
 )
 
 # Apache Arrow / Parquet columnar export is optional and off by default so the

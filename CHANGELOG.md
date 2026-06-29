@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 5 — Simulation & ecosystem** ([FEATURES.md](FEATURES.md)):
+  - Replay engine (`itch/replay.hpp`): `ReplayEngine` drives a callback paced by
+    the messages' nanosecond timestamps at original or scaled wall-clock speed, for
+    realistic backtesting and system simulation.
+  - ITCH encoder / writer (`itch/encoder.hpp`): `encode_message` and `encode_frame`
+    serialize any `Message` back to valid wire bytes (the inverse of the parser),
+    guaranteeing `parse(encode(msg)) == msg`. This synthesizes streams for tests,
+    scenario generation, and golden fixtures, and backs the Python `to_bytes()`.
+  - Multi-venue / multi-version extension seam (`itch/venue.hpp`): a `VenuePolicy`
+    concept and the concrete `Nasdaq50` policy, so additional ITCH-like venues and
+    versions (BX/PSX, ITCH 4.1) can be added without rewriting the dispatch
+    machinery. Only the NASDAQ 5.0 policy is implemented.
+  - Packaging maturity: a Conan recipe (`conanfile.py`), a `CONTRIBUTING.md`, and a
+    documented versioning/ABI compatibility policy.
+
 - **Phase 4 — Research & interoperability** ([FEATURES.md](FEATURES.md)):
   - CSV and streaming sinks (`itch/io/sink.hpp`, `itch/io/csv_sink.hpp`): a generic
     `MessageSink` interface and a `CsvSink` that flattens every message type into a

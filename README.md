@@ -80,6 +80,9 @@ The design of this ITCH parser is guided by three principles:
 - **Interoperability**: CSV and Arrow/Parquet export, a batteries-included
   `itch-tool` CLI (inspect/filter/stats/convert), and native Python bindings
   (pybind11). See [Interoperability](#interoperability).
+- **Simulation & Ecosystem**: Timestamp-paced replay engine, a full ITCH
+  encoder/writer (`parse(encode(msg)) == msg`), multi-venue extension seams, and
+  Conan/vcpkg packaging. See [Simulation](#simulation--ecosystem).
 - **High Throughput**: Multi-gigabyte-per-second parsing on modern hardware (see [Benchmarks](#benchmarks) for measured numbers).
 - **Allocation-Free Core**: The callback-based parsing loop performs zero dynamic memory allocations, minimizing latency and jitter.
 - **Type-Safe API**: All ITCH messages are deserialized into a `std::variant` of dedicated, packed `struct`s, ensuring compile-time safety.
@@ -595,6 +598,38 @@ for message in parser.parse_file("01302020.NASDAQ_ITCH50"):
     if isinstance(message, itchcpp.AddOrderMessage):
         print(message.stock, message.decode_price("price"), message.shares)
 ```
+
+### Simulation & Ecosystem
+
+**Replay engine** (`itch/replay.hpp`). Drive a consumer at the feed's original
+cadence (or a scaled speed) for realistic backtesting:
+
+```cpp
+#include "itch/replay.hpp"
+
+itch::ReplayEngine engine{10.0};  // 10x real time; <= 0 means as fast as possible
+engine.replay(buffer, [](const itch::Message& msg) { /* paced by timestamps */ });
+```
+
+**Encoder / writer** (`itch/encoder.hpp`). Serialize any message back to valid
+wire bytes, with a guaranteed `parse(encode(msg)) == msg` round-trip — used to
+synthesize streams and golden fixtures:
+
+```cpp
+#include "itch/encoder.hpp"
+
+std::vector<std::byte> frame = itch::encode_frame(message);  // length-prefixed
+```
+
+**Multi-venue seam** (`itch/venue.hpp`). NASDAQ TotalView-ITCH 5.0 is the only
+implemented venue; `itch::venue::VenuePolicy` (modelled by `itch::venue::Nasdaq50`)
+is the extension point for adding BX/PSX or older ITCH versions without rewriting
+the dispatch machinery.
+
+**Packaging.** The library is consumable through vcpkg (manifest with optional
+`python` and `arrow` features) and Conan (`conanfile.py`). See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the build options and the versioning/ABI
+compatibility policy.
 
 ---
 
