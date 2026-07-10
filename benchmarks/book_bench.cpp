@@ -1,16 +1,14 @@
-/**
- * @file book_bench.cpp
- * @brief Benchmarks for the Phase 2 book engine and the zero-copy overlay.
- *
- * Measures three things against an in-memory ITCH buffer (file I/O excluded):
- *  - BM_BookRebuild: full multi-symbol book reconstruction through BookManager.
- *  - BM_EagerTouch: eager parse touching one field per message (the baseline).
- *  - BM_OverlayTouch: lazy overlay framing touching the same one field, which
- *    should be cheaper because the other fields are never decoded.
- *
- * Usage:
- *   ./book_bench <path_to_itch_data_file> [google benchmark options]
- */
+/// @file book_bench.cpp
+/// @brief Benchmarks for the Phase 2 book engine and the zero-copy overlay.
+///
+/// Measures three things against an in-memory ITCH buffer (file I/O excluded):
+///  - BM_BookRebuild: full multi-symbol book reconstruction through BookManager.
+///  - BM_EagerTouch: eager parse touching one field per message (the baseline).
+///  - BM_OverlayTouch: lazy overlay framing touching the same one field, which
+///    should be cheaper because the other fields are never decoded.
+///
+/// Usage:
+///   ./book_bench <path_to_itch_data_file> [google benchmark options]
 
 #include <benchmark/benchmark.h>
 
