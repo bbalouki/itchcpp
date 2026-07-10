@@ -39,6 +39,11 @@ endif()
 
 configure_visibility(itch)
 
+# itch is a static library by default, but the pybind11 module (and any other
+# shared-library consumer) links its object code into a .so, which requires
+# position-independent code regardless of how itch itself is built.
+set_target_properties(itch PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 # Step 2: Update Include Directories
 target_include_directories(
     itch PUBLIC
