@@ -59,11 +59,14 @@ auto MoldUdp64Decoder::decode_packet(std::span<const std::byte> packet
             m_callback(message);
         }
     };
+    // A truncated trailing block in a single datagram is non-fatal here; the gap
+    // will already have been surfaced by the sequence tracker. try_parse would
+    // avoid the exception, but it needs C++23's std::expected and this decoder
+    // must also build under C++20.
     try {
         m_parser.parse(blocks, counting_callback);
+        // NOLINTNEXTLINE(bugprone-empty-catch)
     } catch (const std::runtime_error&) {
-        // A truncated trailing block in a single datagram is non-fatal here; the
-        // gap will already have been surfaced by the sequence tracker.
     }
 
     return header;
