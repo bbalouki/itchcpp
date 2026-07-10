@@ -1,5 +1,18 @@
 #pragma once
 
+/// @file
+/// @brief Defines every ITCH 5.0 message struct, the `Message` variant, and the
+///        stream-printing helpers used to format them.
+///
+/// The TotalView ITCH feed is composed of a series of messages that describe
+/// orders added to, removed from, and executed on Nasdaq, as well as Cross and
+/// Stock Directory information. Each message begins with a one-byte Message Type
+/// field that identifies the structure of the remainder of the message; this
+/// header defines one struct per message type, the `Message` variant able to hold
+/// any of them, and free functions to print a message to a stream.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -425,21 +438,14 @@ struct DLCRMessage {
 // RESTORE DEFAULT PADDING
 #pragma pack(pop)
 
-/// The TotalView ITCH feed is composed of a series of messages that describe
-/// orders added to, removed from, and executed on Nasdaq as well as disseminate
-/// Cross and Stock Directory information.
-/// Each message begins with a one-byte Message Type field that identifies the
-/// structure of the remainder of the message.  The Message Type is followed by
-/// fields that are specific to each message type.
+/// @brief A variant able to hold any one of the ITCH 5.0 message structs.
 ///
-/// All Message have the following attributes:
-/// - message_type: A single letter that identify the message
-/// - timestamp: Time at which the message was generated (Nanoseconds past
-/// midnight)
-/// - stock_locate: Locate code identifying the security
-/// - tracking_number: Nasdaq internal tracking number
-///
-/// for more details on each message type, see the 
+/// The Message Type byte at the start of each frame identifies which struct is
+/// active. All alternatives share four common attributes: `message_type` (a
+/// single letter identifying the message), `timestamp` (nanoseconds past
+/// midnight), `stock_locate` (locate code identifying the security), and
+/// `tracking_number` (Nasdaq internal tracking number). For more details on each
+/// message type, see the
 /// [documentation](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf).
 ///
 /// @note
@@ -479,7 +485,12 @@ constexpr int    STOCK_LEN          = 8;
 constexpr double PRICE_DIVISOR      = 10000.0;
 constexpr double MWCB_PRICE_DIVISOR = 1.0E8;
 
-// Convert char arrays to strings, trimming trailing spaces.
+/// @brief Converts a fixed-width character array to a string, trimming trailing
+///        spaces and NUL characters.
+///
+/// @param source Pointer to the first character of the fixed-width field.
+/// @param size Number of characters in the field.
+/// @return The trimmed string, with trailing spaces and NUL characters removed.
 inline auto to_string(const char* source, size_t size) -> std::string {
     size_t len = size;
     while (len > 0 && (source[len - 1] == ' ' || source[len - 1] == '\0')) {
@@ -488,6 +499,16 @@ inline auto to_string(const char* source, size_t size) -> std::string {
     return std::string {source, len};
 }
 
+/// @brief Per-message-type stream formatter family, used internally by
+///        `print_message` to dispatch to the correct overload for whichever
+///        alternative of `Message` it is given.
+///
+/// One overload of `print_impl` exists for every message struct defined above.
+/// Each overload writes a human-readable, field-by-field representation of its
+/// message to `out`.
+///
+/// @param out The output stream to write to.
+/// @param msg The message to format.
 auto print_impl(std::ostream& out, const SystemEventMessage& msg) -> void;
 auto print_impl(std::ostream& out, const StockDirectoryMessage& msg) -> void;
 auto print_impl(std::ostream& out, const StockTradingActionMessage& msg) -> void;
@@ -512,10 +533,19 @@ auto print_impl(std::ostream& out, const NOIIMessage& msg) -> void;
 auto print_impl(std::ostream& out, const RetailPriceImprovementIndicatorMessage& msg) -> void;
 auto print_impl(std::ostream& out, const DLCRMessage& msg) -> void;
 
-// General print function that dispatches to the correct implementation
+/// @brief Dispatches to the `print_impl` overload matching the active
+///        alternative of `msg` and writes its formatted representation to `out`.
+///
+/// @param out The output stream to write to.
+/// @param msg The message to format; the concrete type formatted is whichever
+///            alternative of the variant is currently held.
 auto print_message(std::ostream& out, const Message& msg) -> void;
 
-// print an itch::Message
+/// @brief Streams a formatted representation of `msg` to `out`.
+///
+/// @param out The output stream to write to.
+/// @param msg The message to format.
+/// @return A reference to `out`, to allow chaining.
 auto operator<<(std::ostream& out, const Message& msg) -> std::ostream&;
 
 }  // namespace itch
