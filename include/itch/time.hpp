@@ -1,5 +1,15 @@
 #pragma once
 
+/// @file
+/// @brief Helpers for converting raw ITCH nanoseconds-past-midnight timestamps
+///        into absolute time points and human-readable strings.
+///
+/// ITCH timestamps carry no date or time-zone of their own, so every
+/// conversion here takes the session date as an explicit parameter and
+/// performs no time-zone adjustment.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <chrono>
 #include <cstdint>
 #include <format>
