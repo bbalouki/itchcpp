@@ -7,8 +7,8 @@
 #include "itch/book/book_manager.hpp"
 #include "itch/parser.hpp"
 
-// Computes the session VWAP for a chosen symbol by driving the BookManager's
-// trade tape through a running Vwap accumulator.
+// Computes the session VWAP and TWAP for a chosen symbol by driving the
+// BookManager's trade tape through running Vwap and Twap accumulators.
 auto main(int argc, char* argv[]) -> int {
     if (argc < 3) {
         std::cerr << std::format("Usage: {} <itch_file> <symbol>\n", argv[0]);
@@ -26,9 +26,11 @@ auto main(int argc, char* argv[]) -> int {
     manager.track_symbol(argv[2]);
 
     itch::analytics::Vwap vwap;
+    itch::analytics::Twap twap;
     manager.set_trade_callback([&](const itch::Trade& trade) {
         if (trade.symbol == argv[2]) {
             vwap.add(trade.price, trade.shares);
+            twap.add(trade.price, trade.timestamp);
         }
     });
 
@@ -40,5 +42,9 @@ auto main(int argc, char* argv[]) -> int {
     std::cout << std::format(
         "VWAP for {}: {:.4f} over {} shares\n", argv[2], vwap.value(), vwap.volume()
     );
+
+    // Twap integrates the prevailing trade price over elapsed time rather than
+    // volume, so it is reported separately from the volume-weighted figure above.
+    std::cout << std::format("TWAP for {}: {:.4f}\n", argv[2], twap.value());
     return 0;
 }
