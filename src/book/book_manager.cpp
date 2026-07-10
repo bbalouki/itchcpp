@@ -90,8 +90,8 @@ auto BookManager::handle_order_executed(const OrderExecutedMessage& exec) -> voi
     emit_bbo_if_changed(*target);
 }
 
-auto BookManager::handle_order_executed_with_price(const OrderExecutedWithPriceMessage& exec)
-    -> void {
+auto BookManager::handle_order_executed_with_price(const OrderExecutedWithPriceMessage& exec
+) -> void {
     BookEntry* target = entry(exec.stock_locate);
     if (target == nullptr) {
         return;
