@@ -22,8 +22,8 @@
 #include <istream>
 #include <optional>
 #include <span>
-#include <version>
 #include <vector>
+#include <version>
 
 #ifdef __cpp_lib_expected
 #include <expected>
@@ -221,8 +221,8 @@ class Parser {
     ///
     /// @param data A view over the contiguous buffer containing ITCH data.
     /// @return All parsed messages on success, or a `ParseError` describing the failure.
-    [[nodiscard]] auto try_parse(std::span<const std::byte> data)
-        -> std::expected<std::vector<Message>, ParseError>;
+    [[nodiscard]] auto try_parse(std::span<const std::byte> data
+    ) -> std::expected<std::vector<Message>, ParseError>;
 #endif
 
     /// @brief Registers a callback invoked for each recoverable framing problem.
