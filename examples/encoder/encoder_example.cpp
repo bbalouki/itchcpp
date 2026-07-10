@@ -65,8 +65,8 @@ auto main() -> int {
 
     // Message has no operator== of its own, so the round-trip guarantee is
     // verified field by field on the decoded alternative instead.
-    const auto& decoded    = std::get<itch::AddOrderMessage>(decoded_messages.front());
-    const bool round_trips = decoded.order_reference_number == original.order_reference_number &&
+    const auto& decoded     = std::get<itch::AddOrderMessage>(decoded_messages.front());
+    const bool  round_trips = decoded.order_reference_number == original.order_reference_number &&
                              decoded.price == original.price && decoded.shares == original.shares &&
                              decoded.buy_sell_indicator == original.buy_sell_indicator &&
                              decoded.timestamp == original.timestamp;
