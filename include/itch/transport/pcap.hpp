@@ -112,6 +112,15 @@ class PcapReader {
     ///        identifying how to interpret `frame`.
     auto handle_frame(std::span<const std::byte> frame, std::uint32_t link_type) -> void;
 
+    /// @brief Locates the UDP payload within a network-layer (IPv4/IPv6) span,
+    ///        applying the configured destination-port filter.
+    ///
+    /// @param network The network-layer bytes (IP header onward).
+    /// @return The UDP payload if `network` carries a matching UDP datagram,
+    ///         `std::nullopt` otherwise.
+    [[nodiscard]] auto extract_udp_payload(std::span<const std::byte> network) const
+        -> std::optional<std::span<const std::byte>>;
+
     MoldUdp64Decoder             m_mold;
     std::optional<std::uint16_t> m_port_filter {};
     std::uint64_t                m_udp_datagrams {0};
