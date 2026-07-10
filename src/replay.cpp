@@ -15,7 +15,7 @@ auto timestamp_of(const Message& message) -> std::uint64_t {
 
 }  // namespace
 
-auto ReplayEngine::replay(std::span<const std::byte> data, const MessageCallback& callback)
+auto ReplayEngine::replay(std::span<const std::byte> data, const MessageCallback& callback) const
     -> std::uint64_t {
     using clock      = std::chrono::steady_clock;
     const bool paced = m_speed_multiplier > 0.0;
