@@ -408,8 +408,8 @@ auto Parser::try_parse(std::span<const std::byte> data, const MessageCallback& c
     return {};
 }
 
-auto Parser::try_parse(std::span<const std::byte> data)
-    -> std::expected<std::vector<Message>, ParseError> {
+auto Parser::try_parse(std::span<const std::byte> data
+) -> std::expected<std::vector<Message>, ParseError> {
     std::vector<Message> messages;
     messages.reserve(data.size() / average_message_size);
     if (auto error = parse_impl(as_char_ptr(data), data.size(), [&](const Message& msg) {
