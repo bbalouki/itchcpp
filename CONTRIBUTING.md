@@ -34,7 +34,7 @@ Optional features are off by default and enabled with:
 
 ## Code style
 
-- Follow the rules in [CLAUDE.md](CLAUDE.md): `snake_case` functions/variables,
+- Follow the rules in [CLAUDE](CLAUDE.md): `snake_case` functions/variables,
   `PascalCase` types, `m_` private members, `SCREAMING_SNAKE_CASE` constants,
   symbols at least three characters, trailing return types, brace initialization,
   and `std::print`/`std::format` for output.
@@ -56,7 +56,7 @@ Optional features are off by default and enabled with:
   Python-binding job.
 - Keep the public API surface minimal; mark deprecations with
   `[[deprecated("reason")]]` and provide a migration path.
-- Update [CHANGELOG.md](CHANGELOG.md) under `[Unreleased]` and follow the Boy
+- Update [CHANGELOG](CHANGELOG.md) under `[Unreleased]` and follow the Boy
   Scout Rule.
 
 ## Versioning and compatibility policy
