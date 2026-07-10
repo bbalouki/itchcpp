@@ -1,5 +1,15 @@
 #pragma once
 
+/// @file
+/// @brief Decoder for NASDAQ's MoldUDP64 UDP multicast market-data framing.
+///
+/// This header declares the `MoldUdp64Header` wire structure and the
+/// `MoldUdp64Decoder` that strips it from each datagram and feeds the
+/// contained, length-prefixed ITCH message blocks through the shared
+/// `Parser`.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -30,6 +40,7 @@ struct MoldUdp64Header {
     static constexpr std::uint16_t END_OF_SESSION = 0xFFFF;
 
     /// @brief The session id as a view with trailing padding removed.
+    /// @return A view of the session id with trailing spaces/NULs stripped.
     [[nodiscard]] auto session_view() const -> std::string_view {
         std::size_t length = session.size();
         while (length > 0 && (session[length - 1] == ' ' || session[length - 1] == '\0')) {
@@ -39,9 +50,11 @@ struct MoldUdp64Header {
     }
 
     /// @brief A heartbeat carries no message blocks (`message_count == 0`).
+    /// @return True if the packet is a heartbeat, false otherwise.
     [[nodiscard]] auto is_heartbeat() const noexcept -> bool { return message_count == 0; }
 
     /// @brief End-of-session is signalled by the sentinel `message_count`.
+    /// @return True if the packet signals end of session, false otherwise.
     [[nodiscard]] auto is_end_of_session() const noexcept -> bool {
         return message_count == END_OF_SESSION;
     }
@@ -61,6 +74,8 @@ class MoldUdp64Decoder {
     static constexpr std::size_t HEADER_SIZE = 20;
 
     /// @brief Constructs a decoder that calls `callback` for each ITCH message.
+    /// @param callback Invoked with each ITCH message decoded from a data
+    ///        packet's message blocks.
     explicit MoldUdp64Decoder(MessageCallback callback);
 
     /// @brief Decodes a single MoldUDP64 datagram.
@@ -71,15 +86,20 @@ class MoldUdp64Decoder {
     auto decode_packet(std::span<const std::byte> packet) -> std::optional<MoldUdp64Header>;
 
     /// @brief The embedded sequence tracker (install gap callbacks here).
+    /// @return Reference to the embedded `SequenceTracker`.
     [[nodiscard]] auto tracker() noexcept -> SequenceTracker& { return m_tracker; }
+    /// @brief The embedded sequence tracker (install gap callbacks here).
+    /// @return Const reference to the embedded `SequenceTracker`.
     [[nodiscard]] auto tracker() const noexcept -> const SequenceTracker& { return m_tracker; }
 
     /// @brief Total number of datagrams passed to `decode_packet`.
+    /// @return The count of datagrams decoded so far.
     [[nodiscard]] auto packets_decoded() const noexcept -> std::uint64_t {
         return m_packets_decoded;
     }
 
     /// @brief Total number of ITCH messages decoded from all datagrams.
+    /// @return The total count of decoded ITCH messages.
     [[nodiscard]] auto messages_decoded() const noexcept -> std::uint64_t {
         return m_messages_decoded;
     }
