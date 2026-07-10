@@ -3,6 +3,8 @@ name: build
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build-and-test:
@@ -42,7 +44,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.build_type }}-cmake-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.build_type }}-cmake-
-      
+
       - name: Set VCPKG Triplet
         shell: bash
         run: |
@@ -64,6 +66,8 @@ jobs:
           cmake -S . -B $BUILD_DIR \
             -DITCH_PROJECT_ENV=PROD \
             -DITCH_BUILD_TESTS=ON \
+            -DITCH_BUILD_TOOLS=ON \
+            -DITCH_BUILD_EXAMPLES=ON \
             -DITCH_CXX_STANDARD=${{ matrix.cpp_standard }} \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
@@ -72,7 +76,289 @@ jobs:
       - name: Build
         shell: bash
         run: cmake --build $BUILD_DIR --config ${{ matrix.build_type }}
-        
+
       - name: Run tests
         shell: bash
         run: ctest --test-dir $BUILD_DIR --output-on-failure --build-config ${{ matrix.build_type }}
+
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: pip install clang-format==18.1.8
+
+      - name: Check formatting
+        run: |
+          find src include tests benchmarks examples -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \) \
+            -print0 | xargs -0 clang-format --dry-run --Werror
+
+  clang-tidy:
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      BUILD_DIR: ${{ github.workspace }}/build
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}
+            ~/.cache/vcpkg
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+
+      - name: Configure CMake (export compile commands)
+        run: |
+          cmake -S . -B $BUILD_DIR \
+            -DITCH_BUILD_TESTS=ON \
+            -DITCH_CXX_STANDARD=23 \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-linux
+
+      - name: Run clang-tidy
+        run: |
+          find src -name '*.cpp' -print0 \
+            | xargs -0 clang-tidy -p "$BUILD_DIR"
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      BUILD_DIR: ${{ github.workspace }}/build
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}
+            ~/.cache/vcpkg
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+
+      - name: Configure CMake (ASAN + UBSAN)
+        run: |
+          cmake -S . -B $BUILD_DIR \
+            -DITCH_BUILD_TESTS=ON \
+            -DITCH_ENABLE_ADDRESS_SANITIZER=ON \
+            -DITCH_CXX_STANDARD=23 \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="-fsanitize=undefined -fno-sanitize=alignment -fno-sanitize-recover=undefined" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=undefined" \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-linux
+
+      - name: Build
+        run: cmake --build $BUILD_DIR
+
+      - name: Run tests under sanitizers
+        run: ctest --test-dir $BUILD_DIR --output-on-failure
+
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      BUILD_DIR: ${{ github.workspace }}/build
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install gcovr
+        run: sudo apt-get update && sudo apt-get install -y gcovr
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}
+            ~/.cache/vcpkg
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+
+      - name: Configure CMake (coverage)
+        run: |
+          cmake -S . -B $BUILD_DIR \
+            -DITCH_BUILD_TESTS=ON \
+            -DITCH_ADD_COVERAGE_ANALYSIS=ON \
+            -DITCH_CXX_STANDARD=23 \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_COMPILER=g++ \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-linux
+
+      - name: Build
+        run: cmake --build $BUILD_DIR
+
+      - name: Run tests
+        run: ctest --test-dir $BUILD_DIR --output-on-failure
+
+      - name: Generate coverage report
+        run: cmake --build $BUILD_DIR --target coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ${{ env.BUILD_DIR }}/coverage.html
+          if-no-files-found: ignore
+
+  fuzz:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_DIR: ${{ github.workspace }}/build
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install clang
+        run: sudo apt-get update && sudo apt-get install -y clang
+
+      - name: Configure CMake (fuzzers)
+        run: |
+          cmake -S . -B $BUILD_DIR \
+            -DITCH_BUILD_FUZZERS=ON \
+            -DITCH_CXX_STANDARD=23 \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
+
+      - name: Build fuzzers
+        run: cmake --build $BUILD_DIR --target parser_fuzzer moldudp64_fuzzer
+
+      - name: Run parser fuzzer (time-budgeted)
+        run: $BUILD_DIR/fuzz/parser_fuzzer -max_total_time=60 -max_len=512 -print_final_stats=1
+
+      - name: Run transport fuzzer (time-budgeted)
+        run: $BUILD_DIR/fuzz/moldudp64_fuzzer -max_total_time=60 -max_len=2048 -print_final_stats=1
+
+  python-bindings:
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      BUILD_DIR: ${{ github.workspace }}/build
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install vcpkg python3 port build dependencies
+        run: sudo apt-get update && sudo apt-get install -y autoconf autoconf-archive automake libtool
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}
+            ~/.cache/vcpkg
+          key: ${{ runner.os }}-vcpkg-python-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+
+      - name: Configure CMake (Python bindings)
+        run: |
+          cmake -S . -B $BUILD_DIR \
+            -DITCH_BUILD_PYTHON=ON \
+            -DITCH_CXX_STANDARD=23 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DPython_EXECUTABLE=$(which python) \
+            -DVCPKG_MANIFEST_FEATURES=python \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-linux
+
+      - name: Build extension
+        run: cmake --build $BUILD_DIR --target itchcpp_python
+
+      - name: Run binding tests
+        run: |
+          python -m pip install --upgrade pip pytest
+          # Drop the freshly built extension into the package so `import itchcpp`
+          # resolves to python/itchcpp with its compiled _itchcpp module.
+          cp $BUILD_DIR/python/_itchcpp*.so python/itchcpp/
+          cd python && python -m pytest tests -q
+
+  benchmark-smoke:
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      BUILD_DIR: ${{ github.workspace }}/build
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}
+            ~/.cache/vcpkg
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+
+      - name: Configure CMake (benchmarks)
+        run: |
+          cmake -S . -B $BUILD_DIR \
+            -DITCH_BUILD_BENCHMARKS=ON \
+            -DITCH_CXX_STANDARD=23 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-linux
+
+      - name: Build benchmarks
+        run: cmake --build $BUILD_DIR --target parser_bench book_bench
+
+      - name: Generate a small synthetic ITCH sample
+        run: |
+          python3 - <<'PY'
+          frame = (bytes([0x00, 0x0C]) + b'S'
+                   + (1).to_bytes(2, 'big') + (2).to_bytes(2, 'big')
+                   + (3).to_bytes(6, 'big') + b'O')
+          with open('sample.itch', 'wb') as out:
+              out.write(frame * 1_000_000)
+          PY
+
+      - name: Run benchmarks (smoke)
+        run: |
+          $BUILD_DIR/benchmarks/parser_bench sample.itch --benchmark_min_time=1x
+          $BUILD_DIR/benchmarks/book_bench sample.itch --benchmark_min_time=1x

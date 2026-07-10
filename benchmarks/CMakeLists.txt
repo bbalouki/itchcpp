@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.25)
 
 find_package(benchmark CONFIG QUIET)
 
@@ -15,7 +15,15 @@ endif()
 
 add_executable(parser_bench parser_bench.cpp)
 target_link_libraries(
-    parser_bench PRIVATE 
+    parser_bench PRIVATE
+    itch::itch
+    benchmark::benchmark
+    benchmark::benchmark_main
+)
+
+add_executable(book_bench book_bench.cpp)
+target_link_libraries(
+    book_bench PRIVATE
     itch::itch
     benchmark::benchmark
     benchmark::benchmark_main

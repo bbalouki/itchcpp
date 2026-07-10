@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 
 set(GTEST_VERSION 1.17.0 CACHE STRING "")
 set(BENCHMARK_VERSION 1.9.4 CACHE STRING "")
+set(DOXYGEN_AWESOME_VERSION 2.4.2 CACHE STRING "")

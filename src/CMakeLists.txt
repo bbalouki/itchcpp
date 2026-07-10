@@ -1,14 +1,34 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 
 include(GNUInstallDirs)
 
 # Step 1: Add targets and properties
 add_library(
-    itch 
-    parser.cpp 
-    messages.cpp 
+    itch
+    parser.cpp
+    messages.cpp
     order_book.cpp
+    transport/moldudp64.cpp
+    transport/soupbintcp.cpp
+    transport/pcap.cpp
+    book/l3_book.cpp
+    book/book_manager.cpp
+    io/csv_sink.cpp
+    io/arrow_export.cpp
+    encoder.cpp
+    replay.cpp
 )
+
+# Apache Arrow / Parquet columnar export is optional and off by default so the
+# core library stays dependency-free. The arrow_export.cpp translation unit is
+# empty unless ITCH_WITH_ARROW is defined.
+if(${PROJECT_NAME}_WITH_ARROW)
+    find_package(Arrow CONFIG REQUIRED)
+    find_package(Parquet CONFIG REQUIRED)
+    target_compile_definitions(itch PUBLIC ITCH_WITH_ARROW)
+    target_link_libraries(itch PUBLIC Arrow::arrow_shared Parquet::parquet_shared)
+    message(STATUS "ITCH: Apache Arrow / Parquet export enabled")
+endif()
 add_library(itch::itch ALIAS itch)
 if (NOT ANDROID)
     target_link_libraries(
@@ -18,6 +38,11 @@ if (NOT ANDROID)
 endif()
 
 configure_visibility(itch)
+
+# itch is a static library by default, but the pybind11 module (and any other
+# shared-library consumer) links its object code into a .so, which requires
+# position-independent code regardless of how itch itself is built.
+set_target_properties(itch PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Step 2: Update Include Directories
 target_include_directories(
