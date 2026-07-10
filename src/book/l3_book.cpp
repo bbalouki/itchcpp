@@ -69,13 +69,13 @@ auto L3Book::find_or_create_level(Side side, std::uint32_t price) -> std::uint32
     // See find_level's comment above on why these stay iterator-pair calls.
     auto position =
         side == Side::buy
-             ? std::lower_bound(  // NOLINT(modernize-use-ranges)
+            ? std::lower_bound(  // NOLINT(modernize-use-ranges)
                   levels.begin(),
                   levels.end(),
                   price,
                   [](const Level& level, std::uint32_t value) { return level.price > value; }
               )
-             : std::lower_bound(  // NOLINT(modernize-use-ranges)
+            : std::lower_bound(  // NOLINT(modernize-use-ranges)
                   levels.begin(),
                   levels.end(),
                   price,
