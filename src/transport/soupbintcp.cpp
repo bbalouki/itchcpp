@@ -146,11 +146,13 @@ auto SoupBinDecoder::decode_application_message(std::span<const std::byte> paylo
             m_callback(message);
         }
     };
+    // A malformed single-message payload is skipped rather than aborting the
+    // whole stream. try_parse would avoid the exception, but it needs C++23's
+    // std::expected and this decoder must also build under C++20.
     try {
         m_parser.parse(std::span<const std::byte> {framed}, counting_callback);
+        // NOLINTNEXTLINE(bugprone-empty-catch)
     } catch (const std::runtime_error&) {
-        // A malformed single-message payload is skipped rather than aborting the
-        // whole stream.
     }
 }
 
