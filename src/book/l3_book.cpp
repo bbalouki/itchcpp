@@ -35,7 +35,11 @@ auto L3Book::free_node(std::uint32_t node_index) -> void {
 auto L3Book::find_level(Side side, std::uint32_t price) const -> std::uint32_t {
     const auto& levels = side_levels(side);
     // Bids are sorted descending, asks ascending; binary search accordingly.
+    // std::ranges::lower_bound would be the modern spelling, but it trips a
+    // known Clang/libstdc++ interop gap on some toolchains, so this sticks
+    // with the plain iterator-pair form for portability.
     if (side == Side::buy) {
+        // NOLINTNEXTLINE(modernize-use-ranges)
         const auto iter = std::lower_bound(
             levels.begin(),
             levels.end(),
@@ -46,6 +50,7 @@ auto L3Book::find_level(Side side, std::uint32_t price) const -> std::uint32_t {
             return static_cast<std::uint32_t>(iter - levels.begin());
         }
     } else {
+        // NOLINTNEXTLINE(modernize-use-ranges)
         const auto iter = std::lower_bound(
             levels.begin(),
             levels.end(),
@@ -61,15 +66,16 @@ auto L3Book::find_level(Side side, std::uint32_t price) const -> std::uint32_t {
 
 auto L3Book::find_or_create_level(Side side, std::uint32_t price) -> std::uint32_t {
     auto& levels = side_levels(side);
-    auto  position =
+    // See find_level's comment above on why these stay iterator-pair calls.
+    auto position =
         side == Side::buy
-             ? std::lower_bound(
+             ? std::lower_bound(  // NOLINT(modernize-use-ranges)
                   levels.begin(),
                   levels.end(),
                   price,
                   [](const Level& level, std::uint32_t value) { return level.price > value; }
               )
-             : std::lower_bound(
+             : std::lower_bound(  // NOLINT(modernize-use-ranges)
                   levels.begin(),
                   levels.end(),
                   price,
@@ -236,9 +242,9 @@ auto L3Book::depth(Side side, std::size_t max_levels) const -> std::vector<Depth
     result.reserve(count);
     for (std::size_t index = 0; index < count; ++index) {
         result.push_back(DepthLevel {
-            StandardPrice {levels[index].price},
-            levels[index].total_shares,
-            levels[index].order_count
+            .price       = StandardPrice {levels[index].price},
+            .shares      = levels[index].total_shares,
+            .order_count = levels[index].order_count,
         });
     }
     return result;
@@ -255,8 +261,11 @@ auto L3Book::orders_at(Side side, std::uint32_t price) const -> std::vector<Orde
     for (std::uint32_t node_index = level.head; node_index != NIL;
          node_index               = m_pool[node_index].next) {
         const OrderNode& node = m_pool[node_index];
-        result.push_back(OrderView {node.reference_number, node.shares, StandardPrice {node.price}}
-        );
+        result.push_back(OrderView {
+            .reference_number = node.reference_number,
+            .shares           = node.shares,
+            .price            = StandardPrice {node.price},
+        });
     }
     return result;
 }
