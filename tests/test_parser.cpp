@@ -89,7 +89,7 @@ class ParserTest : public ::testing::Test {
 };
 
 TEST_F(ParserTest, SingleValidSystemEventMessage) {
-    itch::SystemEventMessage msg_to_pack{};
+    itch::SystemEventMessage msg_to_pack {};
     // NOLINTBEGIN
     msg_to_pack.stock_locate    = 1;
     msg_to_pack.tracking_number = 2;
@@ -115,13 +115,13 @@ TEST_F(ParserTest, SingleValidSystemEventMessage) {
 }
 
 TEST_F(ParserTest, MultipleValidMessages) {
-    itch::SystemEventMessage msg1_to_pack{};
+    itch::SystemEventMessage msg1_to_pack {};
     // NOLINTBEGIN
     msg1_to_pack.stock_locate = 1;
     msg1_to_pack.timestamp    = 3;
     msg1_to_pack.event_code   = 'O';
 
-    itch::AddOrderMessage msg2_to_pack{};
+    itch::AddOrderMessage msg2_to_pack {};
     msg2_to_pack.order_reference_number = 12345;
     msg2_to_pack.buy_sell_indicator     = 'B';
     msg2_to_pack.shares                 = 100;
@@ -156,7 +156,7 @@ TEST_F(ParserTest, MultipleValidMessages) {
 
 TEST_F(ParserTest, ThrowsOnIncompletePayload) {
     // Create a valid message, then truncate it
-    std::string data = create_test_buffer(itch::SystemEventMessage{});
+    std::string data = create_test_buffer(itch::SystemEventMessage {});
     data.pop_back();  // Make the payload incomplete
 
     std::stringstream data_stream(data);
@@ -180,8 +180,8 @@ TEST_F(ParserTest, HandlesEmptyStream) {
 }
 
 TEST_F(ParserTest, CallbackBasedParsing) {
-    std::string data = create_test_buffer(itch::SystemEventMessage{}) +
-                       create_test_buffer(itch::AddOrderMessage{});
+    std::string data = create_test_buffer(itch::SystemEventMessage {}) +
+                       create_test_buffer(itch::AddOrderMessage {});
     std::stringstream data_stream(data);
 
     size_t message_count = 0;
@@ -199,9 +199,9 @@ TEST_F(ParserTest, CallbackBasedParsing) {
 }
 
 TEST_F(ParserTest, FilteredParsing) {
-    std::string data = create_test_buffer(itch::SystemEventMessage{}) +
-                       create_test_buffer(itch::StockDirectoryMessage{}) +
-                       create_test_buffer(itch::AddOrderMessage{});
+    std::string data = create_test_buffer(itch::SystemEventMessage {}) +
+                       create_test_buffer(itch::StockDirectoryMessage {}) +
+                       create_test_buffer(itch::AddOrderMessage {});
     std::stringstream data_stream(data);
     auto              messages = parser.parse(data_stream, {'R'});
 
@@ -212,9 +212,9 @@ TEST_F(ParserTest, FilteredParsing) {
 TEST_F(ParserTest, SkipsZeroLengthMessage) {
     const std::array zero_len_msg = {'\x00', '\x00'};
 
-    std::string data = create_test_buffer(itch::SystemEventMessage{}) +
+    std::string data = create_test_buffer(itch::SystemEventMessage {}) +
                        std::string(zero_len_msg.begin(), zero_len_msg.end()) +
-                       create_test_buffer(itch::SystemEventMessage{});
+                       create_test_buffer(itch::SystemEventMessage {});
 
     std::stringstream data_stream(data);
 
@@ -223,14 +223,14 @@ TEST_F(ParserTest, SkipsZeroLengthMessage) {
 }
 
 TEST_F(ParserTest, IgnoresTrailingGarbageData) {
-    std::string       data = create_test_buffer(itch::SystemEventMessage{}) + "garbage";
+    std::string       data = create_test_buffer(itch::SystemEventMessage {}) + "garbage";
     std::stringstream data_stream(data);
 
     // It throws because the "garbage" is interpreted as an incomplete header
     EXPECT_THROW(parser.parse(data_stream), std::runtime_error);
 
     // To test ignoring trailing data, ensure it's smaller than a header
-    std::string       data2 = create_test_buffer(itch::SystemEventMessage{}) + "g";
+    std::string       data2 = create_test_buffer(itch::SystemEventMessage {}) + "g";
     std::stringstream ss2(data2);
     EXPECT_THROW(parser.parse(ss2), std::runtime_error);
 
@@ -239,8 +239,8 @@ TEST_F(ParserTest, IgnoresTrailingGarbageData) {
 }
 
 TEST_F(ParserTest, HandlesStreamEndingExactlyOnBoundary) {
-    std::string data = create_test_buffer(itch::SystemEventMessage{}) +
-                       create_test_buffer(itch::AddOrderMessage{});
+    std::string data = create_test_buffer(itch::SystemEventMessage {}) +
+                       create_test_buffer(itch::AddOrderMessage {});
     std::stringstream data_stream(data);
 
     // Should parse cleanly with no exceptions
