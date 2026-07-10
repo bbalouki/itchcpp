@@ -50,8 +50,8 @@ class FrozenMap {
     ///
     /// @param key The key to look up.
     /// @return The matching description, or `std::nullopt` if no entry has this key.
-    [[nodiscard]] constexpr auto find(const KeyType& key) const noexcept
-        -> std::optional<std::string_view> {
+    [[nodiscard]] constexpr auto find(const KeyType& key
+    ) const noexcept -> std::optional<std::string_view> {
         const auto iter = std::ranges::lower_bound(m_entries, key, {}, &value_type::first);
         if (iter != m_entries.end() && iter->first == key) {
             return iter->second;
