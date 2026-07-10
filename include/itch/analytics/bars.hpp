@@ -37,7 +37,7 @@ using BarCallback = std::function<void(const Bar&)>;
 
 /// @brief A clock that buckets trades by wall-clock time (nanoseconds).
 struct TimeClock {
-    std::uint64_t      interval_ns {1};
+    std::uint64_t interval_ns {1};
 
     /// @brief Computes the bucket id for `trade` from its wall-clock timestamp.
     ///
@@ -51,7 +51,7 @@ struct TimeClock {
 
 /// @brief A clock that buckets a fixed number of trades into each bar.
 struct TickClock {
-    std::uint64_t      ticks_per_bar {1};
+    std::uint64_t ticks_per_bar {1};
 
     /// @brief Computes the bucket id for the current trade from its tick position.
     ///
@@ -65,15 +65,14 @@ struct TickClock {
 
 /// @brief A clock that buckets a fixed amount of traded volume into each bar.
 struct VolumeClock {
-    std::uint64_t      volume_per_bar {1};
+    std::uint64_t volume_per_bar {1};
 
     /// @brief Computes the bucket id for the current trade from cumulative volume.
     ///
     /// @param cumulative_volume Total shares traded so far, including this trade.
     /// @return The bucket id, `cumulative_volume / volume_per_bar`.
-    [[nodiscard]] auto bucket(
-        const Trade&, std::uint64_t cumulative_volume, std::uint64_t
-    ) const noexcept -> std::uint64_t {
+    [[nodiscard]] auto bucket(const Trade&, std::uint64_t cumulative_volume, std::uint64_t)
+        const noexcept -> std::uint64_t {
         return cumulative_volume / volume_per_bar;
     }
 };
