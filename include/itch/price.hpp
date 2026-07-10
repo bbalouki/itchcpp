@@ -85,8 +85,8 @@ class BasicPrice {
     /// @param lhs The left-hand price.
     /// @param rhs The right-hand price.
     /// @return `true` if both prices have the same raw value.
-    [[nodiscard]] friend constexpr auto operator==(BasicPrice, BasicPrice) noexcept
-        -> bool                                                                      = default;
+    [[nodiscard]] friend constexpr auto operator==(BasicPrice, BasicPrice) noexcept -> bool =
+                                                                                           default;
     /// @brief Orders two prices of the same scale by raw value.
     ///
     /// @param lhs The left-hand price.
