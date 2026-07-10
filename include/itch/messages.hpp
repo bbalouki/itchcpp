@@ -439,7 +439,7 @@ struct DLCRMessage {
 /// - stock_locate: Locate code identifying the security
 /// - tracking_number: Nasdaq internal tracking number
 ///
-/// for more details on each message type, see the
+/// for more details on each message type, see the 
 /// [documentation](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf).
 ///
 /// @note
