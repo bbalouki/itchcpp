@@ -13,14 +13,27 @@ scratch_*
 scripts.sh
 *Presets.json
 .cache/
-/packaging
+prompts.txt
 
 # Generated coverage reports must not be committed; they belong in the build tree.
 coverage.html
 docs/coverage.html
 
-# Generated documentation and the vendored theme (cloned at build/publish time).
+# Python build artifacts. The compiled extension (itchcpp/_itchcpp*.pyd|.so) is a
+# build output; the hand-written .pyi stub beside it is source and is kept.
+__pycache__/
+*.pyd
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+dist/
+wheelhouse/
+
+# Generated documentation. The doxygen-awesome-css theme and the HTML header are
+# fetched/generated into the CMake build tree by build_documentation(), so only the
+# rendered site under docs/html is produced inside docs/.
 docs/html/
-docs/doxygen-awesome-css/
-docs/header.html
-docs/footer.html
+CLAUDE.md
+PROMPTS.md
+DEVELOPER_GUIDE.md
