@@ -275,6 +275,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install vcpkg python3 port build dependencies
+        run: sudo apt-get update && sudo apt-get install -y autoconf autoconf-archive automake libtool
+
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
