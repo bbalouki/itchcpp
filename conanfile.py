@@ -34,7 +34,9 @@ class ItchConan(ConanFile):
     )
 
     def set_version(self):
-        self.version = load(self, os.path.join(self.recipe_folder, "VERSION.txt")).strip()
+        self.version = load(
+            self, os.path.join(self.recipe_folder, "VERSION.txt")
+        ).strip()
 
     def requirements(self):
         if self.options.with_arrow:
