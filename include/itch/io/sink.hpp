@@ -21,18 +21,18 @@ namespace itch::io {
 class MessageSink {
    public:
     /// @brief Default-constructs an empty sink.
-    MessageSink()                                          = default;
+    MessageSink() = default;
 
     /// @brief Copy-constructs a sink.
-    MessageSink(const MessageSink&)                        = default;
+    MessageSink(const MessageSink&) = default;
 
     /// @brief Move-constructs a sink.
-    MessageSink(MessageSink&&) noexcept                    = default;
+    MessageSink(MessageSink&&) noexcept = default;
 
     /// @brief Copy-assigns a sink.
     ///
     /// @return Reference to this sink.
-    auto operator=(const MessageSink&) -> MessageSink&     = default;
+    auto operator=(const MessageSink&) -> MessageSink& = default;
 
     /// @brief Move-assigns a sink.
     ///
@@ -40,7 +40,7 @@ class MessageSink {
     auto operator=(MessageSink&&) noexcept -> MessageSink& = default;
 
     /// @brief Virtual destructor for safe polymorphic destruction.
-    virtual ~MessageSink()                                 = default;
+    virtual ~MessageSink() = default;
 
     /// @brief Consumes one parsed message.
     ///
