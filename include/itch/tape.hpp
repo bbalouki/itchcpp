@@ -1,5 +1,15 @@
 #pragma once
 
+/// @file
+/// @brief A normalized trade record and callback type for consuming the ITCH
+///        trade tape.
+///
+/// Execution-related ITCH message types are heterogeneous in shape; this
+/// header defines the single, flattened `Trade` record that callers consume
+/// instead of switching over the raw message variant themselves.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <cstdint>
 #include <functional>
 #include <string>
