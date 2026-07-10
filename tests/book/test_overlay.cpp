@@ -35,7 +35,8 @@ TEST(Overlay, ViewFieldsMatchEagerDecode) {
     // Lazy overlay decode of the same bytes.
     itch::overlay::AddOrderView view {};
     std::uint64_t               count = itch::overlay::for_each_message(
-        std::span<const std::byte> {buffer}, [&](const itch::overlay::MessageView& generic) {
+        std::span<const std::byte> {buffer},
+        [&](const itch::overlay::MessageView& generic) {
             view = itch::overlay::AddOrderView {generic.data(), generic.size()};
         }
     );
@@ -61,7 +62,8 @@ TEST(Overlay, FramesMultipleMessagesAndSkipsUnknownTypes) {
 
     std::uint64_t adds  = 0;
     const auto    total = itch::overlay::for_each_message(
-        std::span<const std::byte> {buffer}, [&](const itch::overlay::MessageView& view) {
+        std::span<const std::byte> {buffer},
+        [&](const itch::overlay::MessageView& view) {
             if (view.type() == 'A') {
                 ++adds;
             }
