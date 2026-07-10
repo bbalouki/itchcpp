@@ -142,8 +142,8 @@ class L3Book {
     /// @param reference_number Exchange order reference number to look up.
     /// @return The order's raw limit price, or `std::nullopt` if no such
     ///         order is resting.
-    [[nodiscard]] auto order_price(std::uint64_t reference_number) const
-        -> std::optional<std::uint32_t>;
+    [[nodiscard]] auto order_price(std::uint64_t reference_number
+    ) const -> std::optional<std::uint32_t>;
 
     /// @brief The side of a resting order, if present.
     /// @param reference_number Exchange order reference number to look up.
