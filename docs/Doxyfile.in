@@ -1,0 +1,98 @@
+# Doxygen configuration template for ITCHCPP.
+#
+# This is a CMake-configured template: build_documentation() in cmake/Helpers.cmake
+# substitutes the @VARS@ below (the fetched doxygen-awesome-css theme directory, the
+# generated HTML header, the project version, and absolute source paths) and adds a
+# `docs` target. Build it with:
+#
+#   cmake -S . -B build -DITCH_BUILD_DOCUMENTATION=ON
+#   cmake --build build --target docs
+#
+# Output is written to docs/html. The theme is fetched at configure time, so no
+# theme files need to live in the repository.
+
+#---------------------------------------------------------------------------
+# Project
+#---------------------------------------------------------------------------
+PROJECT_NAME           = "ITCHCPP"
+PROJECT_NUMBER         = @PROJECT_VERSION@
+PROJECT_BRIEF          = "High-Performance NASDAQ TotalView-ITCH 5.0 Parser & Market-Data Platform"
+OUTPUT_DIRECTORY       = @PROJECT_SOURCE_DIR@/docs
+HTML_OUTPUT            = html
+CREATE_SUBDIRS         = NO
+FULL_PATH_NAMES        = NO
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+TAB_SIZE               = 4
+MARKDOWN_SUPPORT       = YES
+# GitHub-style heading anchors so the README's table-of-contents links resolve.
+MARKDOWN_ID_STYLE      = GITHUB
+TOC_INCLUDE_HEADINGS   = 4
+AUTOLINK_SUPPORT       = YES
+BUILTIN_STL_SUPPORT    = YES
+
+#---------------------------------------------------------------------------
+# Build / extraction
+#---------------------------------------------------------------------------
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+RECURSIVE              = YES
+SORT_MEMBER_DOCS       = NO
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = NO
+
+#---------------------------------------------------------------------------
+# Input (absolute paths so the build works from any directory)
+#---------------------------------------------------------------------------
+INPUT                  = @PROJECT_SOURCE_DIR@/README.md \
+                         @PROJECT_SOURCE_DIR@/python/README.md \
+                         @PROJECT_SOURCE_DIR@/include \
+                         @PROJECT_SOURCE_DIR@/src
+FILE_PATTERNS          = *.hpp *.h *.cpp *.md
+USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/README.md
+EXCLUDE_PATTERNS       = */build/* */build-*/* */.venv/*
+
+#---------------------------------------------------------------------------
+# Source browsing
+#---------------------------------------------------------------------------
+SOURCE_BROWSER         = YES
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+#---------------------------------------------------------------------------
+# Output formats
+#---------------------------------------------------------------------------
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_XML           = NO
+
+#---------------------------------------------------------------------------
+# HTML appearance - modern theme (doxygen-awesome-css)
+#---------------------------------------------------------------------------
+# The theme directory (@DOXYGEN_AWESOME_DIR@) and the generated header
+# (@DOXYGEN_HTML_HEADER@) are produced by build_documentation() at configure time.
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_COLORSTYLE        = LIGHT
+HTML_DYNAMIC_SECTIONS  = YES
+HTML_COPY_CLIPBOARD    = NO
+HTML_HEADER            = @DOXYGEN_HTML_HEADER@
+HTML_EXTRA_STYLESHEET  = @DOXYGEN_AWESOME_DIR@/doxygen-awesome.css \
+                         @DOXYGEN_AWESOME_DIR@/doxygen-awesome-sidebar-only.css \
+                         @DOXYGEN_AWESOME_DIR@/doxygen-awesome-sidebar-only-darkmode-toggle.css
+HTML_EXTRA_FILES       = @DOXYGEN_AWESOME_DIR@/doxygen-awesome-darkmode-toggle.js \
+                         @DOXYGEN_AWESOME_DIR@/doxygen-awesome-fragment-copy-button.js \
+                         @DOXYGEN_AWESOME_DIR@/doxygen-awesome-paragraph-link.js \
+                         @DOXYGEN_AWESOME_DIR@/doxygen-awesome-interactive-toc.js
+
+#---------------------------------------------------------------------------
+# Diagrams (graphviz)
+#---------------------------------------------------------------------------
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+DOT_TRANSPARENT        = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = NO
+UML_LOOK               = YES
