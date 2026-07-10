@@ -48,6 +48,38 @@ constexpr std::uint32_t PCAP_MAGIC_NANO     = 0xA1B23C4D;
 constexpr std::uint32_t PCAP_MAGIC_NANO_SWP = 0x4D3CB2A1;
 constexpr std::uint32_t PCAPNG_BLOCK_SHB    = 0x0A0D0D0A;
 
+// Strips a frame's link-layer header down to the network (IP) layer, or
+// returns std::nullopt if the frame is too short or its link type isn't one
+// we know how to unwrap.
+auto strip_link_layer(std::span<const std::byte> frame, std::uint32_t link_type)
+    -> std::optional<std::span<const std::byte>> {
+    if (link_type == LINKTYPE_ETHERNET) {
+        if (frame.size() < ETHERNET_HEADER_SIZE) {
+            return std::nullopt;
+        }
+        std::size_t header    = ETHERNET_HEADER_SIZE;
+        auto        ethertype = read_net<std::uint16_t>(frame, 12);
+        while (ethertype == ETHERTYPE_VLAN && frame.size() >= header + VLAN_TAG_SIZE) {
+            ethertype = read_net<std::uint16_t>(frame, header + 2);
+            header += VLAN_TAG_SIZE;
+        }
+        if (ethertype != ETHERTYPE_IPV4 && ethertype != ETHERTYPE_IPV6) {
+            return std::nullopt;
+        }
+        return frame.subspan(header);
+    }
+    if (link_type == LINKTYPE_LINUX_SLL) {
+        if (frame.size() < LINUX_SLL_HEADER_SIZE) {
+            return std::nullopt;
+        }
+        return frame.subspan(LINUX_SLL_HEADER_SIZE);
+    }
+    if (link_type != LINKTYPE_RAW) {
+        return std::nullopt;  // Unsupported link layer.
+    }
+    return frame;
+}
+
 }  // namespace
 
 PcapReader::PcapReader(MessageCallback callback) : m_mold {std::move(callback)} {}
@@ -182,33 +214,22 @@ auto PcapReader::read_pcapng(std::span<const std::byte> capture) -> bool {
 }
 
 auto PcapReader::handle_frame(std::span<const std::byte> frame, std::uint32_t link_type) -> void {
-    // Strip the link layer down to the network (IP) header.
-    std::span<const std::byte> network = frame;
-    if (link_type == LINKTYPE_ETHERNET) {
-        if (frame.size() < ETHERNET_HEADER_SIZE) {
-            return;
-        }
-        std::size_t   header    = ETHERNET_HEADER_SIZE;
-        std::uint16_t ethertype = read_net<std::uint16_t>(frame, 12);
-        while (ethertype == ETHERTYPE_VLAN && frame.size() >= header + VLAN_TAG_SIZE) {
-            ethertype = read_net<std::uint16_t>(frame, header + 2);
-            header += VLAN_TAG_SIZE;
-        }
-        if (ethertype != ETHERTYPE_IPV4 && ethertype != ETHERTYPE_IPV6) {
-            return;
-        }
-        network = frame.subspan(header);
-    } else if (link_type == LINKTYPE_LINUX_SLL) {
-        if (frame.size() < LINUX_SLL_HEADER_SIZE) {
-            return;
-        }
-        network = frame.subspan(LINUX_SLL_HEADER_SIZE);
-    } else if (link_type != LINKTYPE_RAW) {
-        return;  // Unsupported link layer.
-    }
-
-    if (network.empty()) {
+    const auto network = strip_link_layer(frame, link_type);
+    if (!network.has_value()) {
         return;
+    }
+    const auto payload = extract_udp_payload(*network);
+    if (!payload.has_value()) {
+        return;
+    }
+    ++m_udp_datagrams;
+    m_mold.decode_packet(*payload);
+}
+
+auto PcapReader::extract_udp_payload(std::span<const std::byte> network) const
+    -> std::optional<std::span<const std::byte>> {
+    if (network.empty()) {
+        return std::nullopt;
     }
 
     // Determine IP version and locate the UDP header.
@@ -216,40 +237,38 @@ auto PcapReader::handle_frame(std::span<const std::byte> frame, std::uint32_t li
     std::uint8_t protocol {0};
     std::size_t  ip_header_len {0};
     if (version == 4) {
-        ip_header_len = (static_cast<std::uint8_t>(network[0]) & 0x0F) * 4U;
+        ip_header_len = static_cast<std::size_t>(static_cast<std::uint8_t>(network[0]) & 0x0F) * 4U;
         if (network.size() < ip_header_len || ip_header_len < 20) {
-            return;
+            return std::nullopt;
         }
         protocol = static_cast<std::uint8_t>(network[9]);
     } else if (version == 6) {
         if (network.size() < IPV6_HEADER_SIZE) {
-            return;
+            return std::nullopt;
         }
         protocol      = static_cast<std::uint8_t>(network[6]);
         ip_header_len = IPV6_HEADER_SIZE;
     } else {
-        return;
+        return std::nullopt;
     }
     if (protocol != IP_PROTOCOL_UDP) {
-        return;
+        return std::nullopt;
     }
 
     const std::span<const std::byte> udp = network.subspan(ip_header_len);
     if (udp.size() < UDP_HEADER_SIZE) {
-        return;
+        return std::nullopt;
     }
     const auto dst_port = read_net<std::uint16_t>(udp, 2);
     if (m_port_filter.has_value() && dst_port != *m_port_filter) {
-        return;
+        return std::nullopt;
     }
-    auto        udp_length  = read_net<std::uint16_t>(udp, 4);
+    const auto  udp_length  = read_net<std::uint16_t>(udp, 4);
     std::size_t payload_len = udp.size() - UDP_HEADER_SIZE;
     if (udp_length >= UDP_HEADER_SIZE) {
         payload_len = std::min<std::size_t>(payload_len, udp_length - UDP_HEADER_SIZE);
     }
-
-    ++m_udp_datagrams;
-    m_mold.decode_packet(udp.subspan(UDP_HEADER_SIZE, payload_len));
+    return udp.subspan(UDP_HEADER_SIZE, payload_len);
 }
 
 }  // namespace itch::transport
