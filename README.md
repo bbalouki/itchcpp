@@ -15,7 +15,7 @@
 
 A modern, high-performance C++20 library for parsing NASDAQ TotalView-ITCH 5.0 protocol data feeds. This parser is designed for maximum speed, minimal memory overhead, and type safety, making it ideal for latency-sensitive financial applications, market data analysis, and quantitative research.
 
-📖 **API documentation:** <https://bbalouki.github.io/itchcpp/> (generated with Doxygen, published on every push to `main`).
+📖 [**API documentation:**](https://bbalouki.github.io/itchcpp/).
 
 ---
 
@@ -66,9 +66,9 @@ The design of this ITCH parser is guided by three principles:
 
 ## Key Features
 
-- **Real Feed Ingestion**: Consume ITCH as it actually arrives — MoldUDP64 UDP
+- **Real Feed Ingestion**: Consume ITCH as it actually arrives, MoldUDP64 UDP
   multicast framing, SoupBinTCP (Glimpse/recovery) framing, and `.pcap`/`.pcapng`
-  captures — with per-session sequence tracking and gap detection. No libpcap
+  captures, with per-session sequence tracking and gap detection. No libpcap
   dependency. See [Feed Ingestion](#feed-ingestion-transport).
 - **Full-Market Book Engine**: Reconstruct every symbol on the feed in one pass
   with an allocation-light L3 order book (object pool, intrusive FIFO levels, flat
@@ -77,7 +77,7 @@ The design of this ITCH parser is guided by three principles:
 - **Zero-Copy Overlay API**: Inspect raw frames through lazy typed views that
   convert only the fields you read, for hot paths that touch a few fields per
   message.
-- **Built-in Analytics**: Header-only microstructure layer — OHLCV bar builders
+- **Built-in Analytics**: Header-only microstructure layer, OHLCV bar builders
   (time/tick/volume clocks), VWAP/TWAP, spread, queue imbalance, order-flow
   imbalance, NOII surfacing, and auction reconstruction. See [Analytics](#analytics).
 - **Interoperability**: CSV and Arrow/Parquet export, a batteries-included
@@ -109,7 +109,7 @@ The parser is a fast, allocation-free, single-pass field decoder. Each message t
 
 Dispatch is driven by a compile-time table keyed on the one-byte message type, so selecting the right decoder is a single flat-array lookup followed by a direct, inlinable call. There is no red-black-tree lookup and no type-erased `std::function` indirection. The frame length declared on the wire is validated against the size the message type requires before any field is read, so a truncated or malformed frame can never cause the decoder to read into an adjacent message.
 
-This is genuine single-pass decoding rather than a zero-copy overlay: the bytes are converted eagerly into host-order fields. A lazy zero-copy view API (typed overlays over the raw buffer with on-access endianness conversion) is tracked as future work in [FEATURES.md](FEATURES.md).
+This is genuine single-pass decoding rather than a zero-copy overlay: the bytes are converted eagerly into host-order fields.
 
 ### Type-Safe Message Handling
 
@@ -472,12 +472,12 @@ delivered inside transport framing. The `itch::transport` module decodes the
 framing that actually arrives on the wire and on disk, then feeds the existing
 parser. Everything is implemented in-house with **no libpcap dependency**.
 
-| Decoder | Header | Purpose |
-| ------- | ------ | ------- |
-| `MoldUdp64Decoder` | `itch/transport/moldudp64.hpp` | UDP multicast framing for live dissemination. |
-| `SoupBinDecoder` | `itch/transport/soupbintcp.hpp` | TCP framing for Glimpse snapshots and recovery/replay. |
-| `PcapReader` | `itch/transport/pcap.hpp` | Replay a feed from a `.pcap`/`.pcapng` capture file. |
-| `SequenceTracker` | `itch/transport/sequencing.hpp` | Per-session sequence tracking, gap detection, recovery hooks. |
+| Decoder            | Header                          | Purpose                                                       |
+| ------------------ | ------------------------------- | ------------------------------------------------------------- |
+| `MoldUdp64Decoder` | `itch/transport/moldudp64.hpp`  | UDP multicast framing for live dissemination.                 |
+| `SoupBinDecoder`   | `itch/transport/soupbintcp.hpp` | TCP framing for Glimpse snapshots and recovery/replay.        |
+| `PcapReader`       | `itch/transport/pcap.hpp`       | Replay a feed from a `.pcap`/`.pcapng` capture file.          |
+| `SequenceTracker`  | `itch/transport/sequencing.hpp` | Per-session sequence tracking, gap detection, recovery hooks. |
 
 ```cpp
 #include "itch/transport/pcap.hpp"
@@ -546,13 +546,13 @@ The header-only `itch::analytics` layer computes the metrics quants ask for,
 directly off the trade tape and book so every downstream team does not
 reimplement them.
 
-| Component | Header | Provides |
-| --------- | ------ | -------- |
-| `BarBuilder<Clock>` | `analytics/bars.hpp` | OHLCV bars over `TimeClock`, `TickClock`, `VolumeClock`. |
-| `Vwap`, `Twap` | `analytics/vwap.hpp` | Running/interval volume- and time-weighted average price. |
+| Component                | Header                         | Provides                                                            |
+| ------------------------ | ------------------------------ | ------------------------------------------------------------------- |
+| `BarBuilder<Clock>`      | `analytics/bars.hpp`           | OHLCV bars over `TimeClock`, `TickClock`, `VolumeClock`.            |
+| `Vwap`, `Twap`           | `analytics/vwap.hpp`           | Running/interval volume- and time-weighted average price.           |
 | spread / mid / imbalance | `analytics/microstructure.hpp` | Spread, mid, depth-at-level, queue imbalance, order-flow imbalance. |
-| `ImbalanceInfo` | `analytics/imbalance.hpp` | Decoded NOII (`I`) imbalance data. |
-| `AuctionTracker` | `analytics/auctions.hpp` | Opening/closing/halt/IPO cross reconstruction. |
+| `ImbalanceInfo`          | `analytics/imbalance.hpp`      | Decoded NOII (`I`) imbalance data.                                  |
+| `AuctionTracker`         | `analytics/auctions.hpp`       | Opening/closing/halt/IPO cross reconstruction.                      |
 
 ```cpp
 #include "itch/analytics/vwap.hpp"
@@ -590,16 +590,25 @@ itch-tool filter  data.itch --types AEP --out trades.csv
 itch-tool convert data.itch --out data.csv        # ITCH -> CSV (-> Parquet w/ Arrow)
 ```
 
-**Python bindings** (`-DITCH_BUILD_PYTHON=ON`, pybind11). A native module that
-mirrors the pure-Python [`itch`](https://github.com/bbalouki/itch) package's API
-so it can act as a faster drop-in backend. See [python/README.md](python/README.md).
+**Python bindings** (`-DITCH_BUILD_PYTHON=ON`, pybind11). The `itchcpp` package is
+a faster, drop-in backend for the pure-Python
+[`itch`](https://github.com/bbalouki/itch) package (PyPI:
+[`itchfeed`](https://pypi.org/project/itchfeed/)). It mirrors that package's layout
+(`itchcpp.messages`, `itchcpp.parser`, `itchcpp.indicators`) and semantics, the same
+message classes with the same raw `bytes`/`int` attributes, the same `MessageParser`
+(type filter, lazy iteration, `parse_file`/`parse_stream`/`parse_messages`),
+`create_message`, and `decode`/`decode_price`/`to_bytes` helpers, so migrating only
+changes the import root. See [itchcpp](python/README.md).
 
 ```python
-import itchcpp
-parser = itchcpp.MessageParser()
-for message in parser.parse_file("01302020.NASDAQ_ITCH50"):
-    if isinstance(message, itchcpp.AddOrderMessage):
-        print(message.stock, message.decode_price("price"), message.shares)
+from itchcpp.parser import MessageParser
+from itchcpp.messages import AddOrderNoMPIAttributionMessage
+
+parser = MessageParser()  # MessageParser(message_type=b"AFE") to filter types
+with open("01302020.NASDAQ_ITCH50", "rb") as itch_file:
+    for message in parser.parse_file(itch_file):
+        if isinstance(message, AddOrderNoMPIAttributionMessage):
+            print(message.stock, message.decode_price("price"), message.shares)
 ```
 
 ### Simulation & Ecosystem
@@ -615,7 +624,7 @@ engine.replay(buffer, [](const itch::Message& msg) { /* paced by timestamps */ }
 ```
 
 **Encoder / writer** (`itch/encoder.hpp`). Serialize any message back to valid
-wire bytes, with a guaranteed `parse(encode(msg)) == msg` round-trip — used to
+wire bytes, with a guaranteed `parse(encode(msg)) == msg` round-trip, used to
 synthesize streams and golden fixtures:
 
 ```cpp
@@ -631,7 +640,7 @@ the dispatch machinery.
 
 **Packaging.** The library is consumable through vcpkg (manifest with optional
 `python` and `arrow` features) and Conan (`conanfile.py`). See
-[CONTRIBUTING.md](CONTRIBUTING.md) for the build options and the versioning/ABI
+[CONTRIBUTING](CONTRIBUTING.md) for the build options and the versioning/ABI
 compatibility policy.
 
 ---
@@ -698,11 +707,11 @@ The parser is designed for high-throughput scenarios. Performance is heavily dep
 
 The numbers below were produced by [`benchmarks/parser_bench.cpp`](benchmarks/parser_bench.cpp) parsing from an in-memory buffer (file I/O excluded). They are reproducible with the setup described under [How to reproduce](#how-to-reproduce).
 
-| Configuration | Throughput |
-| ------------- | ---------- |
-| `parse(..., callback)` — allocation-free callback path | **2.24 GiB/s** |
-| `parse(...)` — collect all messages into a `std::vector` | 1.23 GiB/s |
-| `parse(..., {'A','P','E','C','X'})` — filtered into a `std::vector` | 1.15 GiB/s |
+| Configuration                                                      | Throughput     |
+| ------------------------------------------------------------------ | -------------- |
+| `parse(..., callback)`, allocation-free callback path              | **2.24 GiB/s** |
+| `parse(...)`, collect all messages into a `std::vector`            | 1.23 GiB/s     |
+| `parse(..., {'A','P','E','C','X'})`, filtered into a `std::vector` | 1.15 GiB/s     |
 
 - **Hardware**: x86-64, 16 logical cores @ 1.70 GHz (L1d 32 KiB, L2 512 KiB, L3 4 MiB).
 - **Compiler**: Clang 22, `-DCMAKE_BUILD_TYPE=Release`, C++23.
@@ -718,10 +727,10 @@ The throughput figures below were measured on a synthetic, churn-heavy stream
 Clang 22 `-DCMAKE_BUILD_TYPE=Release`, C++23; book-rebuild throughput on real
 data depends heavily on the depth and churn profile of the feed.
 
-| Configuration | Throughput |
-| ------------- | ---------- |
-| `BookManager::process` — full multi-symbol L3 reconstruction | ~150 MiB/s |
-| Eager `parse`, touching one field per message | ~5.4 GiB/s |
+| Configuration                                                         | Throughput     |
+| --------------------------------------------------------------------- | -------------- |
+| `BookManager::process`, full multi-symbol L3 reconstruction           | ~150 MiB/s     |
+| Eager `parse`, touching one field per message                         | ~5.4 GiB/s     |
 | Zero-copy `overlay::for_each_message`, touching one field per message | **~9.7 GiB/s** |
 
 The overlay is materially faster than the eager decoder when only a few fields are
