@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <format>
+#include <ranges>
 #include <string_view>
 #include <thread>
 #include <type_traits>
@@ -53,8 +54,8 @@ auto LimitOrderBook::print(std::ostream& out, unsigned int delay_ms) const -> vo
 
     // Asks are stored low-to-high; print them high-to-low so the best ask sits
     // just above the spread.
-    for (auto iter = m_asks.rbegin(); iter != m_asks.rend(); ++iter) {
-        print_level(iter->second.total_shares, iter->first, "Ask");
+    for (const auto& [raw_price, level] : std::ranges::reverse_view(m_asks)) {
+        print_level(level.total_shares, raw_price, "Ask");
     }
 
     out << MID_RULE;
