@@ -20,8 +20,8 @@ auto read_big_endian(std::span<const std::byte> data, std::size_t offset) -> Uin
 
 MoldUdp64Decoder::MoldUdp64Decoder(MessageCallback callback) : m_callback {std::move(callback)} {}
 
-auto MoldUdp64Decoder::decode_packet(std::span<const std::byte> packet)
-    -> std::optional<MoldUdp64Header> {
+auto MoldUdp64Decoder::decode_packet(std::span<const std::byte> packet
+) -> std::optional<MoldUdp64Header> {
     if (packet.size() < HEADER_SIZE) {
         return std::nullopt;
     }
