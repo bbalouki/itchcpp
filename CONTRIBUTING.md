@@ -20,14 +20,14 @@ ctest --test-dir build --output-on-failure
 
 Optional features are off by default and enabled with:
 
-- `-DITCH_BUILD_BENCHMARKS=ON` — Google Benchmark suites.
-- `-DITCH_BUILD_FUZZERS=ON` — libFuzzer targets (Clang only).
-- `-DITCH_BUILD_TOOLS=ON` — the `itch-tool` CLI.
-- `-DITCH_BUILD_PYTHON=ON` — the pybind11 Python bindings (needs the `python`
+- `-DITCH_BUILD_BENCHMARKS=ON`, Google Benchmark suites.
+- `-DITCH_BUILD_FUZZERS=ON`, libFuzzer targets (Clang only).
+- `-DITCH_BUILD_TOOLS=ON`, the `itch-tool` CLI.
+- `-DITCH_BUILD_PYTHON=ON`, the pybind11 Python bindings (needs the `python`
   vcpkg feature: `-DVCPKG_MANIFEST_FEATURES=python`).
-- `-DITCH_WITH_ARROW=ON` — Apache Arrow / Parquet export (needs the `arrow`
+- `-DITCH_WITH_ARROW=ON`, Apache Arrow / Parquet export (needs the `arrow`
   vcpkg feature: `-DVCPKG_MANIFEST_FEATURES=arrow`).
-- `-DITCH_BUILD_DOCUMENTATION=ON` — the Doxygen `docs` target. Build it with
+- `-DITCH_BUILD_DOCUMENTATION=ON`, the Doxygen `docs` target. Build it with
   `cmake --build build --target docs` (needs Doxygen; the modern theme is fetched
   automatically). Output is written to `docs/html`. The same documentation is
   published to GitHub Pages from `main` by `.github/workflows/docs.yml`.

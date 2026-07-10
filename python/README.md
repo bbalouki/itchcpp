@@ -1,4 +1,4 @@
-# itchcpp — a fast, drop-in backend for the pure-Python `itch` package
+# itchcpp, a fast, drop-in backend for the pure-Python `itch` package
 
 `itchcpp` is a native (C++) NASDAQ TotalView-ITCH 5.0 parser, order-book engine,
 and analytics layer exposed to Python via pybind11. It is built to be a
@@ -46,7 +46,7 @@ event (`S` with `event_code == b"C"`).
 
 ## What is exposed
 
-- **`itchcpp.messages`** — every message class under its exact upstream name
+- **`itchcpp.messages`**, every message class under its exact upstream name
   (`SystemEventMessage`, `StockDirectoryMessage`, `AddOrderNoMPIAttributionMessage`,
   `AddOrderMPIDAttribution`, `OrderExecutedMessage`, `NonCrossTradeMessage`,
   `CrossTradeMessage`, `NOIIMessage`, `MWCBDeclineLeveMessage`,
@@ -59,10 +59,10 @@ event (`S` with `event_code == b"C"`).
   `to_bytes()`, `set_timestamp(ts1, ts2)`, `split_timestamp()`,
   `get_attributes(call_able=False)`, plus the `message_type`, `description`,
   `message_size`, and `price_precision` metadata.
-- **`itchcpp.parser.MessageParser`** — `parse_file`, `parse_stream`,
+- **`itchcpp.parser.MessageParser`**, `parse_file`, `parse_stream`,
   `parse_messages(data, callback)`, `get_message_type(bytes)`, and the `message_type`
   filter.
-- **`itchcpp.indicators`** — the field code lookup tables (`SYSTEM_EVENT_CODES`,
+- **`itchcpp.indicators`**, the field code lookup tables (`SYSTEM_EVENT_CODES`,
   `MARKET_CATEGORY`, `TRADING_STATES`, `ISSUE_SUB_TYPE_VALUES`, ...).
 - **Native extras** (not part of the pure-Python API): `itchcpp.book`
   (`BookManager`, `L3Book`, `Bbo`) for single-pass order-book reconstruction, and
