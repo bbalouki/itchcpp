@@ -1,27 +1,26 @@
-/**
- * @file parser_bench.cpp
- * @brief Benchmarking suite for the ITCH message parser using Google Benchmark.
- *
- * This file defines a set of benchmarks to evaluate the performance of the
- * ITCH message parser implemented in the Parser class. It uses the Google
- * Benchmark library to measure execution time and throughput for different
- * parsing strategies, including callback-based parsing, collecting all parsed
- * messages, and filtering specific message types.
- *
- * The benchmark fixture `ParserBenchmark` is responsible for loading the ITCH
- * data file into memory once per benchmark run, ensuring that file I/O does
- * not skew the parsing performance measurements.
- *
- * Usage:
- *   ./parser_bench.exe <path_to_itch_data_file> [google benchmark options]
- *
- * Example:
- *   ./parser_bench.exe data/itch_data.bin --benchmark_filter=BM_ParseWithCallback
- *
- * Note:
- *   Ensure that the Google Benchmark library is properly linked during
- *   compilation.
- */
+
+/// @file parser_bench.cpp
+/// @brief Benchmarking suite for the ITCH message parser using Google Benchmark.
+///
+/// This file defines a set of benchmarks to evaluate the performance of the
+/// ITCH message parser implemented in the Parser class. It uses the Google
+/// Benchmark library to measure execution time and throughput for different
+/// parsing strategies, including callback-based parsing, collecting all parsed
+/// messages, and filtering specific message types.
+///
+/// The benchmark fixture `ParserBenchmark` is responsible for loading the ITCH
+/// data file into memory once per benchmark run, ensuring that file I/O does
+/// not skew the parsing performance measurements.
+///
+/// Usage:
+///   ./parser_bench.exe <path_to_itch_data_file> [google benchmark options]
+///
+/// Example:
+///   ./parser_bench.exe data/itch_data.bin --benchmark_filter=BM_ParseWithCallback
+///
+/// Note:
+///   Ensure that the Google Benchmark library is properly linked during
+///   compilation.
 
 #include <benchmark/benchmark.h>
 
