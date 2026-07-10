@@ -1,5 +1,14 @@
 #pragma once
 
+/// @file
+/// @brief OHLCV bar aggregation from the trade tape under configurable clocks.
+///
+/// `BarBuilder` consumes a stream of trades and emits completed bars whenever a
+/// pluggable clock policy (time-, tick-, or volume-based) reports a new bucket,
+/// letting time bars, tick bars, and volume bars share one implementation.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <algorithm>
 #include <cstdint>
 #include <functional>
@@ -29,6 +38,11 @@ using BarCallback = std::function<void(const Bar&)>;
 /// @brief A clock that buckets trades by wall-clock time (nanoseconds).
 struct TimeClock {
     std::uint64_t      interval_ns {1};
+
+    /// @brief Computes the bucket id for `trade` from its wall-clock timestamp.
+    ///
+    /// @param trade The trade whose timestamp determines the bucket.
+    /// @return The bucket id, `trade.timestamp / interval_ns`.
     [[nodiscard]] auto bucket(const Trade& trade, std::uint64_t, std::uint64_t) const noexcept
         -> std::uint64_t {
         return trade.timestamp / interval_ns;
@@ -38,6 +52,11 @@ struct TimeClock {
 /// @brief A clock that buckets a fixed number of trades into each bar.
 struct TickClock {
     std::uint64_t      ticks_per_bar {1};
+
+    /// @brief Computes the bucket id for the current trade from its tick position.
+    ///
+    /// @param tick_index 0-based index of the trade within the stream.
+    /// @return The bucket id, `tick_index / ticks_per_bar`.
     [[nodiscard]] auto bucket(const Trade&, std::uint64_t, std::uint64_t tick_index) const noexcept
         -> std::uint64_t {
         return tick_index / ticks_per_bar;
@@ -47,6 +66,11 @@ struct TickClock {
 /// @brief A clock that buckets a fixed amount of traded volume into each bar.
 struct VolumeClock {
     std::uint64_t      volume_per_bar {1};
+
+    /// @brief Computes the bucket id for the current trade from cumulative volume.
+    ///
+    /// @param cumulative_volume Total shares traded so far, including this trade.
+    /// @return The bucket id, `cumulative_volume / volume_per_bar`.
     [[nodiscard]] auto bucket(
         const Trade&, std::uint64_t cumulative_volume, std::uint64_t
     ) const noexcept -> std::uint64_t {
@@ -63,10 +87,17 @@ struct VolumeClock {
 template <typename Clock>
 class BarBuilder {
    public:
+    /// @brief Constructs a builder with the given clock policy and completion callback.
+    ///
+    /// @param clock Bucketing policy (e.g. `TimeClock`, `TickClock`, `VolumeClock`)
+    ///              that decides when a bar completes.
+    /// @param callback Function invoked with each completed `Bar`.
     BarBuilder(Clock clock, BarCallback callback)
         : m_clock {std::move(clock)}, m_callback {std::move(callback)} {}
 
     /// @brief Adds one trade, emitting the previous bar when the bucket changes.
+    ///
+    /// @param trade The next trade in timestamp order to fold into the current bar.
     auto add(const Trade& trade) -> void {
         const std::uint64_t bucket = m_clock.bucket(trade, m_cumulative_volume, m_tick_index);
         if (m_has_bar && bucket != m_bar.bucket) {
@@ -100,6 +131,7 @@ class BarBuilder {
     }
 
    private:
+    /// @brief Delivers the current bar to the callback and marks it inactive.
     auto emit() -> void {
         if (m_callback) {
             m_callback(m_bar);
