@@ -115,6 +115,50 @@ class BookManager {
     /// @return True if `symbol` should be tracked, false otherwise.
     [[nodiscard]] auto in_universe(std::string_view symbol) const -> bool;
 
+    /// @brief Adds a new order to the appropriate book from an Add Order (or
+    ///        MPID-attributed Add Order) message.
+    /// @tparam AddMessage AddOrderMessage or AddOrderMPIDAttributionMessage.
+    /// @param add The parsed add-order message.
+    template <typename AddMessage>
+    auto handle_add_order(const AddMessage& add) -> void;
+
+    /// @brief Executes shares against a resting order and emits a trade using
+    ///        the order's own price (Order Executed carries no price itself).
+    /// @param exec The parsed order-executed message.
+    auto handle_order_executed(const OrderExecutedMessage& exec) -> void;
+
+    /// @brief Executes shares against a resting order at an explicit price
+    ///        and emits a trade (Order Executed With Price).
+    /// @param exec The parsed order-executed-with-price message.
+    auto handle_order_executed_with_price(const OrderExecutedWithPriceMessage& exec) -> void;
+
+    /// @brief Reduces a resting order's size (Order Cancel).
+    /// @param cancel The parsed order-cancel message.
+    auto handle_order_cancel(const OrderCancelMessage& cancel) -> void;
+
+    /// @brief Removes a resting order from its book (Order Delete).
+    /// @param del The parsed order-delete message.
+    auto handle_order_delete(const OrderDeleteMessage& del) -> void;
+
+    /// @brief Replaces a resting order with a new reference number, size, and
+    ///        price (Order Replace).
+    /// @param replace The parsed order-replace message.
+    auto handle_order_replace(const OrderReplaceMessage& replace) -> void;
+
+    /// @brief Extracts a trade-tape event from a non-displayed trade print
+    ///        (Non-Cross Trade); does not alter the visible book.
+    /// @param trade The parsed non-cross-trade message.
+    auto handle_non_cross_trade(const NonCrossTradeMessage& trade) -> void;
+
+    /// @brief Extracts a trade-tape event from a cross trade (Cross Trade).
+    /// @param cross The parsed cross-trade message.
+    auto handle_cross_trade(const CrossTradeMessage& cross) -> void;
+
+    /// @brief Records the symbol associated with a locate code (Stock
+    ///        Directory).
+    /// @param directory The parsed stock-directory message.
+    auto handle_stock_directory(const StockDirectoryMessage& directory) -> void;
+
     std::vector<std::unique_ptr<BookEntry>> m_books_by_locate;   ///< Indexed by locate.
     std::vector<std::string>                m_symbol_by_locate;  ///< Locate -> symbol.
     std::unordered_set<std::string>         m_universe;          ///< Empty == track all.
