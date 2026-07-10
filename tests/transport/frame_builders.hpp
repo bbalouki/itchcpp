@@ -102,8 +102,12 @@ inline auto system_event_payload(std::uint64_t timestamp, char event_code)
 /// @param price The raw (unscaled) limit price.
 /// @return The encoded Add Order message payload.
 inline auto add_order_payload(
-    std::uint16_t locate, std::uint64_t ref, char side, std::uint32_t shares,
-    std::string_view symbol, std::uint32_t price
+    std::uint16_t    locate,
+    std::uint64_t    ref,
+    char             side,
+    std::uint32_t    shares,
+    std::string_view symbol,
+    std::uint32_t    price
 ) -> std::vector<std::byte> {
     std::vector<std::byte> payload;
     payload.push_back(std::byte {'A'});
@@ -216,8 +220,8 @@ inline auto ethernet_ipv4_udp_frame(std::uint16_t dst_port, const std::vector<st
 /// @brief Builds a classic little-endian .pcap file from a list of frames.
 /// @param frames The captured link-layer frames to include, in order.
 /// @return The encoded classic pcap file contents.
-inline auto classic_pcap(const std::vector<std::vector<std::byte>>& frames)
-    -> std::vector<std::byte> {
+inline auto classic_pcap(const std::vector<std::vector<std::byte>>& frames
+) -> std::vector<std::byte> {
     std::vector<std::byte> file;
     append_le32(file, 0xA1B2C3D4);  // magic
     file.push_back(std::byte {2});  // version major (LE)
