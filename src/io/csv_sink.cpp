@@ -37,6 +37,9 @@ auto fill_common(Row& row, const MsgType& msg) -> void {
 
 // Quotes a value only if it contains a comma; symbols never do, but be safe.
 auto field(const std::string& value) -> std::string {
+    // std::string::contains needs C++23, but this file must also build under
+    // this project's C++20 floor.
+    // NOLINTNEXTLINE(readability-container-contains)
     if (value.find(',') != std::string::npos) {
         return std::format("\"{}\"", value);
     }
