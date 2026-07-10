@@ -1,5 +1,14 @@
 #pragma once
 
+/// @file
+/// @brief CSV output sink for parsed ITCH messages.
+///
+/// `CsvSink` is the dependency-free, universal output format: it flattens the
+/// heterogeneous ITCH message set into one wide, normalized row schema suitable
+/// for quick inspection and legacy tooling.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <cstdint>
 #include <ostream>
 
@@ -22,15 +31,22 @@ class CsvSink : public MessageSink {
    public:
     /// @brief Constructs a sink writing to `out`, emitting the header row unless
     ///        `write_header` is false (useful when appending to an existing file).
+    ///
+    /// @param out Output stream the CSV rows are written to.
+    /// @param write_header Whether to emit the CSV header row on construction.
     explicit CsvSink(std::ostream& out, bool write_header = true);
 
     /// @brief Writes one message as a CSV row.
+    ///
+    /// @param message The parsed message to write.
     auto write(const Message& message) -> void override;
 
     /// @brief Flushes the underlying stream.
     auto flush() -> void override;
 
     /// @brief The number of rows written so far.
+    ///
+    /// @return The count of rows written since construction.
     [[nodiscard]] auto rows_written() const noexcept -> std::uint64_t { return m_rows_written; }
 
    private:
