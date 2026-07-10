@@ -40,15 +40,15 @@ class ArrowExporter {
     ~ArrowExporter();
 
     /// @brief Non-copyable; move-only.
-    ArrowExporter(const ArrowExporter&)                        = delete;
+    ArrowExporter(const ArrowExporter&) = delete;
 
     /// @brief Non-copyable; move-only.
     ///
     /// @return Reference to this exporter.
-    auto operator=(const ArrowExporter&) -> ArrowExporter&     = delete;
+    auto operator=(const ArrowExporter&) -> ArrowExporter& = delete;
 
     /// @brief Move-constructs an exporter, transferring ownership of its state.
-    ArrowExporter(ArrowExporter&&) noexcept                    = default;
+    ArrowExporter(ArrowExporter&&) noexcept = default;
 
     /// @brief Move-assigns an exporter, transferring ownership of its state.
     ///
