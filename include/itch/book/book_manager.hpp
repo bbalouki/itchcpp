@@ -1,5 +1,16 @@
 #pragma once
 
+/// @file
+/// @brief Full-market order book manager that fans out ITCH messages to
+///        per-symbol `L3Book` instances.
+///
+/// This header declares `BookManager`, which owns a locate-indexed table of
+/// `L3Book`s, routes each parsed ITCH message to the right book, optionally
+/// restricts work to a configured symbol universe, and emits best-bid/offer
+/// and trade events as they occur.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -28,34 +39,50 @@ class BookManager {
     /// @brief Invoked when a book's best bid or offer changes.
     using BboCallback = std::function<void(const L3Book& book, const Bbo& bbo)>;
 
+    /// @brief Constructs an empty manager with no books tracked yet.
     BookManager() = default;
 
     /// @brief Processes one parsed ITCH message, updating the relevant book and
     ///        emitting BBO/trade events as appropriate.
+    /// @param message The parsed ITCH message to apply.
     auto process(const Message& message) -> void;
 
     /// @brief Installs the best-bid/offer change callback (empty clears it).
+    /// @param callback Invoked whenever a tracked book's best bid or offer
+    ///        changes.
     auto set_bbo_callback(BboCallback callback) -> void { m_bbo_callback = std::move(callback); }
 
     /// @brief Installs the trade-tape callback (empty clears it).
+    /// @param callback Invoked for each trade extracted from the feed.
     auto set_trade_callback(TradeCallback callback) -> void {
         m_trade_callback = std::move(callback);
     }
 
     /// @brief Restricts tracking to the given symbol (call once per symbol). When
     ///        no symbol is added, every symbol on the feed is tracked.
+    /// @param symbol The ticker symbol to add to the tracked universe.
     auto track_symbol(std::string symbol) -> void { m_universe.insert(std::move(symbol)); }
 
     /// @brief The book for a locate code, or nullptr if none is tracked.
+    /// @param stock_locate The exchange-assigned stock locate code.
+    /// @return Pointer to the book for `stock_locate`, or nullptr if it is
+    ///         not tracked.
     [[nodiscard]] auto book(std::uint16_t stock_locate) const -> const L3Book*;
 
     /// @brief The book for a symbol, or nullptr if none is tracked.
+    /// @param symbol The ticker symbol to look up.
+    /// @return Pointer to the book for `symbol`, or nullptr if it is not
+    ///         tracked.
     [[nodiscard]] auto book_for_symbol(std::string_view symbol) const -> const L3Book*;
 
     /// @brief The number of books currently maintained.
+    /// @return The count of books currently tracked.
     [[nodiscard]] auto book_count() const noexcept -> std::size_t { return m_book_count; }
 
     /// @brief The symbol associated with a locate code (empty if unknown).
+    /// @param stock_locate The exchange-assigned stock locate code.
+    /// @return The ticker symbol for `stock_locate`, or an empty view if
+    ///         unknown.
     [[nodiscard]] auto symbol_for_locate(std::uint16_t stock_locate) const -> std::string_view;
 
    private:
@@ -64,13 +91,28 @@ class BookManager {
         Bbo    last_bbo {};
     };
 
-    // Returns the entry for a locate, creating it if the symbol is in-universe.
+    /// @brief Returns the entry for a locate, creating it if the symbol is
+    ///        in-universe.
+    /// @param stock_locate The exchange-assigned stock locate code.
+    /// @param symbol The ticker symbol associated with `stock_locate`.
+    /// @return Pointer to the (possibly newly created) entry, or nullptr if
+    ///         `symbol` is not in the tracked universe.
     auto ensure_entry(std::uint16_t stock_locate, std::string_view symbol) -> BookEntry*;
-    // Returns the existing entry for a locate, or nullptr.
+
+    /// @brief Returns the existing entry for a locate, or nullptr.
+    /// @param stock_locate The exchange-assigned stock locate code.
+    /// @return Pointer to the entry for `stock_locate`, or nullptr if none
+    ///         exists.
     [[nodiscard]] auto entry(std::uint16_t stock_locate) const -> BookEntry*;
-    // Emits a BBO event if the book's top has changed since last seen.
+
+    /// @brief Emits a BBO event if the book's top has changed since last seen.
+    /// @param target The book entry to check and, if changed, report.
     auto emit_bbo_if_changed(BookEntry& target) -> void;
-    // Whether the symbol should be tracked given the configured universe.
+
+    /// @brief Whether the symbol should be tracked given the configured
+    ///        universe.
+    /// @param symbol The ticker symbol to check.
+    /// @return True if `symbol` should be tracked, false otherwise.
     [[nodiscard]] auto in_universe(std::string_view symbol) const -> bool;
 
     std::vector<std::unique_ptr<BookEntry>> m_books_by_locate;   ///< Indexed by locate.
