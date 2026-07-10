@@ -138,8 +138,7 @@ TEST(BookManager, EmitsBboEventsOnlyWhenTopChanges) {
     manager.set_bbo_callback([&](const L3Book&, const itch::book::Bbo&) { ++bbo_events; });
 
     manager.process(itch::Message {make_add(1, 10, 'B', 100, "AAPL", 1500000)});  // new top
-    manager.process(
-        itch::Message {make_add(1, 11, 'B', 100, "AAPL", 1400000)}
+    manager.process(itch::Message {make_add(1, 11, 'B', 100, "AAPL", 1400000)}
     );  // worse, no change
     EXPECT_EQ(bbo_events, 1);
 }
