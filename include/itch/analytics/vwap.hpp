@@ -1,5 +1,14 @@
 #pragma once
 
+/// @file
+/// @brief Running VWAP and TWAP accumulators for streaming price and volume data.
+///
+/// These lightweight accumulators are fed one execution or price sample at a time
+/// and report a running volume-weighted or time-weighted average price without
+/// retaining the full history of samples.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <cstdint>
 #include <limits>
 
@@ -14,12 +23,17 @@ namespace itch::analytics {
 class Vwap {
    public:
     /// @brief Adds an execution of `shares` at `price` to the accumulation.
+    ///
+    /// @param price Execution price of the trade being added.
+    /// @param shares Number of shares traded at `price`.
     auto add(StandardPrice price, std::uint64_t shares) -> void {
         m_price_volume += price.to_double() * static_cast<double>(shares);
         m_volume += shares;
     }
 
     /// @brief The current VWAP, or NaN when no volume has been added.
+    ///
+    /// @return The volume-weighted average price, or NaN if `volume()` is zero.
     [[nodiscard]] auto value() const -> double {
         if (m_volume == 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -28,6 +42,8 @@ class Vwap {
     }
 
     /// @brief The total shares accumulated so far.
+    ///
+    /// @return The sum of shares passed to `add` since construction or the last `reset`.
     [[nodiscard]] auto volume() const noexcept -> std::uint64_t { return m_volume; }
 
     /// @brief Clears the accumulation (start a new interval).
@@ -49,6 +65,9 @@ class Vwap {
 class Twap {
    public:
     /// @brief Records that the price became `price` at `timestamp` (ns).
+    ///
+    /// @param price The prevailing price starting at `timestamp`.
+    /// @param timestamp Time of the price change, in nanoseconds.
     auto add(StandardPrice price, std::uint64_t timestamp) -> void {
         if (m_has_sample && timestamp > m_last_timestamp) {
             const double elapsed = static_cast<double>(timestamp - m_last_timestamp);
@@ -61,6 +80,8 @@ class Twap {
     }
 
     /// @brief The current TWAP, or NaN when no span has elapsed.
+    ///
+    /// @return The time-weighted average price, or NaN if no sample has been added.
     [[nodiscard]] auto value() const -> double {
         if (m_total_time <= 0.0) {
             return m_has_sample ? m_last_price : std::numeric_limits<double>::quiet_NaN();
