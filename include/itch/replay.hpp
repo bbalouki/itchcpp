@@ -53,7 +53,8 @@ class ReplayEngine {
     /// @param data A view over the contiguous buffer containing ITCH data.
     /// @param callback A function to be called for each successfully parsed message.
     /// @return The number of messages replayed.
-    auto replay(std::span<const std::byte> data, const MessageCallback& callback) -> std::uint64_t;
+    auto replay(std::span<const std::byte> data, const MessageCallback& callback) const
+        -> std::uint64_t;
 
    private:
     double m_speed_multiplier {1.0};
