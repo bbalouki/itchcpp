@@ -1,5 +1,14 @@
 #pragma once
 
+/// @file
+/// @brief Decoded view of Net Order Imbalance Indicator (NOII) messages.
+///
+/// Wraps the raw NOII (`I`) message fields in `ImbalanceInfo`, using strong price
+/// types and a trimmed symbol, for use by auction reconstruction and other
+/// imbalance-aware analytics.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <array>
 #include <cstdint>
 #include <string>
@@ -32,6 +41,9 @@ struct ImbalanceInfo {
 };
 
 /// @brief Builds an `ImbalanceInfo` from a raw NOII message.
+///
+/// @param msg The raw NOII message to decode.
+/// @return An `ImbalanceInfo` populated from `msg`'s fields.
 [[nodiscard]] inline auto make_imbalance_info(const NOIIMessage& msg) -> ImbalanceInfo {
     ImbalanceInfo info {};
     info.timestamp                 = msg.timestamp;
@@ -49,6 +61,9 @@ struct ImbalanceInfo {
 }
 
 /// @brief A human-readable description of an imbalance direction code.
+///
+/// @param direction The single-character imbalance direction code (e.g. 'B', 'S', 'N').
+/// @return A short description of `direction`, or "Unknown" if unrecognized.
 [[nodiscard]] inline auto imbalance_direction_name(char direction) -> std::string_view {
     constexpr indicators::FrozenMap directions {std::to_array<std::pair<char, std::string_view>>({
         {'B', "Buy imbalance"},
