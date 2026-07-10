@@ -12,6 +12,8 @@
 /// Keeping the per-type wire size and the canonical list of message types in one
 /// place means the dispatch table, the overlay accessors, and the writer can
 /// never drift apart from one another.
+///
+/// @author Bertin Balouki SIMYELI
 
 namespace itch::detail {
 
@@ -39,6 +41,9 @@ static_assert(WIRE_SIZE<DLCRMessage> == 48);
 /// This is the canonical registry of message types. Both the parser's dispatch
 /// table and any other component that needs to enumerate the message set build
 /// on it, so the set is defined exactly once.
+///
+/// @tparam Visitor Callable type providing a templated `operator()<MsgType>(char)`.
+/// @param visitor The visitor invoked once per registered message type.
 template <typename Visitor>
 constexpr auto for_each_message_type(Visitor&& visitor) -> void {
     visitor.template operator()<SystemEventMessage>('S');
