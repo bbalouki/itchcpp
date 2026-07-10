@@ -1,5 +1,15 @@
 #pragma once
 
+/// @file
+/// @brief Per-session sequence-gap detection shared by the MoldUDP64 and
+///        SoupBinTCP transport decoders.
+///
+/// This header declares the `RetransmitRequester` hook a caller implements to
+/// drive gap recovery, and the `SequenceTracker` that watches per-packet
+/// sequence numbers and reports gaps through a callback and/or the requester.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <algorithm>
 #include <cstdint>
 #include <functional>
@@ -19,15 +29,31 @@ namespace itch::transport {
 /// feeding the recovered messages back through the decoder.
 class RetransmitRequester {
    public:
+    /// @brief Constructs a requester with no state.
     RetransmitRequester()                                                  = default;
+    /// @brief Copy-constructs a requester.
+    /// @param other The requester to copy.
     RetransmitRequester(const RetransmitRequester&)                        = default;
+    /// @brief Move-constructs a requester.
+    /// @param other The requester to move from.
     RetransmitRequester(RetransmitRequester&&) noexcept                    = default;
+    /// @brief Copy-assigns a requester.
+    /// @param other The requester to copy.
+    /// @return Reference to this requester.
     auto operator=(const RetransmitRequester&) -> RetransmitRequester&     = default;
+    /// @brief Move-assigns a requester.
+    /// @param other The requester to move from.
+    /// @return Reference to this requester.
     auto operator=(RetransmitRequester&&) noexcept -> RetransmitRequester& = default;
+    /// @brief Destroys the requester.
     virtual ~RetransmitRequester()                                         = default;
 
     /// @brief Requests retransmission of `count` messages starting at sequence
     ///        `start_sequence` for the given session.
+    ///
+    /// @param session The session identifier the gap was observed on.
+    /// @param start_sequence The first missing sequence number to retransmit.
+    /// @param count The number of missing messages to retransmit.
     virtual auto request_retransmit(
         std::string_view session, std::uint64_t start_sequence, std::uint64_t count
     ) -> void = 0;
@@ -52,6 +78,10 @@ class SequenceTracker {
     /// @brief Records that a packet beginning at `first_sequence` carried `count`
     ///        sequenced messages for `session`.
     ///
+    /// @param session The session identifier the packet belongs to.
+    /// @param first_sequence The sequence number of the first message in the
+    ///        packet.
+    /// @param count The number of sequenced messages carried by the packet.
     /// @return The number of missing messages detected (0 when in order).
     auto observe(std::string_view session, std::uint64_t first_sequence, std::uint64_t count)
         -> std::uint64_t {
@@ -89,14 +119,20 @@ class SequenceTracker {
     }
 
     /// @brief Installs the gap-notification callback (empty clears it).
+    /// @param callback Invoked once per detected gap.
     auto set_gap_callback(GapCallback callback) -> void { m_gap_callback = std::move(callback); }
 
     /// @brief Installs a non-owning retransmission hook (nullptr clears it).
+    /// @param requester Non-owning pointer to the requester to notify on
+    ///        gaps, or nullptr to clear it.
     auto set_retransmit_requester(RetransmitRequester* requester) noexcept -> void {
         m_requester = requester;
     }
 
     /// @brief The next sequence number expected for a session, if it has been seen.
+    /// @param session The session identifier to look up.
+    /// @return The next expected sequence number, or `std::nullopt` if the
+    ///         session has not been observed.
     [[nodiscard]] auto expected_next(std::string_view session) const
         -> std::optional<std::uint64_t> {
         const auto iter = m_expected_by_session.find(std::string {session});
@@ -107,9 +143,11 @@ class SequenceTracker {
     }
 
     /// @brief Total number of missing messages detected across all sessions.
+    /// @return The total gap count.
     [[nodiscard]] auto gap_count() const noexcept -> std::uint64_t { return m_gap_count; }
 
     /// @brief Total number of distinct sequenced messages observed.
+    /// @return The total count of distinct messages observed.
     [[nodiscard]] auto messages_seen() const noexcept -> std::uint64_t { return m_messages_seen; }
 
     /// @brief Forgets all per-session state and resets the counters.
