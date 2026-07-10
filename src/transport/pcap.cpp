@@ -185,15 +185,23 @@ auto PcapReader::read_pcapng(std::span<const std::byte> capture) -> bool {
             constexpr std::size_t EPB_IFACE_OFFSET  = BLOCK_HEADER_SIZE;
             constexpr std::size_t EPB_CAPLEN_OFFSET = BLOCK_HEADER_SIZE + 12;
             constexpr std::size_t EPB_DATA_OFFSET   = BLOCK_HEADER_SIZE + 20;
-            const auto            iface =
-                read_le_or_be<std::uint32_t>(capture, offset + EPB_IFACE_OFFSET, swapped);
-            const auto cap_len =
-                read_le_or_be<std::uint32_t>(capture, offset + EPB_CAPLEN_OFFSET, swapped);
-            if (offset + EPB_DATA_OFFSET + cap_len <= capture.size() &&
-                iface < interface_link_types.size()) {
-                handle_frame(
-                    capture.subspan(offset + EPB_DATA_OFFSET, cap_len), interface_link_types[iface]
-                );
+            // The block must be large enough to hold its fixed header fields
+            // (interface id, two timestamp words, captured/packet length) plus
+            // the trailing repeated total-length word before those fields can
+            // be read; total_length alone (checked above) only guarantees the
+            // block fits in the buffer, not that it's this shape.
+            if (total_length >= EPB_DATA_OFFSET + sizeof(std::uint32_t)) {
+                const auto iface =
+                    read_le_or_be<std::uint32_t>(capture, offset + EPB_IFACE_OFFSET, swapped);
+                const auto cap_len =
+                    read_le_or_be<std::uint32_t>(capture, offset + EPB_CAPLEN_OFFSET, swapped);
+                if (offset + EPB_DATA_OFFSET + cap_len <= capture.size() &&
+                    iface < interface_link_types.size()) {
+                    handle_frame(
+                        capture.subspan(offset + EPB_DATA_OFFSET, cap_len),
+                        interface_link_types[iface]
+                    );
+                }
             }
         } else if (block_type == BLOCK_SPB) {
             constexpr std::size_t SPB_DATA_OFFSET = BLOCK_HEADER_SIZE + 4;
@@ -226,8 +234,8 @@ auto PcapReader::handle_frame(std::span<const std::byte> frame, std::uint32_t li
     m_mold.decode_packet(*payload);
 }
 
-auto PcapReader::extract_udp_payload(std::span<const std::byte> network) const
-    -> std::optional<std::span<const std::byte>> {
+auto PcapReader::extract_udp_payload(std::span<const std::byte> network
+) const -> std::optional<std::span<const std::byte>> {
     if (network.empty()) {
         return std::nullopt;
     }
