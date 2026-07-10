@@ -67,9 +67,9 @@ auto SoupBinDecoder::feed(std::span<const std::byte> bytes) -> void {
             break;  // The rest of this packet has not arrived yet.
         }
 
-        const auto type = static_cast<SoupBinPacketType>(
-            static_cast<char>(m_buffer[offset + LENGTH_PREFIX_SIZE])
-        );
+        const auto type =
+            static_cast<SoupBinPacketType>(static_cast<char>(m_buffer[offset + LENGTH_PREFIX_SIZE])
+            );
         const std::span<const std::byte> payload {
             m_buffer.data() + offset + LENGTH_PREFIX_SIZE + 1,
             static_cast<std::size_t>(packet_length) - 1
