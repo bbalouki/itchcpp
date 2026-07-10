@@ -1,5 +1,16 @@
 #pragma once
 
+/// @file
+/// @brief Compile-time lookup tables translating ITCH single- and
+///        multi-character indicator codes into human-readable descriptions.
+///
+/// These tables back the enum-like character fields scattered across the ITCH
+/// message definitions (system events, market categories, financial status,
+/// trading actions, and so on), giving callers a fast, allocation-free way to
+/// render a wire code as descriptive text.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <algorithm>
 #include <array>
 #include <optional>
@@ -25,12 +36,20 @@ class FrozenMap {
    public:
     using value_type = std::pair<KeyType, std::string_view>;
 
+    /// @brief Constructs the map from an unsorted list of key/description
+    ///        entries, sorting them by key once so that `find` can binary
+    ///        search.
+    ///
+    /// @param entries The key/description pairs backing this map, in any order.
     constexpr explicit FrozenMap(std::array<value_type, Size> entries) noexcept
         : m_entries {entries} {
         std::ranges::sort(m_entries, {}, &value_type::first);
     }
 
     /// @brief Returns the description for a key, or `std::nullopt` if absent.
+    ///
+    /// @param key The key to look up.
+    /// @return The matching description, or `std::nullopt` if no entry has this key.
     [[nodiscard]] constexpr auto find(const KeyType& key) const noexcept
         -> std::optional<std::string_view> {
         const auto iter = std::ranges::lower_bound(m_entries, key, {}, &value_type::first);
@@ -41,6 +60,10 @@ class FrozenMap {
     }
 
     /// @brief Returns the description for a key, or a fallback if absent.
+    ///
+    /// @param key The key to look up.
+    /// @param fallback The description to return when `key` is not found.
+    /// @return The matching description, or `fallback` if no entry has this key.
     [[nodiscard]] constexpr auto at_or(const KeyType& key, std::string_view fallback) const noexcept
         -> std::string_view {
         return find(key).value_or(fallback);
@@ -50,6 +73,12 @@ class FrozenMap {
     std::array<value_type, Size> m_entries;
 };
 
+/// @brief Deduces `FrozenMap`'s template arguments from a brace-initialized
+///        array of key/description pairs.
+///
+/// @tparam KeyType The key type (`char` for single-letter codes, or
+///                 `std::string_view` for multi-character codes).
+/// @tparam Size The number of entries.
 template <typename KeyType, std::size_t Size>
 FrozenMap(std::array<std::pair<KeyType, std::string_view>, Size>) -> FrozenMap<KeyType, Size>;
 
