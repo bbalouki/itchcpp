@@ -1,5 +1,14 @@
 #pragma once
 
+/// @file
+/// @brief Reconstruction of Nasdaq auction (cross) events from the ITCH feed.
+///
+/// Combines the Net Order Imbalance Indicator (NOII) messages leading up to a
+/// cross with the Cross Trade message that prints it, producing a single
+/// `Auction` record per opening, closing, halt, or IPO cross.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -36,6 +45,9 @@ struct Auction {
 };
 
 /// @brief A human-readable description of a cross type code.
+///
+/// @param cross_type The single-character cross type code (e.g. 'O', 'C', 'H', 'I').
+/// @return A short description of `cross_type`, or "Unknown" if unrecognized.
 [[nodiscard]] inline auto cross_type_name(char cross_type) -> std::string_view {
     constexpr indicators::FrozenMap types {std::to_array<std::pair<char, std::string_view>>({
         {'O', "Opening Cross"},
@@ -57,11 +69,16 @@ class AuctionTracker {
     using AuctionCallback = std::function<void(const Auction&)>;
 
     /// @brief Installs the callback invoked for each reconstructed auction.
+    ///
+    /// @param callback Function invoked with each `Auction` reconstructed from the stream.
     auto set_auction_callback(AuctionCallback callback) -> void {
         m_callback = std::move(callback);
     }
 
     /// @brief Processes one ITCH message, emitting an auction on each cross.
+    ///
+    /// @param message The ITCH message to process; only NOII and Cross Trade messages
+    ///                affect state.
     auto process(const Message& message) -> void {
         if (const auto* noii = std::get_if<NOIIMessage>(&message)) {
             m_latest_imbalance[noii->stock_locate] = make_imbalance_info(*noii);
