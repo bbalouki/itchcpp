@@ -1,5 +1,13 @@
 #pragma once
 
+/// @file
+/// @brief Best-bid-offer microstructure metrics derived from the order book.
+///
+/// Small, allocation-free functions that compute spread, mid price, queue
+/// imbalance, depth, and order-flow imbalance from `Bbo`/`L3Book` snapshots.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -9,6 +17,9 @@
 namespace itch::analytics {
 
 /// @brief The bid-ask spread in price units, or NaN if either side is empty.
+///
+/// @param bbo The best-bid-offer snapshot to compute the spread from.
+/// @return `ask_price - bid_price`, or NaN if either side has no resting order.
 [[nodiscard]] inline auto spread(const book::Bbo& bbo) -> double {
     if (!bbo.has_bid || !bbo.has_ask) {
         return std::numeric_limits<double>::quiet_NaN();
@@ -17,6 +28,10 @@ namespace itch::analytics {
 }
 
 /// @brief The mid price ((bid + ask) / 2), or NaN if either side is empty.
+///
+/// @param bbo The best-bid-offer snapshot to compute the mid price from.
+/// @return The average of the bid and ask prices, or NaN if either side has no
+///         resting order.
 [[nodiscard]] inline auto mid_price(const book::Bbo& bbo) -> double {
     if (!bbo.has_bid || !bbo.has_ask) {
         return std::numeric_limits<double>::quiet_NaN();
@@ -29,6 +44,10 @@ namespace itch::analytics {
 /// Positive values indicate more size resting on the bid than the offer
 /// (buy-side pressure); negative values the reverse. Returns NaN when there is no
 /// resting size at the top of either side.
+///
+/// @param bbo The best-bid-offer snapshot to compute the queue imbalance from.
+/// @return The normalized bid/ask size imbalance in [-1, 1], or NaN if both sides
+///         are empty.
 [[nodiscard]] inline auto queue_imbalance(const book::Bbo& bbo) -> double {
     const double bid   = static_cast<double>(bbo.bid_shares);
     const double ask   = static_cast<double>(bbo.ask_shares);
@@ -40,6 +59,11 @@ namespace itch::analytics {
 }
 
 /// @brief Total displayed shares within the best `levels` price levels of a side.
+///
+/// @param book The order book to query.
+/// @param side The book side (bid or ask) to sum depth for.
+/// @param levels Number of best price levels to include.
+/// @return The total displayed shares across the requested levels.
 [[nodiscard]] inline auto depth_at_level(
     const book::L3Book& book, book::Side side, std::size_t levels
 ) -> std::uint64_t {
@@ -56,6 +80,10 @@ namespace itch::analytics {
 /// Stoikov: each side compares the new best price and size against the previous to
 /// attribute added or removed liquidity, and the offer contribution is subtracted
 /// from the bid contribution. Positive values indicate net buy-side flow.
+///
+/// @param previous The prior best-bid-offer snapshot.
+/// @param current The current best-bid-offer snapshot.
+/// @return The signed order-flow-imbalance contribution between the two snapshots.
 [[nodiscard]] inline auto order_flow_imbalance(const book::Bbo& previous, const book::Bbo& current)
     -> double {
     const double prev_bid_price = previous.bid_price.to_double();
