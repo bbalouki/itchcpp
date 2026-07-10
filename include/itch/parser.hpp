@@ -22,6 +22,7 @@
 #include <istream>
 #include <optional>
 #include <span>
+#include <version>
 #include <vector>
 
 #ifdef __cpp_lib_expected
