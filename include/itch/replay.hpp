@@ -1,5 +1,14 @@
 #pragma once
 
+/// @file
+/// @brief A timestamp-paced replay engine for previously captured ITCH streams.
+///
+/// Wraps the `Parser` so a consumer can play back a buffer at (a multiple of)
+/// its original wall-clock cadence rather than as fast as the CPU can parse
+/// it, which is useful for realistic backtesting and system simulation.
+///
+/// @author Bertin Balouki SIMYELI
+
 #include <cstdint>
 #include <span>
 
@@ -26,16 +35,23 @@ class ReplayEngine {
         : m_speed_multiplier {speed_multiplier} {}
 
     /// @brief Sets the speed multiplier (see the constructor).
+    ///
+    /// @param speed_multiplier Wall-clock speed relative to the original feed
+    ///        (see the constructor for the exact semantics).
     auto set_speed(double speed_multiplier) noexcept -> void {
         m_speed_multiplier = speed_multiplier;
     }
 
     /// @brief The current speed multiplier.
+    ///
+    /// @return The currently configured speed multiplier.
     [[nodiscard]] auto speed() const noexcept -> double { return m_speed_multiplier; }
 
     /// @brief Parses `data` and invokes `callback` for each message, paced by the
     ///        message timestamps.
     ///
+    /// @param data A view over the contiguous buffer containing ITCH data.
+    /// @param callback A function to be called for each successfully parsed message.
     /// @return The number of messages replayed.
     auto replay(std::span<const std::byte> data, const MessageCallback& callback) -> std::uint64_t;
 
