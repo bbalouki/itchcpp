@@ -30,23 +30,23 @@ namespace itch::transport {
 class RetransmitRequester {
    public:
     /// @brief Constructs a requester with no state.
-    RetransmitRequester()                                                  = default;
+    RetransmitRequester() = default;
     /// @brief Copy-constructs a requester.
     /// @param other The requester to copy.
-    RetransmitRequester(const RetransmitRequester&)                        = default;
+    RetransmitRequester(const RetransmitRequester&) = default;
     /// @brief Move-constructs a requester.
     /// @param other The requester to move from.
-    RetransmitRequester(RetransmitRequester&&) noexcept                    = default;
+    RetransmitRequester(RetransmitRequester&&) noexcept = default;
     /// @brief Copy-assigns a requester.
     /// @param other The requester to copy.
     /// @return Reference to this requester.
-    auto operator=(const RetransmitRequester&) -> RetransmitRequester&     = default;
+    auto operator=(const RetransmitRequester&) -> RetransmitRequester& = default;
     /// @brief Move-assigns a requester.
     /// @param other The requester to move from.
     /// @return Reference to this requester.
     auto operator=(RetransmitRequester&&) noexcept -> RetransmitRequester& = default;
     /// @brief Destroys the requester.
-    virtual ~RetransmitRequester()                                         = default;
+    virtual ~RetransmitRequester() = default;
 
     /// @brief Requests retransmission of `count` messages starting at sequence
     ///        `start_sequence` for the given session.
@@ -133,8 +133,8 @@ class SequenceTracker {
     /// @param session The session identifier to look up.
     /// @return The next expected sequence number, or `std::nullopt` if the
     ///         session has not been observed.
-    [[nodiscard]] auto expected_next(std::string_view session) const
-        -> std::optional<std::uint64_t> {
+    [[nodiscard]] auto expected_next(std::string_view session
+    ) const -> std::optional<std::uint64_t> {
         const auto iter = m_expected_by_session.find(std::string {session});
         if (iter == m_expected_by_session.end()) {
             return std::nullopt;
