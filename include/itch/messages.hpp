@@ -47,24 +47,24 @@ struct SystemEventMessage {
 /// and displayed correctly. A security not named in any Stock Directory message
 /// should not appear in later messages for that day.
 struct StockDirectoryMessage {
-    char     message_type = 'R';            ///< Always 'R'.
-    uint16_t stock_locate;                  ///< Locate code identifying the security.
-    uint16_t tracking_number;               ///< Nasdaq internal tracking number.
-    uint64_t timestamp;                     ///< Nanoseconds past midnight.
-    char     stock[8];                      ///< Stock symbol, right padded with spaces.
-    char     market_category;               ///< Listing market (see indicators::MARKET_CATEGORY).
-    char     financial_status_indicator;    ///< Financial status of the issuer.
-    uint32_t round_lot_size;                ///< Number of shares in a round lot.
-    char     round_lots_only;               ///< 'Y' if only round lots may be entered, else 'N'.
-    char     issue_classification;          ///< Security class (see indicators::ISSUE_CLASSIFICATION_VALUES).
-    char     issue_sub_type[2];             ///< Security sub-type (see indicators::ISSUE_SUB_TYPE_VALUES).
-    char     authenticity;                  ///< 'P' production / 'T' test security.
-    char     short_sale_threshold_indicator; ///< Reg SHO threshold: 'Y','N',' '.
-    char     ipo_flag;                       ///< 'Y' if a new IPO, 'N' if not, ' ' if not available.
-    char     luld_ref;                       ///< LULD reference price tier.
-    char     etp_flag;                       ///< 'Y' if an exchange-traded product, else 'N'.
-    uint32_t etp_leverage_factor;            ///< Leverage factor of the ETP (if applicable).
-    char     inverse_indicator;              ///< 'Y' if the ETP is an inverse product.
+    char     message_type = 'R';          ///< Always 'R'.
+    uint16_t stock_locate;                ///< Locate code identifying the security.
+    uint16_t tracking_number;             ///< Nasdaq internal tracking number.
+    uint64_t timestamp;                   ///< Nanoseconds past midnight.
+    char     stock[8];                    ///< Stock symbol, right padded with spaces.
+    char     market_category;             ///< Listing market (see indicators::MARKET_CATEGORY).
+    char     financial_status_indicator;  ///< Financial status of the issuer.
+    uint32_t round_lot_size;              ///< Number of shares in a round lot.
+    char     round_lots_only;             ///< 'Y' if only round lots may be entered, else 'N'.
+    char issue_classification;  ///< Security class (see indicators::ISSUE_CLASSIFICATION_VALUES).
+    char issue_sub_type[2];     ///< Security sub-type (see indicators::ISSUE_SUB_TYPE_VALUES).
+    char authenticity;          ///< 'P' production / 'T' test security.
+    char short_sale_threshold_indicator;  ///< Reg SHO threshold: 'Y','N',' '.
+    char ipo_flag;                        ///< 'Y' if a new IPO, 'N' if not, ' ' if not available.
+    char luld_ref;                        ///< LULD reference price tier.
+    char etp_flag;                        ///< 'Y' if an exchange-traded product, else 'N'.
+    uint32_t etp_leverage_factor;         ///< Leverage factor of the ETP (if applicable).
+    char     inverse_indicator;           ///< 'Y' if the ETP is an inverse product.
 };
 
 /// @brief Stock Trading Action (`H`): a change in the trading status of a
@@ -82,7 +82,7 @@ struct StockTradingActionMessage {
     char     stock[8];            ///< Stock symbol, right padded with spaces.
     char     trading_state;       ///< 'H','P','Q','T' (see indicators::TRADING_STATES).
     char     reserved;            ///< Reserved.
-    char     reason[4];           ///< Trading-action reason code (see indicators::TRADING_ACTION_REASON_CODES).
+    char reason[4];  ///< Trading-action reason code (see indicators::TRADING_ACTION_REASON_CODES).
 };
 
 /// @brief Reg SHO Short Sale Price Test Restriction (`Y`): the Reg SHO short-sale
@@ -157,14 +157,14 @@ struct MWCBStatusMessage {
 /// cancellation or postponement of the IPO is signalled by setting both the
 /// release time and the price to zero.
 struct IPOQuotingPeriodUpdateMessage {
-    char     message_type = 'K';              ///< Always 'K'.
-    uint16_t stock_locate;                    ///< Locate code identifying the security.
-    uint16_t tracking_number;                 ///< Nasdaq internal tracking number.
-    uint64_t timestamp;                       ///< Nanoseconds past midnight.
-    char     stock[8];                        ///< Stock symbol, right padded with spaces.
-    uint32_t ipo_quotation_release_time;      ///< Seconds past midnight of the anticipated release.
-    char     ipo_quotation_release_qualifier; ///< 'A' anticipated, 'C' cancelled/postponed.
-    uint32_t ipo_price;                       ///< IPO price (4 implied decimals).
+    char     message_type = 'K';          ///< Always 'K'.
+    uint16_t stock_locate;                ///< Locate code identifying the security.
+    uint16_t tracking_number;             ///< Nasdaq internal tracking number.
+    uint64_t timestamp;                   ///< Nanoseconds past midnight.
+    char     stock[8];                    ///< Stock symbol, right padded with spaces.
+    uint32_t ipo_quotation_release_time;  ///< Seconds past midnight of the anticipated release.
+    char     ipo_quotation_release_qualifier;  ///< 'A' anticipated, 'C' cancelled/postponed.
+    uint32_t ipo_price;                        ///< IPO price (4 implied decimals).
 };
 
 /// @brief LULD Auction Collar (`J`): the auction collar thresholds for a security
@@ -173,15 +173,15 @@ struct IPOQuotingPeriodUpdateMessage {
 /// Indicates the auction collar thresholds within which a paused security may
 /// reopen following a Limit-Up Limit-Down (LULD) trading pause.
 struct LULDAuctionCollarMessage {
-    char     message_type = 'J';             ///< Always 'J'.
-    uint16_t stock_locate;                   ///< Locate code identifying the security.
-    uint16_t tracking_number;                ///< Nasdaq internal tracking number.
-    uint64_t timestamp;                      ///< Nanoseconds past midnight.
-    char     stock[8];                       ///< Stock symbol, right padded with spaces.
-    uint32_t auction_collar_reference_price; ///< Reference price for the collars (4 decimals).
-    uint32_t upper_auction_collar_price;     ///< Upper auction collar price (4 decimals).
-    uint32_t lower_auction_collar_price;     ///< Lower auction collar price (4 decimals).
-    uint32_t auction_collar_extension;       ///< Number of collar extensions so far.
+    char     message_type = 'J';              ///< Always 'J'.
+    uint16_t stock_locate;                    ///< Locate code identifying the security.
+    uint16_t tracking_number;                 ///< Nasdaq internal tracking number.
+    uint64_t timestamp;                       ///< Nanoseconds past midnight.
+    char     stock[8];                        ///< Stock symbol, right padded with spaces.
+    uint32_t auction_collar_reference_price;  ///< Reference price for the collars (4 decimals).
+    uint32_t upper_auction_collar_price;      ///< Upper auction collar price (4 decimals).
+    uint32_t lower_auction_collar_price;      ///< Lower auction collar price (4 decimals).
+    uint32_t auction_collar_extension;        ///< Number of collar extensions so far.
 };
 
 /// @brief Operational Halt (`h`): an operational halt or resumption for a security
@@ -192,13 +192,13 @@ struct LULDAuctionCollarMessage {
 /// Action: an operational halt is a venue-level interruption rather than a
 /// regulatory or volatility trading halt.
 struct OperationalHaltMessage {
-    char     message_type = 'h';      ///< Always 'h'.
-    uint16_t stock_locate;            ///< Locate code identifying the security.
-    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
-    uint64_t timestamp;               ///< Nanoseconds past midnight.
-    char     stock[8];                ///< Stock symbol, right padded with spaces.
-    char     market_code;             ///< 'Q' Nasdaq, 'B' BX, 'X' PSX.
-    char     operational_halt_action; ///< 'H' halted, 'T' resumed.
+    char     message_type = 'h';       ///< Always 'h'.
+    uint16_t stock_locate;             ///< Locate code identifying the security.
+    uint16_t tracking_number;          ///< Nasdaq internal tracking number.
+    uint64_t timestamp;                ///< Nanoseconds past midnight.
+    char     stock[8];                 ///< Stock symbol, right padded with spaces.
+    char     market_code;              ///< 'Q' Nasdaq, 'B' BX, 'X' PSX.
+    char     operational_halt_action;  ///< 'H' halted, 'T' resumed.
 };
 
 /// @brief Add Order, No MPID Attribution (`A`): a new displayable order has been
@@ -209,15 +209,15 @@ struct OperationalHaltMessage {
 /// number is used by every subsequent execute, cancel, delete, and replace
 /// message that acts on the order.
 struct AddOrderMessage {
-    char     message_type = 'A';     ///< Always 'A'.
-    uint16_t stock_locate;           ///< Locate code identifying the security.
-    uint16_t tracking_number;        ///< Nasdaq internal tracking number.
-    uint64_t timestamp;              ///< Nanoseconds past midnight.
-    uint64_t order_reference_number; ///< Day-unique reference number for the order.
-    char     buy_sell_indicator;     ///< 'B' buy, 'S' sell.
-    uint32_t shares;                 ///< Displayed share quantity.
-    char     stock[8];               ///< Stock symbol, right padded with spaces.
-    uint32_t price;                  ///< Display price (4 implied decimals).
+    char     message_type = 'A';      ///< Always 'A'.
+    uint16_t stock_locate;            ///< Locate code identifying the security.
+    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
+    uint64_t timestamp;               ///< Nanoseconds past midnight.
+    uint64_t order_reference_number;  ///< Day-unique reference number for the order.
+    char     buy_sell_indicator;      ///< 'B' buy, 'S' sell.
+    uint32_t shares;                  ///< Displayed share quantity.
+    char     stock[8];                ///< Stock symbol, right padded with spaces.
+    uint32_t price;                   ///< Display price (4 implied decimals).
 };
 
 /// @brief Add Order, With MPID Attribution (`F`): like Add Order, but attributed
@@ -227,16 +227,16 @@ struct AddOrderMessage {
 /// added it to the displayable book. It is identical to an Add Order message
 /// except that it also carries the attributing market participant identifier.
 struct AddOrderMPIDAttributionMessage {
-    char     message_type = 'F';     ///< Always 'F'.
-    uint16_t stock_locate;           ///< Locate code identifying the security.
-    uint16_t tracking_number;        ///< Nasdaq internal tracking number.
-    uint64_t timestamp;              ///< Nanoseconds past midnight.
-    uint64_t order_reference_number; ///< Day-unique reference number for the order.
-    char     buy_sell_indicator;     ///< 'B' buy, 'S' sell.
-    uint32_t shares;                 ///< Displayed share quantity.
-    char     stock[8];               ///< Stock symbol, right padded with spaces.
-    uint32_t price;                  ///< Display price (4 implied decimals).
-    char     attribution[4];         ///< Market participant identifier (MPID).
+    char     message_type = 'F';      ///< Always 'F'.
+    uint16_t stock_locate;            ///< Locate code identifying the security.
+    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
+    uint64_t timestamp;               ///< Nanoseconds past midnight.
+    uint64_t order_reference_number;  ///< Day-unique reference number for the order.
+    char     buy_sell_indicator;      ///< 'B' buy, 'S' sell.
+    uint32_t shares;                  ///< Displayed share quantity.
+    char     stock[8];                ///< Stock symbol, right padded with spaces.
+    uint32_t price;                   ///< Display price (4 implied decimals).
+    char     attribution[4];          ///< Market participant identifier (MPID).
 };
 
 /// @brief Order Executed (`E`): a resting order was executed in whole or in part
@@ -247,13 +247,13 @@ struct AddOrderMPIDAttributionMessage {
 /// effects are cumulative, and the order is removed from the book once it is fully
 /// executed.
 struct OrderExecutedMessage {
-    char     message_type = 'E';     ///< Always 'E'.
-    uint16_t stock_locate;           ///< Locate code identifying the security.
-    uint16_t tracking_number;        ///< Nasdaq internal tracking number.
-    uint64_t timestamp;              ///< Nanoseconds past midnight.
-    uint64_t order_reference_number; ///< Reference number of the executed order.
-    uint32_t executed_shares;        ///< Number of shares executed.
-    uint64_t match_number;           ///< Day-unique match number for the execution.
+    char     message_type = 'E';      ///< Always 'E'.
+    uint16_t stock_locate;            ///< Locate code identifying the security.
+    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
+    uint64_t timestamp;               ///< Nanoseconds past midnight.
+    uint64_t order_reference_number;  ///< Reference number of the executed order.
+    uint32_t executed_shares;         ///< Number of shares executed.
+    uint64_t match_number;            ///< Day-unique match number for the execution.
 };
 
 /// @brief Order Executed With Price (`C`): a resting order was executed at a price
@@ -264,15 +264,15 @@ struct OrderExecutedMessage {
 /// be marked non-printable, in which case it is excluded from the time-and-sales
 /// tape (typically to be printed later in aggregate).
 struct OrderExecutedWithPriceMessage {
-    char     message_type = 'C';     ///< Always 'C'.
-    uint16_t stock_locate;           ///< Locate code identifying the security.
-    uint16_t tracking_number;        ///< Nasdaq internal tracking number.
-    uint64_t timestamp;              ///< Nanoseconds past midnight.
-    uint64_t order_reference_number; ///< Reference number of the executed order.
-    uint32_t executed_shares;        ///< Number of shares executed.
-    uint64_t match_number;           ///< Day-unique match number for the execution.
-    char     printable;              ///< 'Y' if the trade is printable to the tape, else 'N'.
-    uint32_t execution_price;        ///< Price at which the order executed (4 decimals).
+    char     message_type = 'C';      ///< Always 'C'.
+    uint16_t stock_locate;            ///< Locate code identifying the security.
+    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
+    uint64_t timestamp;               ///< Nanoseconds past midnight.
+    uint64_t order_reference_number;  ///< Reference number of the executed order.
+    uint32_t executed_shares;         ///< Number of shares executed.
+    uint64_t match_number;            ///< Day-unique match number for the execution.
+    char     printable;               ///< 'Y' if the trade is printable to the tape, else 'N'.
+    uint32_t execution_price;         ///< Price at which the order executed (4 decimals).
 };
 
 /// @brief Order Cancel (`X`): a partial cancellation reduced the shares of a
@@ -283,12 +283,12 @@ struct OrderExecutedWithPriceMessage {
 /// order itself remains on the book. A full cancellation is conveyed by an Order
 /// Delete (`D`) message instead.
 struct OrderCancelMessage {
-    char     message_type = 'X';     ///< Always 'X'.
-    uint16_t stock_locate;           ///< Locate code identifying the security.
-    uint16_t tracking_number;        ///< Nasdaq internal tracking number.
-    uint64_t timestamp;              ///< Nanoseconds past midnight.
-    uint64_t order_reference_number; ///< Reference number of the cancelled order.
-    uint32_t cancelled_shares;       ///< Number of shares cancelled.
+    char     message_type = 'X';      ///< Always 'X'.
+    uint16_t stock_locate;            ///< Locate code identifying the security.
+    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
+    uint64_t timestamp;               ///< Nanoseconds past midnight.
+    uint64_t order_reference_number;  ///< Reference number of the cancelled order.
+    uint32_t cancelled_shares;        ///< Number of shares cancelled.
 };
 
 /// @brief Order Delete (`D`): a resting order was cancelled in its entirety and
@@ -297,11 +297,11 @@ struct OrderCancelMessage {
 /// Sent when an order on the book is cancelled in full. All remaining shares
 /// become inaccessible and the order must be removed from the book.
 struct OrderDeleteMessage {
-    char     message_type = 'D';     ///< Always 'D'.
-    uint16_t stock_locate;           ///< Locate code identifying the security.
-    uint16_t tracking_number;        ///< Nasdaq internal tracking number.
-    uint64_t timestamp;              ///< Nanoseconds past midnight.
-    uint64_t order_reference_number; ///< Reference number of the deleted order.
+    char     message_type = 'D';      ///< Always 'D'.
+    uint16_t stock_locate;            ///< Locate code identifying the security.
+    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
+    uint64_t timestamp;               ///< Nanoseconds past midnight.
+    uint64_t order_reference_number;  ///< Reference number of the deleted order.
 };
 
 /// @brief Order Replace (`U`): a resting order was replaced with a new order at a
@@ -312,14 +312,14 @@ struct OrderDeleteMessage {
 /// that is used for all subsequent updates. The side and security are unchanged;
 /// only the price and size may differ.
 struct OrderReplaceMessage {
-    char     message_type = 'U';              ///< Always 'U'.
-    uint16_t stock_locate;                    ///< Locate code identifying the security.
-    uint16_t tracking_number;                 ///< Nasdaq internal tracking number.
-    uint64_t timestamp;                       ///< Nanoseconds past midnight.
-    uint64_t original_order_reference_number; ///< Reference number being replaced.
-    uint64_t new_order_reference_number;      ///< New reference number for the order.
-    uint32_t shares;                          ///< New displayed share quantity.
-    uint32_t price;                           ///< New display price (4 implied decimals).
+    char     message_type = 'U';               ///< Always 'U'.
+    uint16_t stock_locate;                     ///< Locate code identifying the security.
+    uint16_t tracking_number;                  ///< Nasdaq internal tracking number.
+    uint64_t timestamp;                        ///< Nanoseconds past midnight.
+    uint64_t original_order_reference_number;  ///< Reference number being replaced.
+    uint64_t new_order_reference_number;       ///< New reference number for the order.
+    uint32_t shares;                           ///< New displayed share quantity.
+    uint32_t price;                            ///< New display price (4 implied decimals).
 };
 
 /// @brief Trade, Non-Cross (`P`): an execution of a non-displayable order. It does
@@ -331,16 +331,16 @@ struct OrderReplaceMessage {
 /// change book state; it exists so that consumers can include these executions in
 /// the trade tape and volume calculations.
 struct NonCrossTradeMessage {
-    char     message_type = 'P';     ///< Always 'P'.
-    uint16_t stock_locate;           ///< Locate code identifying the security.
-    uint16_t tracking_number;        ///< Nasdaq internal tracking number.
-    uint64_t timestamp;              ///< Nanoseconds past midnight.
-    uint64_t order_reference_number; ///< Reference number of the non-displayed order.
-    char     buy_sell_indicator;     ///< 'B' buy, 'S' sell.
-    uint32_t shares;                 ///< Number of shares traded.
-    char     stock[8];               ///< Stock symbol, right padded with spaces.
-    uint32_t price;                  ///< Trade price (4 implied decimals).
-    uint64_t match_number;           ///< Day-unique match number for the trade.
+    char     message_type = 'P';      ///< Always 'P'.
+    uint16_t stock_locate;            ///< Locate code identifying the security.
+    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
+    uint64_t timestamp;               ///< Nanoseconds past midnight.
+    uint64_t order_reference_number;  ///< Reference number of the non-displayed order.
+    char     buy_sell_indicator;      ///< 'B' buy, 'S' sell.
+    uint32_t shares;                  ///< Number of shares traded.
+    char     stock[8];                ///< Stock symbol, right padded with spaces.
+    uint32_t price;                   ///< Trade price (4 implied decimals).
+    uint64_t match_number;            ///< Day-unique match number for the trade.
 };
 
 /// @brief Cross Trade (`Q`): the result of a cross (opening, closing, halt/IPO
@@ -383,19 +383,20 @@ struct BrokenTradeMessage {
 /// hypothetical clearing prices (far, near, and current reference price) the cross
 /// would produce, so participants can react before the cross executes.
 struct NOIIMessage {
-    char     message_type = 'I';        ///< Always 'I'.
-    uint16_t stock_locate;              ///< Locate code identifying the security.
-    uint16_t tracking_number;           ///< Nasdaq internal tracking number.
-    uint64_t timestamp;                 ///< Nanoseconds past midnight.
-    uint64_t paired_shares;             ///< Shares paired at the current reference price.
-    uint64_t imbalance_shares;          ///< Shares not paired (the imbalance).
-    char     imbalance_direction;       ///< 'B' buy, 'S' sell, 'N' none, 'O' insufficient, 'P' paused.
-    char     stock[8];                  ///< Stock symbol, right padded with spaces.
-    uint32_t far_price;                 ///< Cross price using only eligible interest (4 decimals).
-    uint32_t near_price;                ///< Cross price using all interest (4 decimals).
-    uint32_t current_reference_price;   ///< Price the cross would occur at now (4 decimals).
-    char     cross_type;                ///< 'O' open, 'C' close, 'H' halt/IPO cross.
-    char     price_variation_indicator; ///< Variation band (see indicators::PRICE_VARIATION_INDICATOR).
+    char     message_type = 'I';   ///< Always 'I'.
+    uint16_t stock_locate;         ///< Locate code identifying the security.
+    uint16_t tracking_number;      ///< Nasdaq internal tracking number.
+    uint64_t timestamp;            ///< Nanoseconds past midnight.
+    uint64_t paired_shares;        ///< Shares paired at the current reference price.
+    uint64_t imbalance_shares;     ///< Shares not paired (the imbalance).
+    char     imbalance_direction;  ///< 'B' buy, 'S' sell, 'N' none, 'O' insufficient, 'P' paused.
+    char     stock[8];             ///< Stock symbol, right padded with spaces.
+    uint32_t far_price;            ///< Cross price using only eligible interest (4 decimals).
+    uint32_t near_price;           ///< Cross price using all interest (4 decimals).
+    uint32_t current_reference_price;  ///< Price the cross would occur at now (4 decimals).
+    char     cross_type;               ///< 'O' open, 'C' close, 'H' halt/IPO cross.
+    char
+        price_variation_indicator;  ///< Variation band (see indicators::PRICE_VARIATION_INDICATOR).
 };
 
 /// @brief Retail Price Improvement Indicator (`N`): the presence of retail price
@@ -421,18 +422,18 @@ struct RetailPriceImprovementIndicatorMessage {
 /// thresholds, the price range collars, and the anticipated execution price and
 /// time used during the DLCR opening.
 struct DLCRMessage {
-    char     message_type = 'O';      ///< Always 'O'.
-    uint16_t stock_locate;            ///< Locate code identifying the security.
-    uint16_t tracking_number;         ///< Nasdaq internal tracking number.
-    uint64_t timestamp;               ///< Nanoseconds past midnight.
-    char     stock[8];                ///< Stock symbol, right padded with spaces.
-    char     open_eligibility_status; ///< Whether the security is eligible to open.
-    uint32_t minimum_allowable_price; ///< Lowest allowable cross price (4 decimals).
-    uint32_t maximum_allowable_price; ///< Highest allowable cross price (4 decimals).
-    uint32_t near_execution_price;    ///< Anticipated cross price (4 decimals).
-    uint64_t near_execution_time;     ///< Time of the anticipated cross (ns past midnight).
-    uint32_t lower_price_range_collar; ///< Lower price range collar (4 decimals).
-    uint32_t upper_price_range_collar; ///< Upper price range collar (4 decimals).
+    char     message_type = 'O';        ///< Always 'O'.
+    uint16_t stock_locate;              ///< Locate code identifying the security.
+    uint16_t tracking_number;           ///< Nasdaq internal tracking number.
+    uint64_t timestamp;                 ///< Nanoseconds past midnight.
+    char     stock[8];                  ///< Stock symbol, right padded with spaces.
+    char     open_eligibility_status;   ///< Whether the security is eligible to open.
+    uint32_t minimum_allowable_price;   ///< Lowest allowable cross price (4 decimals).
+    uint32_t maximum_allowable_price;   ///< Highest allowable cross price (4 decimals).
+    uint32_t near_execution_price;      ///< Anticipated cross price (4 decimals).
+    uint64_t near_execution_time;       ///< Time of the anticipated cross (ns past midnight).
+    uint32_t lower_price_range_collar;  ///< Lower price range collar (4 decimals).
+    uint32_t upper_price_range_collar;  ///< Upper price range collar (4 decimals).
 };
 
 // RESTORE DEFAULT PADDING
