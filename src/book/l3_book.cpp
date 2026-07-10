@@ -37,18 +37,20 @@ auto L3Book::find_level(Side side, std::uint32_t price) const -> std::uint32_t {
     // Bids are sorted descending, asks ascending; binary search accordingly.
     if (side == Side::buy) {
         const auto iter = std::lower_bound(
-            levels.begin(), levels.end(), price, [](const Level& level, std::uint32_t value) {
-                return level.price > value;
-            }
+            levels.begin(),
+            levels.end(),
+            price,
+            [](const Level& level, std::uint32_t value) { return level.price > value; }
         );
         if (iter != levels.end() && iter->price == price) {
             return static_cast<std::uint32_t>(iter - levels.begin());
         }
     } else {
         const auto iter = std::lower_bound(
-            levels.begin(), levels.end(), price, [](const Level& level, std::uint32_t value) {
-                return level.price < value;
-            }
+            levels.begin(),
+            levels.end(),
+            price,
+            [](const Level& level, std::uint32_t value) { return level.price < value; }
         );
         if (iter != levels.end() && iter->price == price) {
             return static_cast<std::uint32_t>(iter - levels.begin());
@@ -61,16 +63,17 @@ auto L3Book::find_or_create_level(Side side, std::uint32_t price) -> std::uint32
     auto& levels = side_levels(side);
     auto  position =
         side == Side::buy
-            ? std::lower_bound(
+             ? std::lower_bound(
                   levels.begin(),
                   levels.end(),
                   price,
                   [](const Level& level, std::uint32_t value) { return level.price > value; }
               )
-            : std::lower_bound(
-                  levels.begin(), levels.end(), price, [](const Level& level, std::uint32_t value) {
-                      return level.price < value;
-                  }
+             : std::lower_bound(
+                  levels.begin(),
+                  levels.end(),
+                  price,
+                  [](const Level& level, std::uint32_t value) { return level.price < value; }
               );
     if (position != levels.end() && position->price == price) {
         return static_cast<std::uint32_t>(position - levels.begin());
@@ -232,13 +235,11 @@ auto L3Book::depth(Side side, std::size_t max_levels) const -> std::vector<Depth
     std::vector<DepthLevel> result;
     result.reserve(count);
     for (std::size_t index = 0; index < count; ++index) {
-        result.push_back(
-            DepthLevel {
-                StandardPrice {levels[index].price},
-                levels[index].total_shares,
-                levels[index].order_count
-            }
-        );
+        result.push_back(DepthLevel {
+            StandardPrice {levels[index].price},
+            levels[index].total_shares,
+            levels[index].order_count
+        });
     }
     return result;
 }
@@ -254,8 +255,7 @@ auto L3Book::orders_at(Side side, std::uint32_t price) const -> std::vector<Orde
     for (std::uint32_t node_index = level.head; node_index != NIL;
          node_index               = m_pool[node_index].next) {
         const OrderNode& node = m_pool[node_index];
-        result.push_back(
-            OrderView {node.reference_number, node.shares, StandardPrice {node.price}}
+        result.push_back(OrderView {node.reference_number, node.shares, StandardPrice {node.price}}
         );
     }
     return result;
