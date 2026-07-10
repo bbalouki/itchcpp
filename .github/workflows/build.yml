@@ -160,10 +160,6 @@ jobs:
         uses: lukka/run-vcpkg@v11
 
       - name: Configure CMake (ASAN + UBSAN)
-        # The ITCH message structs are deliberately `#pragma pack(1)` to match the
-        # wire layout, so their multi-byte members are intentionally unaligned.
-        # Unaligned loads are safe on the supported architectures, so the UBSAN
-        # alignment check is excluded; every other UBSAN check remains fatal.
         run: |
           cmake -S . -B $BUILD_DIR \
             -DITCH_BUILD_TESTS=ON \
@@ -309,8 +305,10 @@ jobs:
       - name: Run binding tests
         run: |
           python -m pip install --upgrade pip pytest
-          cp $BUILD_DIR/python/itchcpp*.so python/tests/
-          cd python/tests && python -m pytest -q
+          # Drop the freshly built extension into the package so `import itchcpp`
+          # resolves to python/itchcpp with its compiled _itchcpp module.
+          cp $BUILD_DIR/python/_itchcpp*.so python/itchcpp/
+          cd python && python -m pytest tests -q
 
   benchmark-smoke:
     runs-on: ubuntu-latest
