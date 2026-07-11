@@ -26,8 +26,24 @@ if(${PROJECT_NAME}_WITH_ARROW)
     find_package(Arrow CONFIG REQUIRED)
     find_package(Parquet CONFIG REQUIRED)
     target_compile_definitions(itch PUBLIC ITCH_WITH_ARROW)
-    target_link_libraries(itch PUBLIC Arrow::arrow_shared Parquet::parquet_shared)
-    message(STATUS "ITCH: Apache Arrow / Parquet export enabled")
+
+    # Arrow's CMake config only exports the *_shared targets when Arrow was
+    # itself built as a shared library; static-linkage triplets/toolchains
+    # (many vcpkg triplets, static system installs, ...) only provide
+    # *_static. Pick whichever pair actually exists instead of assuming shared.
+    if(TARGET Arrow::arrow_shared)
+        set(ITCH_ARROW_TARGET Arrow::arrow_shared)
+    else()
+        set(ITCH_ARROW_TARGET Arrow::arrow_static)
+    endif()
+    if(TARGET Parquet::parquet_shared)
+        set(ITCH_PARQUET_TARGET Parquet::parquet_shared)
+    else()
+        set(ITCH_PARQUET_TARGET Parquet::parquet_static)
+    endif()
+
+    target_link_libraries(itch PUBLIC ${ITCH_ARROW_TARGET} ${ITCH_PARQUET_TARGET})
+    message(STATUS "ITCH: Apache Arrow / Parquet export enabled (${ITCH_ARROW_TARGET}, ${ITCH_PARQUET_TARGET})")
 endif()
 add_library(itch::itch ALIAS itch)
 if (NOT ANDROID)
