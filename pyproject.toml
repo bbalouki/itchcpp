@@ -53,6 +53,15 @@ manylinux-aarch64-image = "manylinux_2_28"
 test-requires = "pytest"
 test-command = "pytest {project}/python/tests"
 
+[tool.cibuildwheel.linux]
+# manylinux_2_28's default gcc-toolset-12 doesn't ship <format> at all (GCC
+# only added std::format support in GCC 13), which the core library needs.
+before-all = "yum install -y gcc-toolset-13"
+
+[tool.cibuildwheel.linux.environment]
+CC = "/opt/rh/gcc-toolset-13/root/usr/bin/gcc"
+CXX = "/opt/rh/gcc-toolset-13/root/usr/bin/g++"
+
 [tool.cibuildwheel.macos.environment]
 # C++20 with libc++ needs a recent deployment target.
 MACOSX_DEPLOYMENT_TARGET = "11.0"
