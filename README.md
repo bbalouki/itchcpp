@@ -767,10 +767,10 @@ The project uses `.clang-format` to enforce a consistent code style. A `.clang-t
   It's the most detailed data feed available from NASDAQ. It's not just stock prices; it’s every single order placed, modified, cancelled, and executed. It's the complete "play-by-play" of the market.
 
 - **Why can't I just use a simple program to read this data?**
-  The data is in a highly optimized, machine-only binary format, not human-readable text. More importantly, the volume and velocity are immense—a single day of trading can generate tens or hundreds of gigabytes of data. A standard program would be far too slow to keep up.
+  The data is in a highly optimized, machine-only binary format, not human-readable text. More importantly, the volume and velocity are immense, a single day of trading can generate tens or hundreds of gigabytes of data. A standard program would be far too slow to keep up.
 
 - **Is this a program I can just double-click and run?**
-  No, it’s a specialized component—a library—that software developers use as the "engine" inside a larger application (like a trading platform or an analysis tool). It does the heavy lifting of data processing so they can focus on building the features their users need.
+  No, it’s a specialized component, a library, that software developers use as the "engine" inside a larger application (like a trading platform or an analysis tool). It does the heavy lifting of data processing so they can focus on building the features their users need.
 
 ---
 
