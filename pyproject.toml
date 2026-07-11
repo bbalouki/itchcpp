@@ -62,6 +62,12 @@ before-all = "yum install -y gcc-toolset-13"
 CC = "/opt/rh/gcc-toolset-13/root/usr/bin/gcc"
 CXX = "/opt/rh/gcc-toolset-13/root/usr/bin/g++"
 
+[tool.cibuildwheel.macos]
+# Cross-build both architectures from the arm64 runner instead of also
+# depending on the macos-13 (Intel) runner pool, which GitHub has been
+# shrinking as it migrates to Apple Silicon and can queue indefinitely.
+archs = ["x86_64", "arm64"]
+
 [tool.cibuildwheel.macos.environment]
 # C++20 with libc++ needs a recent deployment target.
 MACOSX_DEPLOYMENT_TARGET = "11.0"
