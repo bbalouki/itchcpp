@@ -1,4 +1,4 @@
-# itchcpp, a fast, drop-in backend for the pure-Python `itch` package
+# itchcpp, a fast, drop-in backend for the pure-Python itch package
 
 `itchcpp` is a native (C++) NASDAQ TotalView-ITCH 5.0 parser, order-book engine,
 and analytics layer exposed to Python via pybind11. It is built to be a
@@ -96,7 +96,7 @@ cmake -S . -B build -DITCH_BUILD_PYTHON=ON
 cmake --build build --target itchcpp_python
 ```
 
-## Relationship to the `itch` (itchfeed) package
+## Relationship to the itch (itchfeed) package
 
 `itchcpp` ships as a separate package and does not replace `itchfeed`; it exposes the
 same API under the `itchcpp` import root. There are two migration paths:

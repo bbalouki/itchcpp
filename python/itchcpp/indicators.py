@@ -156,7 +156,7 @@ TRADING_ACTION_REASON_CODES = {
     b"MWCQ": "Market Wide Circuit Breaker Resumption",
     b"IPO1": "IPO Issue Not Yet Trading",
     b"IPOQ": "IPO Security Released for Quotation (Nasdaq Securities Only)",
-    b"IPOE": "IPO Security — Positioning Window Extension (Nasdaq Securities Only)",
+    b"IPOE": "IPO Security, Positioning Window Extension (Nasdaq Securities Only)",
     b"M1": "Corporate Action",
     b"M2": "Quotation Not Available",
     b"R1": "New Issue Available",
