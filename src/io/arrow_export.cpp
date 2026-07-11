@@ -243,7 +243,7 @@ auto ArrowExporter::write_parquet(const std::string& path) -> bool {
         *table,
         arrow::default_memory_pool(),
         *outfile_result,
-        impl.row_count > 0 ? impl.row_count : 1
+        static_cast<std::int64_t>(impl.row_count > 0 ? impl.row_count : 1)
     );
     if (!status.ok()) {
         impl.last_error = status.ToString();
