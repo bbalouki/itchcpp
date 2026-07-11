@@ -8,6 +8,8 @@
 ![Vcpkg Version](https://img.shields.io/vcpkg/v/bbalouki-itch)
 [![C++20](https://img.shields.io/badge/C++-20-blue.svg)](https://isocpp.org/std/the-standard)
 [![CMake](https://img.shields.io/badge/CMake-3.25+-blue.svg)](https://cmake.org/)
+[![PyPi status](https://img.shields.io/pypi/status/itchcpp.svg?maxAge=60)](https://pypi.python.org/pypi/itchcpp)
+[![PYPI Version](https://img.shields.io/pypi/v/itchcpp)](https://pypi.org/project/itchcpp/)
 [![CodeFactor](https://www.codefactor.io/repository/github/bbalouki/itchcpp/badge)](https://www.codefactor.io/repository/github/bbalouki/itchcpp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-grey?logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/bertin-balouki-simyeli-15b17a1a6/)
