@@ -238,7 +238,7 @@ jobs:
         run: cmake --build $BUILD_DIR --target coverage
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: ${{ env.BUILD_DIR }}/coverage.html
