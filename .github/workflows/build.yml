@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Cache vcpkg
         uses: actions/cache@v4
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install clang-format
         run: pip install clang-format==18.1.8
@@ -111,7 +111,7 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install clang-tidy
         run: sudo apt-get update && sudo apt-get install -y clang-tidy
@@ -154,7 +154,7 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Cache vcpkg
         uses: actions/cache@v4
@@ -197,7 +197,7 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install gcovr
         run: sudo apt-get update && sudo apt-get install -y gcovr
@@ -251,7 +251,7 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install clang
         run: sudo apt-get update && sudo apt-get install -y clang
@@ -282,7 +282,7 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -336,7 +336,7 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Cache vcpkg
         uses: actions/cache@v4
