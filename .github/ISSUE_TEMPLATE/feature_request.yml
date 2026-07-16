@@ -1,0 +1,66 @@
+name: Feature request
+description: Suggest an enhancement for ITCHCPP.
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Please search
+        [existing issues](https://github.com/bbalouki/itchcpp/issues) first to
+        avoid duplicates.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What limitation or gap are you running into? Is it related to a specific message type, transport, or interface (C++, Python, itch-tool)?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen? Include a sketch of the API or CLI surface if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Parser / message decoding
+        - Feed ingestion / transport (MoldUDP64, SoupBinTCP, pcap)
+        - Book engine
+        - Analytics
+        - Interoperability (CSV/Arrow, itch-tool)
+        - Python bindings
+        - Build / packaging (CMake, vcpkg, Conan)
+        - Documentation
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: Compatibility
+      options:
+        - label: This would require a breaking change to the public API (see [CONTRIBUTING](../../CONTRIBUTING.md#versioning-and-compatibility-policy)).
+          required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+    validations:
+      required: false

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/bbalouki/itchcpp/discussions
+    about: Ask usage questions or discuss ideas before filing an issue.
+  - name: Security vulnerability
+    url: https://github.com/bbalouki/itchcpp/security/policy
+    about: Report security issues privately, do not open a public issue. See SECURITY.md.
