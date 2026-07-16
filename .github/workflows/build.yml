@@ -36,9 +36,11 @@ jobs:
           # Keyed on matrix.os (not runner.os) so a runner-image change, which can
           # silently swap the compiler/toolset, busts the cache instead of reusing
           # binaries or a CMakeCache.txt built by a different toolchain/generator.
+          # No restore-keys: a partial-match fallback can restore a vcpkg clone
+          # from before vcpkg.json last changed, whose git history doesn't
+          # contain the currently pinned builtin-baseline commit, and
+          # lukka/run-vcpkg then fails outright instead of re-cloning.
           key: ${{ matrix.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            ${{ matrix.os }}-vcpkg-
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
@@ -120,9 +122,11 @@ jobs:
           path: |
             ${{ env.VCPKG_ROOT }}
             ~/.cache/vcpkg
+          # No restore-keys: a partial-match fallback can restore a vcpkg clone
+          # from before vcpkg.json last changed, whose git history doesn't
+          # contain the currently pinned builtin-baseline commit, and
+          # lukka/run-vcpkg then fails outright instead of re-cloning.
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
@@ -158,9 +162,11 @@ jobs:
           path: |
             ${{ env.VCPKG_ROOT }}
             ~/.cache/vcpkg
+          # No restore-keys: a partial-match fallback can restore a vcpkg clone
+          # from before vcpkg.json last changed, whose git history doesn't
+          # contain the currently pinned builtin-baseline commit, and
+          # lukka/run-vcpkg then fails outright instead of re-cloning.
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
@@ -202,9 +208,11 @@ jobs:
           path: |
             ${{ env.VCPKG_ROOT }}
             ~/.cache/vcpkg
+          # No restore-keys: a partial-match fallback can restore a vcpkg clone
+          # from before vcpkg.json last changed, whose git history doesn't
+          # contain the currently pinned builtin-baseline commit, and
+          # lukka/run-vcpkg then fails outright instead of re-cloning.
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
@@ -290,9 +298,10 @@ jobs:
           path: |
             ${{ env.VCPKG_ROOT }}
             ~/.cache/vcpkg
+          # No restore-keys: see build-and-test's Cache vcpkg step for why a
+          # partial-match fallback is unsafe here (it could also cross-match the
+          # non-python vcpkg cache, an even less appropriate restore target).
           key: ${{ runner.os }}-vcpkg-python-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
@@ -335,9 +344,11 @@ jobs:
           path: |
             ${{ env.VCPKG_ROOT }}
             ~/.cache/vcpkg
+          # No restore-keys: a partial-match fallback can restore a vcpkg clone
+          # from before vcpkg.json last changed, whose git history doesn't
+          # contain the currently pinned builtin-baseline commit, and
+          # lukka/run-vcpkg then fails outright instead of re-cloning.
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
