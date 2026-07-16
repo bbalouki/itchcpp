@@ -33,9 +33,12 @@ jobs:
           path: |
             ${{ env.VCPKG_ROOT }}
             ~/.cache/vcpkg
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          # Keyed on matrix.os (not runner.os) so a runner-image change, which can
+          # silently swap the compiler/toolset, busts the cache instead of reusing
+          # binaries or a CMakeCache.txt built by a different toolchain/generator.
+          key: ${{ matrix.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-
+            ${{ matrix.os }}-vcpkg-
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
@@ -44,9 +47,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.BUILD_DIR }}
-          key: ${{ runner.os }}-${{ matrix.build_type }}-cmake-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-cmake-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.build_type }}-cmake-
+            ${{ matrix.os }}-${{ matrix.build_type }}-cmake-
 
       - name: Set VCPKG Triplet
         shell: bash
