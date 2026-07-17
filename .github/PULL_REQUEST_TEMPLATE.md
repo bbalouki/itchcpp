@@ -16,7 +16,7 @@
 
 ## Checklist
 
-- [ ] Code follows the style in [CLAUDE](../CLAUDE.md) (`snake_case`, `PascalCase` types, `m_` members, trailing return types, etc.).
+- [ ] Code follows the style (`snake_case`, `PascalCase` types, `m_` members, trailing return types, etc.).
 - [ ] `clang-format` and `clang-tidy` pass locally.
 - [ ] Tests were added or updated under `tests/` and `ctest` passes.
 - [ ] Public API changes are documented with Doxygen `///` comments.

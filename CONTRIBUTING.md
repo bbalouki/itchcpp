@@ -34,7 +34,7 @@ Optional features are off by default and enabled with:
 
 ## Code style
 
-- Follow the rules in [CLAUDE](CLAUDE.md): `snake_case` functions/variables,
+- `snake_case` functions/variables,
   `PascalCase` types, `m_` private members, `SCREAMING_SNAKE_CASE` constants,
   symbols at least three characters, trailing return types, brace initialization,
   and `std::print`/`std::format` for output.
