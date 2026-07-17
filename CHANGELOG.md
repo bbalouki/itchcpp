@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-07-17
+
+### Fixed
+
+- Python bindings (`ITCH_BUILD_PYTHON=ON`) failed to configure under newer
+  CMake releases because pybind11 defaulted to its legacy
+  `FindPythonInterp`-based discovery; `python/CMakeLists.txt` now forces the
+  modern `FindPython` path via `PYBIND11_FINDPYTHON`.
+- vcpkg `builtin-baseline` bumped past a pinned `benchmark` port revision
+  whose portfile passed an invalid `-Werror=old-style-cast` CMake argument,
+  which broke any fresh build of that dependency.
+- CI: pinned Windows runners off the floating `windows-latest` label (which
+  moved to a newer toolchain vcpkg's `benchmark` port doesn't yet build
+  under) and hardened the GitHub Actions vcpkg/CMake build caches (keyed on
+  the concrete runner label, no unsafe `restore-keys` fallback) so a
+  toolchain or dependency change can't silently restore an incompatible
+  cached build.
+
 ## [1.6.2] - 2026-07-11
 
 ### Fixed
@@ -79,7 +97,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `std::variant`, plus `std::vector`- and callback-based parsing entry points
   with optional message-type filtering.
 
-[Unreleased]: https://github.com/bbalouki/itchcpp/compare/v1.6.2...HEAD
+[Unreleased]: https://github.com/bbalouki/itchcpp/compare/v1.6.3...HEAD
+[1.6.3]: https://github.com/bbalouki/itchcpp/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/bbalouki/itchcpp/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/bbalouki/itchcpp/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/bbalouki/itchcpp/compare/v1.1.0...v1.6.0
