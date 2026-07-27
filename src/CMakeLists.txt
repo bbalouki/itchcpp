@@ -85,8 +85,8 @@ install(
 
 # Step 4: Specify Header Destinations
 install(
-    DIRECTORY ${PROJECT_SOURCE_DIR}/include
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/itch
+    DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 # Step 5: Export the Target Information
