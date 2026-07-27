@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.4] - 2026-07-27
+
+### Fixed
+
+- Installed headers landed at `include/itch/include/itch/...` instead of
+  `include/itch/...`. The `install(DIRECTORY ...)` rule in `src/CMakeLists.txt`
+  was missing a trailing slash on the source directory while also appending
+  `/itch` to the destination, doubling the path; this affected every
+  installed consumer (vcpkg, Conan, plain `cmake --install`), not just one
+  packaging path.
+
 ## [1.6.3] - 2026-07-17
 
 ### Fixed
@@ -97,7 +108,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `std::variant`, plus `std::vector`- and callback-based parsing entry points
   with optional message-type filtering.
 
-[Unreleased]: https://github.com/bbalouki/itchcpp/compare/v1.6.3...HEAD
+[Unreleased]: https://github.com/bbalouki/itchcpp/compare/v1.6.4...HEAD
+[1.6.4]: https://github.com/bbalouki/itchcpp/compare/v1.6.3...v1.6.4
 [1.6.3]: https://github.com/bbalouki/itchcpp/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/bbalouki/itchcpp/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/bbalouki/itchcpp/compare/v1.6.0...v1.6.1
