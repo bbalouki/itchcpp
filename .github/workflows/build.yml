@@ -44,6 +44,11 @@ jobs:
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
+        with:
+          # Without this, the default '**/vcpkg.json' glob also matches
+          # packaging/bbalouki-itch/vcpkg.json (a vcpkg *port* manifest with
+          # no builtin-baseline), and the action fails to find the baseline.
+          vcpkgJsonGlob: "vcpkg.json"
 
       - name: Cache CMake build
         uses: actions/cache@v4
@@ -130,6 +135,11 @@ jobs:
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
+        with:
+          # Without this, the default '**/vcpkg.json' glob also matches
+          # packaging/bbalouki-itch/vcpkg.json (a vcpkg *port* manifest with
+          # no builtin-baseline), and the action fails to find the baseline.
+          vcpkgJsonGlob: "vcpkg.json"
 
       - name: Configure CMake (export compile commands)
         run: |
@@ -170,6 +180,11 @@ jobs:
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
+        with:
+          # Without this, the default '**/vcpkg.json' glob also matches
+          # packaging/bbalouki-itch/vcpkg.json (a vcpkg *port* manifest with
+          # no builtin-baseline), and the action fails to find the baseline.
+          vcpkgJsonGlob: "vcpkg.json"
 
       - name: Configure CMake (ASAN + UBSAN)
         run: |
@@ -216,6 +231,11 @@ jobs:
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
+        with:
+          # Without this, the default '**/vcpkg.json' glob also matches
+          # packaging/bbalouki-itch/vcpkg.json (a vcpkg *port* manifest with
+          # no builtin-baseline), and the action fails to find the baseline.
+          vcpkgJsonGlob: "vcpkg.json"
 
       - name: Configure CMake (coverage)
         run: |
@@ -305,6 +325,11 @@ jobs:
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
+        with:
+          # Without this, the default '**/vcpkg.json' glob also matches
+          # packaging/bbalouki-itch/vcpkg.json (a vcpkg *port* manifest with
+          # no builtin-baseline), and the action fails to find the baseline.
+          vcpkgJsonGlob: "vcpkg.json"
 
       - name: Configure CMake (Python bindings)
         run: |
@@ -352,6 +377,11 @@ jobs:
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
+        with:
+          # Without this, the default '**/vcpkg.json' glob also matches
+          # packaging/bbalouki-itch/vcpkg.json (a vcpkg *port* manifest with
+          # no builtin-baseline), and the action fails to find the baseline.
+          vcpkgJsonGlob: "vcpkg.json"
 
       - name: Configure CMake (benchmarks)
         run: |
