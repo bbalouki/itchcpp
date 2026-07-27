@@ -446,7 +446,7 @@ struct DLCRMessage {
 /// single letter identifying the message), `timestamp` (nanoseconds past
 /// midnight), `stock_locate` (locate code identifying the security), and
 /// `tracking_number` (Nasdaq internal tracking number). For more details on each
-/// message type, see the 
+/// message type, see the
 /// [documentation](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf).
 ///
 /// @note
