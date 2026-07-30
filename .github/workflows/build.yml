@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Cache vcpkg
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}
@@ -51,7 +51,7 @@ jobs:
           vcpkgJsonGlob: "vcpkg.json"
 
       - name: Cache CMake build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.BUILD_DIR }}
           key: ${{ matrix.os }}-${{ matrix.build_type }}-cmake-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
@@ -122,7 +122,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang-tidy
 
       - name: Cache vcpkg
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}
@@ -167,7 +167,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Cache vcpkg
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}
@@ -218,7 +218,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y gcovr
 
       - name: Cache vcpkg
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}
@@ -313,7 +313,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y autoconf autoconf-archive automake libtool
 
       - name: Cache vcpkg
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}
@@ -364,7 +364,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Cache vcpkg
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.VCPKG_ROOT }}
